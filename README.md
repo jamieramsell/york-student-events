@@ -62,7 +62,6 @@ york-student-events/
 │   │   ├── users/
 │   │   ├── subscriptions/
 │   │   ├── events/
-│   │   ├── friends/
 │   │   └── venues/
 │   └── tests/
 ├── docs/                   # API documentation
