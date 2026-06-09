@@ -1,5 +1,5 @@
 package york.studentevents.events;
 
-public class EventServicetest {
+public class EventServiceTest {
     
 }
