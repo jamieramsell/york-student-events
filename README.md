@@ -50,21 +50,81 @@ The backend is to be split across two services:
  
 ```
 york-student-events/
-├── api-core/               # Python service
+│
+├── event-service/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/
+│   │   │   │   └── york/
+│   │   │   │       └── studentevents/
+│   │   │   │           ├── Application.java
+│   │   │   │           ├── events/
+│   │   │   │           │   ├── IEvent.java
+│   │   │   │           │   ├── Event.java
+│   │   │   │           │   ├── EventService.java
+│   │   │   │           │   ├── EventController.java
+│   │   │   │           │   └── IEventRepository.java
+│   │   │   │           ├── users/
+│   │   │   │           │   ├── IUser.java
+│   │   │   │           │   ├── User.java
+│   │   │   │           │   ├── UserService.java
+│   │   │   │           │   ├── UserController.java
+│   │   │   │           │   └── IUserRepository.java
+│   │   │   │           ├── venues/
+│   │   │   │           │   ├── IVenue.java
+│   │   │   │           │   ├── Venue.java
+│   │   │   │           │   ├── VenueService.java
+│   │   │   │           │   ├── VenueController.java
+│   │   │   │           │   └── IVenueRepository.java
+│   │   │   │           ├── subscriptions/
+│   │   │   │           │   ├── IObserver.java
+│   │   │   │           │   ├── IObservable.java
+│   │   │   │           │   └── EventNotificationService.java
+│   │   │   │           └── repository/
+│   │   │   │               ├── IRepository.java
+│   │   │   │               └── inmemory/
+│   │   │   │                   ├── InMemoryEventRepository.java
+│   │   │   │                   └── InMemoryUserRepository.java
+│   │   │   └── resources/
+│   │   │       └── application.properties
+│   │   └── test/
+│   │       └── java/
+│   │           └── york/
+│   │               └── studentevents/
+│   │                   ├── events/
+│   │                   │   └── EventServiceTest.java
+│   │                   ├── users/
+│   │                   │   └── UserServiceTest.java
+│   │                   └── subscriptions/
+│   │                       └── EventNotificationServiceTest.java
+│   └── pom.xml
+│
+├── api-core/
 │   ├── src/
 │   │   ├── attendance/
+│   │   │   └── attendance.py
 │   │   ├── badges/
+│   │   │   └── badges.py
 │   │   ├── friends/
+│   │   │   └── getFriendCircle.py
 │   │   └── matching/
+│   │       └── matching.py
 │   └── tests/
-├── event-service/          # Java service
-│   ├── src/
-│   │   ├── users/
-│   │   ├── subscriptions/
-│   │   ├── events/
-│   │   └── venues/
-│   └── tests/
-├── docs/                   # API documentation
+│       ├── test_attendance.py
+│       ├── test_badges.py
+│       ├── test_friends.py
+│       └── test_matching.py
+│
+├── docs/
+│   └── api-spec.yaml
+│
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── feature.md
+│   │   └── bug.md
+│   └── pull_request_template.md
+│
+├── .gitignore
 ├── CHANGELOG.md
 └── README.md
 ```
