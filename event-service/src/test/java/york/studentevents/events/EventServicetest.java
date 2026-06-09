@@ -1,4 +1,4 @@
-package test.java.york.studentevents.events;
+package york.studentevents.events;
 
 public class EventServicetest {
     

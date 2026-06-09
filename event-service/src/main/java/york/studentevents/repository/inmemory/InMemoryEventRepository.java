@@ -1,4 +1,4 @@
-package main.java.york.studentevents.repository.inmemory;
+package york.studentevents.repository.inmemory;
 
 public class InMemoryEventRepository {
     

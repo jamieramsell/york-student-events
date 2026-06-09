@@ -1,4 +1,4 @@
-package main.java.york.studentevents.subscriptions;
+package york.studentevents.subscriptions;
 
 public class EventNotificationService {
     

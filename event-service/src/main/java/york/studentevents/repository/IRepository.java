@@ -1,4 +1,4 @@
-package main.java.york.studentevents.repository;
+package york.studentevents.repository;
 
 public class IRepository {
     

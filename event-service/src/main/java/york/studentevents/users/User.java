@@ -1,4 +1,4 @@
-package main.java.york.studentevents.users;
+package york.studentevents.users;
 
 public class User {
     

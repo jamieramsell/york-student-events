@@ -1,4 +1,4 @@
-package main.java.york.studentevents.events;
+package york.studentevents.events;
 
 public class Event {
     

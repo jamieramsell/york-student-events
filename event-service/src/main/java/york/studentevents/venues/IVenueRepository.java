@@ -1,4 +1,4 @@
-package main.java.york.studentevents.venues;
+package york.studentevents.venues;
 
 public class IVenueRepository {
     
