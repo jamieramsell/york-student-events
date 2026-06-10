@@ -4,18 +4,20 @@ import java.time.LocalDateTime;
 
 public interface IEvent {
 
-  public long getId();
+  long getId();
 
-  public String getTitle();
+  String getTitle();
 
-  public String getDescription();
+  String getDescription();
 
-  public LocalDateTime getDate();
+  LocalDateTime getStartDateTime();
 
-  public String getLocation(); // todo: implement venues
+  LocalDateTime getEndDateTime();
 
-  public int getCapacity();
+  String getLocation(); // todo: implement venues
 
-  public String getCategory(); // todo: implement categories
+  int getCapacity();
+
+  String getCategory(); // todo: implement categories
 
 }
