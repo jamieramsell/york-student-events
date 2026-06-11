@@ -23,6 +23,8 @@ concurrency:
 jobs:
   move_to_in_review:
     runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
     steps:
       - name: Get project data
         env:
@@ -63,7 +65,6 @@ jobs:
       - name: Get linked issues and move to In Review
         env:
           GH_TOKEN: ${{ secrets.PROJECT_ACCESS_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
         run: |
