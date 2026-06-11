@@ -52,7 +52,7 @@ jobs:
 
           echo "PROJECT_ID=$(jq -r '.data.user.projectV2.id' project_data.json)" >> "$GITHUB_ENV"
           echo "STATUS_FIELD_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .id' project_data.json)" >> "$GITHUB_ENV"
-          echo "IN_REVIEW_OPTION_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="In Review") | .id' project_data.json)" >> "$GITHUB_ENV"
+          echo "IN_REVIEW_OPTION_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="In review") | .id' project_data.json)" >> "$GITHUB_ENV"
 
       - name: Get linked issues and move to In Review
         env:
