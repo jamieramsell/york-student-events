@@ -6,6 +6,12 @@ on:
       - ready_for_review
       - review_requested
       - reopened
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to process'
+        required: true
+        type: number
 
 permissions:
   contents: read
