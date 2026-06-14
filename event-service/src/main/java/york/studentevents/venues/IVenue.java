@@ -4,14 +4,13 @@ package york.studentevents.venues;
 public interface IVenue {
 
   /** Returns the unique identifier of the venue. */
-  public long getId();
+  long getId();
 
-  public String getName();
+  String getName();
 
-
-  public String getAddress();
+  String getAddress();
 
   /** Returns the maximum number of attendees the venue can hold. */
-  public int getCapacity();
+  int getCapacity();
 
 }
