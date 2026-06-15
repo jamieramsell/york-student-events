@@ -16,7 +16,7 @@ public interface IEvent {
 
   String getLocation(); // todo: implement venues
 
-  int getCapacity();
+  Integer getCapacity();
 
   String getCategory(); // todo: implement categories
 
