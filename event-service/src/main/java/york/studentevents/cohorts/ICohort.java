@@ -1,0 +1,60 @@
+package york.studentevents.cohorts;
+
+import java.util.List;
+
+/**
+ * Represents a cohort of University of York students.
+ *
+ * <p>A cohort groups students who share an academic year, enabling targeted event discovery and
+ * social features. Implementations are responsible for maintaining cohort identity and membership.
+ */
+public interface ICohort {
+
+  /** Returns the unique identifier for this cohort. */
+  public long getId();
+
+  /**
+   * Returns the display name of this cohort.
+   *
+   * @return the cohort name; never {@code null}
+   */
+  public String getName();
+
+  /**
+   * Returns the name of the department which this cohort belongs to (e.g. Computer Science)
+   * 
+   * @return the display name of the department; never {@code null}
+   */
+  public String getDepartment();
+
+  /**
+   * Returns the academic year associated with this cohort.
+   *
+   * @return the academic year (e.g. {@code 2025} for the 2025/26 cohort)
+   */
+  public int getAcademicYear();
+
+  /**
+   * Returns the year group / stage of the cohort.
+   * 
+   * <p> First year students are year 1; second year represented by 2.
+   * 
+   * <p> Foundation year cohorts are represented as 'year 0'.
+   * 
+   * <p> Placement years are represented by a year of 3; third years are represented by 4. Note that
+   * this means that any students who are not following a placement year route seemingly jump
+   * straight from year 2 into year 4.
+   * 
+   * <p> The masters stage is represented by 5.
+   * 
+   * @return the stage to which the cohort belongs
+   */
+  public int getYearGroup();
+
+  /**
+   * Returns the IDs of all members belonging to this cohort.
+   *
+   * @return a list of member user IDs; never {@code null}
+   */
+  public List<Long> getMembers();
+}
