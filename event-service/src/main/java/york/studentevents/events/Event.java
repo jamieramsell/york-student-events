@@ -149,4 +149,19 @@ public class Event implements IEvent {
     this.category = category;
   }
 
+  // Object method overrides //
+
+  @Override
+  public String toString() {
+    String stringOutput =
+        "Event: " + title + " (" + id + ")"
+        + "\nCategory: " + category
+        + "\nDescription: " + description
+        + "\nStarts at: " + startDateTime
+        + "\nEnds at: " + endDateTime
+        + "\nLocation: " + location
+        + "\nMaximum attendees: " + capacity;
+    return stringOutput;
+  }
+
 }
