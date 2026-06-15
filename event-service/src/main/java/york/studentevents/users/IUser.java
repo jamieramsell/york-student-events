@@ -13,4 +13,4 @@ public long getCohort();
      * @return List of Long eventIds
      */
 public List<Long> getRegisteredEvents();
-} 
+}
