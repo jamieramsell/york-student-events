@@ -1,6 +1,7 @@
 package york.studentevents.events;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /** Represents a social event that can be attended by students. */
 public interface IEvent {
@@ -8,7 +9,7 @@ public interface IEvent {
   // Getters //
 
   /** Returns the unique identifier for this event. */
-  long getId();
+  UUID getId();
 
   /** Returns the title of this event. */
   String getTitle();
