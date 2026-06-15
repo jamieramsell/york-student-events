@@ -1,11 +1,12 @@
 package york.studentevents.events;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /** Concrete implementation of {@link IEvent} representing a social event. */
 public class Event implements IEvent {
   
-  private long id;
+  private UUID id;
   private String title;
   private String description;
   private LocalDateTime startDateTime;
@@ -35,6 +36,7 @@ public class Event implements IEvent {
       throw new IllegalArgumentException("capacity must be greater than 1");
     }
 
+    this.id = UUID.randomUUID();
     this.title = title;
     this.capacity = Integer.valueOf(capacity);
     this.category = category;
@@ -57,6 +59,7 @@ public class Event implements IEvent {
       throw new IllegalArgumentException("category cannot be null");
     }
 
+    this.id = UUID.randomUUID();
     this.title = title;
     this.capacity = null;
     this.category = category;
@@ -65,7 +68,7 @@ public class Event implements IEvent {
   // Getters //
 
   @Override
-  public long getId() {
+  public UUID getId() {
     return id;
   }
 
