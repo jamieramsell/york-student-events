@@ -1,5 +1,7 @@
 package york.studentevents.users;
+
 import java.util.List;
+
 /** Defines the core contract for user covering their profile data and relationships */
 public interface IUser{
     
@@ -14,8 +16,8 @@ public interface IUser{
     
     long getCohort();
     
-    /** Returns a list of events user signed up to as list of Long eventIds
-     * @return List of Long eventIds
+    /** Returns a list of events that the user has signed up to as list of event IDs
+     * @return List of eventIds
      */
-    List<Long> getRegisteredEvents();
+    List<long> getRegisteredEvents();
 }
