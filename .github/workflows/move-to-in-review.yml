@@ -1,11 +1,17 @@
 name: Move PR to In Review
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - ready_for_review
       - review_requested
       - reopened
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to process'
+        required: true
+        type: number
 
 permissions:
   contents: read
@@ -17,6 +23,8 @@ concurrency:
 jobs:
   move_to_in_review:
     runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
     steps:
       - name: Get project data
         env:
@@ -52,12 +60,11 @@ jobs:
 
           echo "PROJECT_ID=$(jq -r '.data.user.projectV2.id' project_data.json)" >> "$GITHUB_ENV"
           echo "STATUS_FIELD_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .id' project_data.json)" >> "$GITHUB_ENV"
-          echo "IN_REVIEW_OPTION_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="In Review") | .id' project_data.json)" >> "$GITHUB_ENV"
+          echo "IN_REVIEW_OPTION_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="In review") | .id' project_data.json)" >> "$GITHUB_ENV"
 
       - name: Get linked issues and move to In Review
         env:
           GH_TOKEN: ${{ secrets.PROJECT_ACCESS_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
         run: |
