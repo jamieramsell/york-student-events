@@ -1,0 +1,120 @@
+name: Move PR to In Review
+
+on:
+  pull_request_target:
+    types:
+      - ready_for_review
+      - review_requested
+      - reopened
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to process'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+
+concurrency:
+  group: move-to-in-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  move_to_in_review:
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+    steps:
+      - name: Get project data
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_ACCESS_TOKEN }}
+          USERNAME: jamieramsell
+          PROJECT_NUMBER: 5
+        run: |
+          set -euo pipefail
+          gh api graphql -f query='
+            query($user: String!, $number: Int!) {
+              user(login: $user){
+                projectV2(number: $number) {
+                  id
+                  fields(first:20) {
+                    nodes {
+                      ... on ProjectV2Field {
+                        id
+                        name
+                      }
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f user="$USERNAME" -F number="$PROJECT_NUMBER" > project_data.json
+
+          echo "PROJECT_ID=$(jq -r '.data.user.projectV2.id' project_data.json)" >> "$GITHUB_ENV"
+          echo "STATUS_FIELD_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .id' project_data.json)" >> "$GITHUB_ENV"
+          echo "IN_REVIEW_OPTION_ID=$(jq -r '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="In review") | .id' project_data.json)" >> "$GITHUB_ENV"
+
+      - name: Get linked issues and move to In Review
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_ACCESS_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+          linked_issues=$(gh api graphql -f query='
+            query($owner: String!, $repo: String!, $pr: Int!) {
+              repository(owner: $owner, name: $repo) {
+                pullRequest(number: $pr) {
+                  closingIssuesReferences(first: 10) {
+                    nodes {
+                      id
+                    }
+                  }
+                }
+              }
+            }' -f owner="$OWNER" -f repo="$REPO" -F pr="$PR_NUMBER" --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[].id')
+
+          if [ -z "$linked_issues" ]; then
+            echo "No linked issues found for PR #$PR_NUMBER; nothing to move."
+            exit 0
+          fi
+
+          for issue_id in $linked_issues; do
+            item_id="$(gh api graphql -f query='
+              mutation($project:ID!, $issue:ID!) {
+                addProjectV2ItemById(input: {projectId: $project, contentId: $issue}) {
+                  item {
+                    id
+                  }
+                }
+              }' -f project="$PROJECT_ID" -f issue="$issue_id" --jq '.data.addProjectV2ItemById.item.id')"
+
+            gh api graphql -f query='
+              mutation (
+                $project: ID!
+                $item: ID!
+                $status_field: ID!
+                $status_value: String!
+              ) {
+                set_status: updateProjectV2ItemFieldValue(input: {
+                  projectId: $project
+                  itemId: $item
+                  fieldId: $status_field
+                  value: {
+                    singleSelectOptionId: $status_value
+                  }
+                }) {
+                  projectV2Item {
+                    id
+                  }
+                }
+              }' -f project="$PROJECT_ID" -f item="$item_id" -f status_field="$STATUS_FIELD_ID" -f status_value="$IN_REVIEW_OPTION_ID" --silent
+          done
