@@ -42,7 +42,7 @@ The backend is to be split across two services:
 | Service | Language | Responsibility |
 |---|---|---|
 | `api-core` | Python | Attendance, badges, friend graph, interest matching |
-| `event-service` | Java | User accounts, subscriptions, event creation, host/venue management |
+| `event-service` | Java (Spring Boot) | User accounts, subscriptions, event creation, host/venue management, cohort grouping |
  
 ---
  
@@ -58,12 +58,21 @@ york-student-events/
 │   │   │   │   └── york/
 │   │   │   │       └── studentevents/
 │   │   │   │           ├── Application.java
+│   │   │   │           ├── cohorts/
+│   │   │   │           │   ├── ICohort.java
+│   │   │   │           │   └── ICohortRepository.java
 │   │   │   │           ├── events/
 │   │   │   │           │   ├── IEvent.java
 │   │   │   │           │   ├── Event.java
 │   │   │   │           │   ├── EventService.java
 │   │   │   │           │   ├── EventController.java
 │   │   │   │           │   └── IEventRepository.java
+│   │   │   │           ├── exceptions/
+│   │   │   │           │   ├── CapacityExceededException.java
+│   │   │   │           │   ├── CohortNotFoundException.java
+│   │   │   │           │   ├── EventNotFoundException.java
+│   │   │   │           │   ├── UserNotFoundException.java
+│   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           ├── users/
 │   │   │   │           │   ├── IUser.java
 │   │   │   │           │   ├── User.java
@@ -91,6 +100,7 @@ york-student-events/
 │   │       └── java/
 │   │           └── york/
 │   │               └── studentevents/
+│   │                   ├── ApplicationTests.java
 │   │                   ├── events/
 │   │                   │   └── EventServiceTest.java
 │   │                   ├── users/
@@ -116,16 +126,24 @@ york-student-events/
 │       └── test_matching.py
 │
 ├── docs/
-│   └── api-spec.yaml
+│   ├── api-spec.yaml
+│   └── event-service/        # generated Javadoc (./mvnw javadoc:javadoc)
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   ├── feature.md
 │   │   └── bug.md
+│   ├── workflows/
+│   │   ├── lint.yml
+│   │   ├── claude.yml
+│   │   ├── move-to-in-review.yml
+│   │   └── manage-blocked-label.yml
 │   └── pull_request_template.md
 │
 ├── .gitignore
 ├── CHANGELOG.md
+├── CLAUDE.md
+├── LICENSE
 └── README.md
 ```
  
