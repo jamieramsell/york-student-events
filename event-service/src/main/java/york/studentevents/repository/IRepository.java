@@ -25,7 +25,7 @@ public interface IRepository<T>{
      * @param id the ID of the entity to remove
      * @throws java.util.NoSuchElementException if no entity with the given ID exists
      */
-    void delete (Long id);
+    void delete (long id);
 
     /**
      * Looks up an entity by its ID.
@@ -34,7 +34,7 @@ public interface IRepository<T>{
      * @return an {@link Optional} containing the entity if one exists, or
      *         {@link Optional#empty()} if no entity with the given ID is found
      */
-    Optional <T> findByID(Long id);
+    Optional<T> findByID(long id);
 
     /**
      * Retrieves all entities currently held in the repository.

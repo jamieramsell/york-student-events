@@ -11,28 +11,28 @@ import java.util.List;
 public interface ICohort {
 
   /** Returns the unique identifier for this cohort. */
-  public long getId();
+  long getId();
 
   /**
    * Returns the display name of this cohort.
    *
    * @return the cohort name; never {@code null}
    */
-  public String getName();
+  String getName();
 
   /**
    * Returns the name of the department which this cohort belongs to (e.g. Computer Science)
    * 
    * @return the display name of the department; never {@code null}
    */
-  public String getDepartment();
+  String getDepartment();
 
   /**
    * Returns the academic year associated with this cohort.
    *
    * @return the academic year (e.g. {@code 2025} for the 2025/26 cohort)
    */
-  public int getAcademicYear();
+  int getAcademicYear();
 
   /**
    * Returns the year group / stage of the cohort.
@@ -49,12 +49,13 @@ public interface ICohort {
    * 
    * @return the stage to which the cohort belongs
    */
-  public int getYearGroup();
+  int getYearGroup();
 
   /**
    * Returns the IDs of all members belonging to this cohort.
    *
    * @return a list of member user IDs; never {@code null}
    */
-  public List<Long> getMembers();
+  List<Long> getMembers();
+  
 }
