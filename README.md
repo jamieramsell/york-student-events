@@ -161,4 +161,5 @@ Contributions are welcome from University of York students and staff. Please ope
 3. Commit your changes (`git commit -m 'feat: add your feature'`)
 4. Push to the branch (`git push origin feat/your-feature`)
 5. Open a pull request
+
 Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
