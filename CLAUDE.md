@@ -59,7 +59,7 @@ cd event-service
 
 ## Conventions
 
-- **Commits**: Conventional Commits (`feat:`, `fix:`, `chore:`, etc.)
+- **Commits**: Conventional Commits (`feat:`, `fix:`, `chore:`, etc.). Breaking changes are marked using `<type>!:` (e.g. `fix!:`)
 - **Versioning**: Semantic Versioning — see `CHANGELOG.md`
 - **Branching**: feature branches (`feat/your-feature`), open an issue before PRing
 - **Java package root**: `york.studentevents`

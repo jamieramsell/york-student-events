@@ -162,4 +162,4 @@ Contributions are welcome from University of York students and staff. Please ope
 4. Push to the branch (`git push origin feat/your-feature`)
 5. Open a pull request
 
-Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. Breaking changes should be marked using an exclamation mark (`!`) after the type/scope, before the colon — e.g. `fix!:` or `feat!:`.
