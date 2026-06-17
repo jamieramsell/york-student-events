@@ -137,7 +137,22 @@ york-student-events/
  
 - Python 3.11+
 - Java 21+
-### Running the Python service
+
+### Running api-core (Python)
+
+```bash
+# From the repo root — no requirements file yet
+python -m pytest api-core/tests/
+```
+
+### Running event-service (Java / Maven)
+
+```bash
+cd event-service
+./mvnw spring-boot:run        # run the service
+./mvnw test                   # run tests
+./mvnw javadoc:javadoc        # generate Javadoc into target/reports/apidocs
+```
  
 ---
  
