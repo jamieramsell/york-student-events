@@ -13,7 +13,7 @@ public class Event implements IEvent {
   private LocalDateTime endDateTime;
   private String location;
   private Integer capacity;
-  private String category;
+  private EventCategory category;
 
   /**
    * Creates an {@code Event} with a maximum attendee capacity.
@@ -26,7 +26,7 @@ public class Event implements IEvent {
    * @throws IllegalArgumentException if {@code title} or {@code category} is {@code null}, or
    * {@code capacity} is less than one
    */
-  public Event(String title, int capacity, String category) {
+  public Event(String title, int capacity, EventCategory category) {
     // Validation //
     if (title == null || title.isBlank() || title.isEmpty()) {
       throw new IllegalArgumentException("title cannot be null, empty, or blank");
@@ -51,7 +51,7 @@ public class Event implements IEvent {
    * @param category the event category; must not be {@code null}
    * @throws IllegalArgumentException if {@code title} or {@code category} is {@code null}
    */
-  public Event(String title, String category) {
+  public Event(String title, EventCategory category) {
     // Validation //
     if (title == null || title.isBlank() || title.isEmpty()) {
       throw new IllegalArgumentException("title cannot be null, empty, or blank");
@@ -103,7 +103,7 @@ public class Event implements IEvent {
   }
 
   @Override
-  public String getCategory() { // todo: implement categories
+  public EventCategory getCategory() { // todo: implement categories
     return category;
   }
 
@@ -156,7 +156,7 @@ public class Event implements IEvent {
   }
 
   @Override
-  public void setCategory(String category) { // todo: implement categories
+  public void setCategory(EventCategory category) { // todo: implement categories
     this.category = category;
   }
 
