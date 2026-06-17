@@ -1,6 +1,7 @@
 package york.studentevents.users;
 
 import java.util.List;
+import java.util.UUID;
 
 /** Defines the core contract for user covering their profile data and relationships */
 public interface IUser{
@@ -19,5 +20,5 @@ public interface IUser{
     /** Returns a list of events that the user has signed up to as list of event IDs
      * @return List of eventIds
      */
-    List<long> getRegisteredEvents();
+    List<UUID> getRegisteredEvents();
 }
