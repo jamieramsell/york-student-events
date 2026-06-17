@@ -29,10 +29,10 @@ Beyond event discovery, the platform introduces a cohort-based social layer- thi
 - **Friends system** — send and accept friend requests between student accounts
 - **Mutual-interest matching** — algorithm surfaces students with overlapping interests and attendance history
 - **Cohort networking** — filter and connect with students by year group and department
-- HTTP-served web platform (frontend client)
-- Interactive maps of friend networks
-- Chat system with message filtering and report/moderation tooling
-- Push notifications for subscribed hosts and venues
+- **Web platform** — HTTP-served frontend client
+- **Friend network maps** — interactive maps of friend networks
+- **Chat system** — messaging with filtering and report/moderation tooling
+- **Push notifications** — notify users of updates from subscribed hosts and venues
 ---
  
 ## Architecture
