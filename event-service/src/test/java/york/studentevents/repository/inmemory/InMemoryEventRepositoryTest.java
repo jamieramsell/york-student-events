@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import york.studentevents.events.IEvent;
 import york.studentevents.events.Event;
 
 class InMemoryEventRepositoryTest {
@@ -35,10 +36,10 @@ class InMemoryEventRepositoryTest {
 
   @Test
   void save_singleEvent_appearsInFindAll() {
-    Event event = new Event("York Ball", 200, "Social");
+    IEvent event = new Event("York Ball", 200, "Social");
     repository.save(event);
 
-    List<Event> result = repository.findAll();
+    List<IEvent> result = repository.findAll();
     assertEquals(1, result.size());
   }
 
@@ -78,7 +79,7 @@ class InMemoryEventRepositoryTest {
     repository.save(e2);
     repository.save(e3);
 
-    List<UUID> storedIds = repository.findAll().stream().map(Event::getId).toList();
+    List<UUID> storedIds = repository.findAll().stream().map(IEvent::getId).toList();
     assertTrue(storedIds.contains(e1.getId()));
     assertTrue(storedIds.contains(e2.getId()));
     assertTrue(storedIds.contains(e3.getId()));
@@ -113,7 +114,7 @@ class InMemoryEventRepositoryTest {
     event.setTitle("Hackathon 2026");
     repository.save(event);
 
-    List<Event> result = repository.findAll();
+    List<IEvent> result = repository.findAll();
     assertEquals(1, result.size());
     assertEquals("Hackathon 2026", result.get(0).getTitle());
   }
@@ -124,7 +125,7 @@ class InMemoryEventRepositoryTest {
   void findAll_mutatingReturnedList_doesNotAffectRepository() {
     repository.save(new Event("Debate Club", 40, "Academic"));
 
-    List<Event> firstResult = repository.findAll();
+    List<IEvent> firstResult = repository.findAll();
     firstResult.add(new Event("Phantom Event", "Sport"));
 
     assertEquals(1, repository.findAll().size());

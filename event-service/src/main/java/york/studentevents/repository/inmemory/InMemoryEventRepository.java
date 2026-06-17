@@ -1,7 +1,7 @@
 package york.studentevents.repository.inmemory;
 
 import york.studentevents.events.IEventRepository;
-import york.studentevents.events.Event;
+import york.studentevents.events.IEvent;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import java.util.UUID;
  */
 public class InMemoryEventRepository implements IEventRepository {
 
-  private Map<UUID, Event> hashMap;
+  private Map<UUID, IEvent> hashMap;
 
   /**
    * Constructs a new, empty {@code InMemoryEventRepository}.
@@ -32,14 +32,14 @@ public class InMemoryEventRepository implements IEventRepository {
   }
 
   @Override
-  public void save(Event entity) {
+  public void save(IEvent entity) {
     UUID id = entity.getId();
     hashMap.put(id, entity);
   }
 
   @Override
-  public List<Event> findAll() {
-    List<Event> returnList = new ArrayList<>();
+  public List<IEvent> findAll() {
+    List<IEvent> returnList = new ArrayList<>();
     returnList.addAll(hashMap.values());
     return returnList;
   }
