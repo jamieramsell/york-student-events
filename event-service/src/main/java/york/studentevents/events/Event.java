@@ -28,8 +28,8 @@ public class Event implements IEvent {
    */
   public Event(String title, int capacity, String category) {
     // Validation //
-    if (title == null) {
-      throw new IllegalArgumentException("title cannot be null");
+    if (title == null || title.isBlank() || title.isEmpty()) {
+      throw new IllegalArgumentException("title cannot be null, empty, or blank");
     } else if (category == null) {
       throw new IllegalArgumentException("category cannot be null");
     } else if (capacity < 1) {
@@ -53,8 +53,8 @@ public class Event implements IEvent {
    */
   public Event(String title, String category) {
     // Validation //
-    if (title == null) {
-      throw new IllegalArgumentException("title cannot be null");
+    if (title == null || title.isBlank() || title.isEmpty()) {
+      throw new IllegalArgumentException("title cannot be null, empty, or blank");
     } else if (category == null) {
       throw new IllegalArgumentException("category cannot be null");
     }
@@ -112,7 +112,7 @@ public class Event implements IEvent {
   @Override
   public void setTitle(String title) {
     if (title == null || title.isBlank() || title.isEmpty()) {
-      throw new IllegalArgumentException("title cannot be blank, empty, or null");
+      throw new IllegalArgumentException("title cannot be null, empty, or blank");
     }
     this.title = title;
   }
@@ -135,7 +135,7 @@ public class Event implements IEvent {
       throw new IllegalArgumentException("The event must start in the future (startDateTime cannot"
           + " be in the past)");
     }
-    
+
     this.startDateTime = startDateTime;
     this.endDateTime = endDateTime;
   }
