@@ -50,14 +50,15 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
-			<!-- Generate Javadoc into the repo-root docs/ folder. reportOutputDirectory is
-            the parent dir and destDir is the subdirectory placed inside it, so the HTML
-            lands in docs/api-docs/ (the pom lives in event-service/, hence ../docs). -->
+			<!-- Generate Javadoc into the repo-root docs/ folder during `package`. The
+            javadoc report goal always writes into an `apidocs` subdirectory of
+            outputDirectory, so the HTML lands in docs/apidocs/ (the pom lives in
+            event-service/, hence ../docs). -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
-				<outputDirectory>${project.basedir}/../docs/api-docs</outputDirectory>
+				<outputDirectory>${project.basedir}/../docs</outputDirectory>
 				</configuration>
 				<executions>
 				<execution>
