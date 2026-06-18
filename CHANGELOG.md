@@ -1,12 +1,15 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
- 
+
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.1.0] - 2026-06-19
 
-M1 - App Foundation: project scaffolding for both backend services.
+First milestone (M0) release. Establishes the `event-service` (Java / Spring
+Boot) foundation with the Event domain, an end-to-end read endpoint, in-memory
+persistence, and automated build, test, and style-guide enforcement.
 
 ### Added
 - `event-service` (Java 21 / Spring Boot 3.x) scaffolding with `events`, `users`, `venues`, `subscriptions`, `cohorts`, `exceptions`, and `repository` packages

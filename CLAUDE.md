@@ -63,6 +63,7 @@ cd event-service
 ./mvnw spring-boot:run        # run the service
 ./mvnw test                   # run tests
 ./mvnw javadoc:javadoc        # generate Javadoc into target/reports/apidocs
+./mvnw verify                 # compile, test, and run Checkstyle (Google Java Style)
 ```
 
 ## Conventions
@@ -84,6 +85,7 @@ cd event-service
 - **Package layout**: one package per domain slice (`events`, `users`, `venues`, `cohorts`, `subscriptions`, `repository`); cross-cutting `exceptions` package for custom exception types
 - **MVC layering**: `Controller` → `Service` → `Repository`; keep business logic out of controllers
 - **Tests**: JUnit 5 via Spring Boot Test; one test class per service class (e.g. `EventServiceTest` for `EventService`)
+- **Style enforcement**: code must conform to the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), enforced by the `maven-checkstyle-plugin` (Checkstyle 10.17.0, `google_checks.xml`) during `mvn verify`
 
 ### Python (`api-core`)
 
@@ -102,6 +104,9 @@ endpoints are live yet — `docs/api-spec.yaml` documents the *intended* contrac
 ahead of implementation. The primary established patterns are:
 - Observer pattern for subscriptions (`IObserver` / `IObservable` / `EventNotificationService`)
 - Repository pattern with in-memory implementations (`InMemoryEventRepository`, `InMemoryUserRepository`)
+- Dependency injection to ensure each layer remains truly seperate
 - Spring Boot MVC structure (Controller → Service → Repository)
 
-No persistence layer, authentication, or inter-service communication exists yet.
+CI runs on every PR (`build.yml` for the Java build/test/Checkstyle, `lint.yml`
+for `ruff` on `api-core`). No persistence layer, authentication, or
+inter-service communication exists yet.

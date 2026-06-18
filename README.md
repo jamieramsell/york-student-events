@@ -2,7 +2,7 @@
  
 > A centralised event discovery and social platform exclusively for University of York students.
  
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.0.0--alpha-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
 [![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
 [![Python](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org)
@@ -157,22 +157,32 @@ york-student-events/
 - Python 3.11+
 - Java 21+ (the `event-service` ships with the Maven Wrapper, `./mvnw`)
 
-### Running api-core (Python)
-
+### Running the Java service (`event-service`)
+ 
+```bash
+cd event-service
+./mvnw spring-boot:run        # start the service
+./mvnw verify                 # compile, run tests, and run Checkstyle
+./mvnw javadoc:javadoc        # generate Javadoc into docs/apidocs
+```
+ 
+### Running the Python service (`api-core`)
+ 
 ```bash
 # From the repo root — no requirements file yet
 python -m pytest api-core/tests/
 ```
-
-### Running event-service (Java / Maven)
-
-```bash
-cd event-service
-./mvnw spring-boot:run        # run the service
-./mvnw test                   # run tests
-./mvnw verify                 # compile, run tests, and run Checkstyle
-./mvnw javadoc:javadoc        # generate Javadoc into target/reports/apidocs
-```
+ 
+---
+ 
+## Code Style
+ 
+The Java codebase follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), enforced by the `maven-checkstyle-plugin` (Checkstyle 10.17.0) against the bundled `google_checks.xml` during `mvn verify`. Python code is linted with [Ruff](https://docs.astral.sh/ruff/).
+ 
+Both checks run automatically on every pull request:
+ 
+- **`build.yml`** — builds, tests, and runs Checkstyle on `event-service` via `./mvnw -B verify`
+- **`lint.yml`** — runs `ruff check` against `api-core`
  
 ---
  
@@ -196,25 +206,27 @@ This project uses [Semantic Versioning](https://semver.org/). Releases follow th
 - `PATCH` — backwards-compatible bug fixes
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
  
+- **Breaking changes** are flagged with `!` (e.g. `feat!:`, `fix!:`). A breaking change must have a corresponding issue opened first.
+
 ---
- 
+
 ## Contributing
- 
+
 Contributions are welcome from University of York students and staff. Please open an issue before submitting a pull request so the proposed change can be discussed first.
- 
+
 This project uses a milestone-based branching model. Work flows from short-lived
 development branches up through per-milestone stable branches into `main`:
- 
+
 ```
 <milestone>/<label>/<name>  ──PR──▶  stable-<milestone>  ──PR──▶  main
 ```
- 
+
 ### Branching
- 
+
 - **Development branches** — `<milestone>/<label>/<name>`, where `<label>` is a
   Conventional Commit type (`feat`, `fix`, `refactor`, `docs`, `chore`, …). Version
   milestones replace dots with hyphens (`v1.0.0` → `v1-0-0`).
-  - `m1/feat/repositories` — adding the in-memory repositories in milestone M1
+  - `m1/feat/irepository` — defining the `IRepository` interface in milestone M1
   - `v1-0-0/refactor/consoleview` — refactoring the console view in milestone v1.0.0
 - **Stable branches** — `stable-<milestone>` (e.g. `stable-m1`, `stable-v1-0-0`).
   Development branches are merged here via pull request once ready.
@@ -222,22 +234,24 @@ development branches up through per-milestone stable branches into `main`:
   via a further pull request.
  
 ### Pull requests
- 
+
 1. Open an issue describing the change before starting work.
 2. Branch from the relevant stable branch using the naming convention above.
 3. Open a pull request targeting the appropriate branch (development → `stable-<milestone>`;
    completed milestone → `main`).
-4. Every pull request must pass the automated checks (tests and lint) before it can be merged.
- 
+4. Every pull request must pass the automated checks (build, test, lint) before it can be merged.
+
 ### Commits & versioning
- 
+
 - **[Conventional Commits](https://www.conventionalcommits.org/)** (`feat:`, `fix:`,
   `refactor:`, `chore:`, `docs:`, …).
 - **Breaking changes** are flagged with `!` (e.g. `feat!:`, `fix!:`). A breaking change must have a corresponding issue opened first.
 - Releases follow **[Semantic Versioning](https://semver.org/)**.
- 
+
+Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
 ---
- 
+
 ## License
- 
+
 This project is licensed under the [MIT License](LICENSE).
