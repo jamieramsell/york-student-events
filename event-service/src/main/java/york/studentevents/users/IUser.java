@@ -11,19 +11,23 @@ public interface IUser extends IEntity{
     String getUsername();
 
     /** Sets the user's username
+     *
      * @param username the new username; must not be {@code null} or blank
+     *
      * @throws IllegalArgumentException if the username is invalid
      */
-    void setUsername(String username) throws IllegalArgumentException;
+    void setUsername(String username);
     
     /** Returns the user's password */
     String getEmail();
 
     /** Sets the user's email
+     *
      * @param email the new email; must not be {@code null} or blank
+     * 
      * @throws IllegalArgumentException if the email is invalid
      */
-    void setEmail(String email) throws IllegalArgumentException;
+    void setEmail(String email);
 
     /** Returns the user's cohort */
     UUID getCohort();

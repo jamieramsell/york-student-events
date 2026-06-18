@@ -12,15 +12,15 @@ public class User implements IUser{
     private List<UUID> registeredEvents;
 
     /** Creates a {@code User} with the given details.
-     * <p>
+     * 
      * @param username the user's username; must not be {@code null}, blank, or empty.
      * @param email the user's email; must not be {@code null}, blank, or empty.
      * @param cohort the user's cohort; no validation is performed
      * @param registeredEvents the user's registered events; no validation is performed
-     * <p>
+     * 
      * @throws IllegalArgumentException if the username or email is invalid
      */
-    public User(String username, String email, UUID cohort, List<UUID> registeredEvents) throws IllegalArgumentException {
+    public User(String username, String email, UUID cohort, List<UUID> registeredEvents) {
         this.id = UUID.randomUUID();
         setUsername(username);
         setEmail(email);
@@ -32,7 +32,7 @@ public class User implements IUser{
     public UUID getId() {
         return id;
     }
-    
+
     @Override
     public String getUsername() {
         return username;
@@ -42,10 +42,11 @@ public class User implements IUser{
      * Sets the user's username
      *
      * @param username the new username; must not be {@code null}, blank, or empty
+     *
      * @throws IllegalArgumentException if the username is invalid
      */
     @Override
-    public void setUsername(String username) throws IllegalArgumentException {
+    public void setUsername(String username) {
         if (username == null || username.isBlank() || username.isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null, blank, or empty.");
         }
@@ -61,6 +62,7 @@ public class User implements IUser{
      * Sets the user's email
      *
      * @param email the new email; must not be {@code null} or blank
+     *
      * @throws IllegalArgumentException if the email is invalid, null, empty, or blank.
      */
     @Override
