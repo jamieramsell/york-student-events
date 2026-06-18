@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.springframework.stereotype.Repository;
+
 /**
  * In-memory implementation of {@link IEventRepository}.
  *
@@ -20,6 +22,7 @@ import java.util.UUID;
  *
  * @see IEventRepository
  */
+@Repository
 public class InMemoryEventRepository implements IEventRepository {
 
   private Map<UUID, IEvent> hashMap;

@@ -2,6 +2,8 @@ package york.studentevents.events;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 /**
  * Application service exposing event-related business operations.
  *
@@ -12,6 +14,7 @@ import java.util.List;
  * @see IEventRepository
  * @see IEvent
  */
+@Service
 public class EventService {
 
   private IEventRepository repository;
