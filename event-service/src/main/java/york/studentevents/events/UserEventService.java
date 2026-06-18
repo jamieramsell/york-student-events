@@ -23,9 +23,9 @@ import java.util.UUID;
  * @see IUser
  */
 public class UserEventService {
+    
     private final IEventRepository eventRepository;
     private final IUserRepository userRepository;
-
 
     /**
      * Constructor for UserEventService
@@ -39,53 +39,76 @@ public class UserEventService {
 
     /**
      * Register a user for an event
+     *
      * @param userId the user's ID
      * @param eventId the event's ID
-     * <p>
+     * 
      * @throws EventNotFoundException if the event does not exist
      * @throws UserNotFoundException if the user does not exist
      * @throws CapacityExceededException if the event is full
      * @throws IllegalArgumentException if the user is already registered for the event
      * */
-    void registerForEvent(UUID userId, UUID eventId) throws CapacityExceededException, IllegalArgumentException {
+    void registerForEvent(UUID userId, UUID eventId) throws CapacityExceededException {
         Optional<IEvent> optionalIEvent = eventRepository.findByID(eventId);
         Optional<IUser> optionalIUser = userRepository.findByID(userId);
-        if (optionalIEvent.isEmpty()) throw new EventNotFoundException("Event does not exist");
-        if (optionalIUser.isEmpty()) throw new UserNotFoundException("User does not exist");
-        if (optionalIUser.get().getRegisteredEvents().contains(eventId)) throw new IllegalArgumentException("User is already registered for this event");
-        if (optionalIEvent.get().getCapacity() <= 0) throw new CapacityExceededException("Event is full");
 
+        // Validation
+        if (optionalIEvent.isEmpty()) {
+            throw new EventNotFoundException("Event does not exist");
+        } else if (optionalIUser.isEmpty()) {
+            throw new UserNotFoundException("User does not exist");
+        } else if (optionalIUser.get().getRegisteredEvents().contains(eventId)) {
+            throw new IllegalArgumentException("User is already registered for this event");
+        } else if (optionalIEvent.get().getCapacity() <= 0) {
+            throw new CapacityExceededException("Event is full");
+        }
+
+        // Update user and place back in repository
         IUser user = optionalIUser.get();
         user.getRegisteredEvents().add(eventId);
+        userRepository.save(user);
     }
 
     /**
      * Deregister a user from an event
+     * 
      * @param userId the user's ID
      * @param eventId the event's ID
+     * 
      * @throws IllegalArgumentException if the user is not registered for the event
      * @throws UserNotFoundException if the user does not exist
      */
     void deregisterFromEvent(UUID userId, UUID eventId) throws IllegalArgumentException {
         Optional<IUser> optionalIUser = userRepository.findByID(userId);
-        if (optionalIUser.isEmpty()) throw new UserNotFoundException("User does not exist");
-        if (!optionalIUser.get().getRegisteredEvents().contains(eventId)) throw new IllegalArgumentException("User is not registered for this event");
 
+        // Validation
+        if (optionalIUser.isEmpty()) {
+            throw new UserNotFoundException("User does not exist");
+        } else if (!optionalIUser.get().getRegisteredEvents().contains(eventId)) {
+            throw new IllegalArgumentException("User is not registered for this event");
+        }
+
+        // Update user and place back in repository
         IUser user = optionalIUser.get();
         user.getRegisteredEvents().remove(eventId);
+        userRepository.save(user);
     }
 
     /**
      * Get a list of events a user is registered for
+     * 
      * @param userId the user's ID
+     * 
      * @return a list of events the user is registered for
+     * 
      * @throws IllegalArgumentException if the user does not exist
      * @throws UserNotFoundException if the user does not exist
      */
     List<IEvent> getEventsForUser(UUID userId) throws IllegalArgumentException {
         Optional<IUser> optionalIUser = userRepository.findByID(userId);
-        if (optionalIUser.isEmpty()) throw new UserNotFoundException("User does not exist");
-
+        if (optionalIUser.isEmpty()) {
+            throw new UserNotFoundException("User does not exist");
+        }
         IUser user = optionalIUser.get();
 
         /*
@@ -93,9 +116,10 @@ public class UserEventService {
          * to an event which does not exist, throw an error.
          */
         List<UUID> events = user.getRegisteredEvents();
-        return events.stream()
+        List<IEvent> userEvents = events.stream()
                 .map(eventId -> eventRepository.findByID(eventId)
-                    .orElseThrow(() -> new EventNotFoundException("")))
+                        .orElseThrow(() -> new EventNotFoundException("")))
                 .toList();
+        return userEvents;
     }
 }
