@@ -1,5 +1,6 @@
 package york.studentevents.repository.inmemory;
 
+import york.studentevents.events.Event;
 import york.studentevents.events.IEventRepository;
 import york.studentevents.events.IEvent;
 
@@ -32,6 +33,13 @@ public class InMemoryEventRepository implements IEventRepository {
    */
   public InMemoryEventRepository() {
     hashMap = new HashMap<>();
+
+    // Adding some hardcoded test events
+    IEvent ball = new Event("Summer ball 2026", 1000, "Formal");
+    hashMap.put(ball.getId(), ball);
+
+    IEvent roses = new Event("Roses 2026", "Sport");
+    hashMap.put(roses.getId(), roses);
   }
 
   @Override
