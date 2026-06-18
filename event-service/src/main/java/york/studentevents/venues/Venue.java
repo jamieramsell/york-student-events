@@ -1,5 +1,4 @@
 package york.studentevents.venues;
 
-public class Venue {
-    
-}
+/** todo. */
+public class Venue {}

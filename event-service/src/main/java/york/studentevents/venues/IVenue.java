@@ -1,5 +1,4 @@
 package york.studentevents.venues;
 
-public class IVenue {
-    
-}
+/** todo. */
+public interface IVenue {}

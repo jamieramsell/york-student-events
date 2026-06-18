@@ -1,16 +1,14 @@
 package york.studentevents.repository.inmemory;
 
-import york.studentevents.events.Event;
-import york.studentevents.events.IEventRepository;
-import york.studentevents.events.IEvent;
-
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-
 import org.springframework.stereotype.Repository;
+import york.studentevents.events.Event;
+import york.studentevents.events.IEvent;
+import york.studentevents.events.IEventRepository;
 
 /**
  * In-memory implementation of {@link IEventRepository}.

@@ -1,5 +1,4 @@
 package york.studentevents.users;
 
-public class IUserRepository {
-    
-}
+/** todo. */
+public interface IUserRepository {}

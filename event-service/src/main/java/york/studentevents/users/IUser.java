@@ -1,5 +1,4 @@
 package york.studentevents.users;
 
-public class IUser {
-    
-}
+/** todo. */
+public interface IUser {}

@@ -8,7 +8,7 @@ import java.util.List;
  *
  * @param <T> the type of entity managed by this repository
  */
-public interface IRepository<T>{
+public interface IRepository<T> {
 
   /**
    * Saves an entity to the repository. If an entity with the same ID already
