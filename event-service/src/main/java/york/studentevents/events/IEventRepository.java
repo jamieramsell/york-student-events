@@ -1,5 +1,6 @@
 package york.studentevents.events;
 
-public class IEventRepository {
-    
-}
+import york.studentevents.repository.IRepository;
+
+/** Event-scoped repository interface providing standard CRUD operations */
+public interface IEventRepository extends IRepository<IEvent> {}

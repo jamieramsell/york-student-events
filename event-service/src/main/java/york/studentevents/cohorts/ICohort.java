@@ -1,6 +1,9 @@
 package york.studentevents.cohorts;
 
 import java.util.List;
+import java.util.UUID;
+
+import york.studentevents.repository.IEntity;
 
 /**
  * Represents a cohort of University of York students.
@@ -8,10 +11,7 @@ import java.util.List;
  * <p>A cohort groups students who share an academic year, enabling targeted event discovery and
  * social features. Implementations are responsible for maintaining cohort identity and membership.
  */
-public interface ICohort {
-
-  /** Returns the unique identifier for this cohort. */
-  long getId();
+public interface ICohort extends IEntity {
 
   /**
    * Returns the display name of this cohort.
@@ -56,6 +56,6 @@ public interface ICohort {
    *
    * @return a list of member user IDs; never {@code null}
    */
-  List<Long> getMembers();
+  List<UUID> getMembers();
   
 }
