@@ -77,23 +77,26 @@ york-student-events/
 │   │   │   │           │   ├── IUser.java
 │   │   │   │           │   ├── User.java
 │   │   │   │           │   ├── UserService.java
-│   │   │   │           │   ├── UserController.java
-│   │   │   │           │   └── IUserRepository.java
+│   │   │   │           │   └── UserController.java
 │   │   │   │           ├── venues/
 │   │   │   │           │   ├── IVenue.java
+│   │   │   │           │   ├── IVenueRepository.java
 │   │   │   │           │   ├── Venue.java
 │   │   │   │           │   ├── VenueService.java
-│   │   │   │           │   ├── VenueController.java
-│   │   │   │           │   └── IVenueRepository.java
+│   │   │   │           │   └── VenueController.java
 │   │   │   │           ├── subscriptions/
 │   │   │   │           │   ├── IObserver.java
 │   │   │   │           │   ├── IObservable.java
 │   │   │   │           │   └── EventNotificationService.java
 │   │   │   │           └── repository/
+│   │   │   │               ├── IEntity.java
 │   │   │   │               ├── IRepository.java
 │   │   │   │               └── inmemory/
+│   │   │   │                   ├── AbstractInMemoryRepository.java
+│   │   │   │                   ├── InMemoryCohortRepository.java
 │   │   │   │                   ├── InMemoryEventRepository.java
-│   │   │   │                   └── InMemoryUserRepository.java
+│   │   │   │                   ├── InMemoryUserRepository.java
+│   │   │   │                   └── InMemoryVenueRepository.java
 │   │   │   └── resources/
 │   │   │       └── application.properties
 │   │   └── test/
