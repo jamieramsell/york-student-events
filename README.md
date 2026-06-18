@@ -29,10 +29,10 @@ Beyond event discovery, the platform introduces a cohort-based social layer- thi
 - **Friends system** — send and accept friend requests between student accounts
 - **Mutual-interest matching** — algorithm surfaces students with overlapping interests and attendance history
 - **Cohort networking** — filter and connect with students by year group and department
-- HTTP-served web platform (frontend client)
-- Interactive maps of friend networks
-- Chat system with message filtering and report/moderation tooling
-- Push notifications for subscribed hosts and venues
+- **Web platform** — HTTP-served frontend client
+- **Friend network maps** — interactive maps of friend networks
+- **Chat system** — messaging with filtering and report/moderation tooling
+- **Push notifications** — notify users of updates from subscribed hosts and venues
 ---
  
 ## Architecture
@@ -42,7 +42,7 @@ The backend is to be split across two services:
 | Service | Language | Responsibility |
 |---|---|---|
 | `api-core` | Python | Attendance, badges, friend graph, interest matching |
-| `event-service` | Java | User accounts, subscriptions, event creation, host/venue management |
+| `event-service` | Java (Spring Boot) | User accounts, subscriptions, event creation, host/venue management, cohort grouping |
  
 ---
  
@@ -58,12 +58,21 @@ york-student-events/
 │   │   │   │   └── york/
 │   │   │   │       └── studentevents/
 │   │   │   │           ├── Application.java
+│   │   │   │           ├── cohorts/
+│   │   │   │           │   ├── ICohort.java
+│   │   │   │           │   └── ICohortRepository.java
 │   │   │   │           ├── events/
 │   │   │   │           │   ├── IEvent.java
 │   │   │   │           │   ├── Event.java
 │   │   │   │           │   ├── EventService.java
 │   │   │   │           │   ├── EventController.java
 │   │   │   │           │   └── IEventRepository.java
+│   │   │   │           ├── exceptions/
+│   │   │   │           │   ├── CapacityExceededException.java
+│   │   │   │           │   ├── CohortNotFoundException.java
+│   │   │   │           │   ├── EventNotFoundException.java
+│   │   │   │           │   ├── UserNotFoundException.java
+│   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           ├── users/
 │   │   │   │           │   ├── IUser.java
 │   │   │   │           │   ├── User.java
@@ -91,6 +100,7 @@ york-student-events/
 │   │       └── java/
 │   │           └── york/
 │   │               └── studentevents/
+│   │                   ├── ApplicationTests.java
 │   │                   ├── events/
 │   │                   │   └── EventServiceTest.java
 │   │                   ├── users/
@@ -116,16 +126,24 @@ york-student-events/
 │       └── test_matching.py
 │
 ├── docs/
-│   └── api-spec.yaml
+│   ├── api-spec.yaml
+│   └── event-service/        # generated Javadoc (./mvnw javadoc:javadoc)
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   ├── feature.md
 │   │   └── bug.md
+│   ├── workflows/
+│   │   ├── lint.yml
+│   │   ├── claude.yml
+│   │   ├── move-to-in-review.yml
+│   │   └── manage-blocked-label.yml
 │   └── pull_request_template.md
 │
 ├── .gitignore
 ├── CHANGELOG.md
+├── CLAUDE.md
+├── LICENSE
 └── README.md
 ```
  
@@ -137,7 +155,22 @@ york-student-events/
  
 - Python 3.11+
 - Java 21+
-### Running the Python service
+
+### Running api-core (Python)
+
+```bash
+# From the repo root — no requirements file yet
+python -m pytest api-core/tests/
+```
+
+### Running event-service (Java / Maven)
+
+```bash
+cd event-service
+./mvnw spring-boot:run        # run the service
+./mvnw test                   # run tests
+./mvnw javadoc:javadoc        # generate Javadoc into target/reports/apidocs
+```
  
 ---
  
@@ -162,4 +195,4 @@ Contributions are welcome from University of York students and staff. Please ope
 4. Push to the branch (`git push origin feat/your-feature`)
 5. Open a pull request
 
-Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. Breaking changes should be marked using an exclamation mark (`!`) after the type/scope, before the colon — e.g. `fix!:` or `feat!:`.

@@ -1,12 +1,9 @@
 package york.studentevents.venues;
 
-import java.util.UUID;
+import york.studentevents.repository.IEntity;
 
 /** Represents a venue where events can be held. */
-public interface IVenue {
-
-  /** Returns the unique identifier of the venue. */
-  UUID getId();
+public interface IVenue extends IEntity {
 
   /** Returns the name of the venue. */
   String getName();
