@@ -37,7 +37,7 @@ import york.studentevents.repository.IRepository;
  * @see IEntity
  * @see UUID
  */
-public abstract class AbstractInMemoryRepository<T extends IEntity> implements IRepository<T> {
+abstract class AbstractInMemoryRepository<T extends IEntity> implements IRepository<T> {
   
   private Map<UUID, T> hashMap;
 
