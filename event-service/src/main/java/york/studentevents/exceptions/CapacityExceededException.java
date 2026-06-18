@@ -1,6 +1,6 @@
 package york.studentevents.exceptions;
 
-public class CapacityExceededException extends RuntimeException {
+public class CapacityExceededException extends Exception {
     
     public CapacityExceededException(String message) {
         super(message);
