@@ -30,10 +30,10 @@ Beyond event discovery, the platform introduces a cohort-based social layer- thi
 - **Friends system** — send and accept friend requests between student accounts
 - **Mutual-interest matching** — algorithm surfaces students with overlapping interests and attendance history
 - **Cohort networking** — filter and connect with students by year group and department
-- HTTP-served web platform (frontend client)
-- Interactive maps of friend networks
-- Chat system with message filtering and report/moderation tooling
-- Push notifications for subscribed hosts and venues
+- **Web platform** — HTTP-served frontend client
+- **Friend network maps** — interactive maps of friend networks
+- **Chat system** — messaging with filtering and report/moderation tooling
+- **Push notifications** — notify users of updates from subscribed hosts and venues
 ---
  
 ## Architecture
@@ -43,7 +43,7 @@ The backend is to be split across two services:
 | Service | Language | Responsibility |
 |---|---|---|
 | `api-core` | Python | Attendance, badges, friend graph, interest matching |
-| `event-service` | Java | User accounts, subscriptions, event creation, host/venue management |
+| `event-service` | Java (Spring Boot) | User accounts, subscriptions, event creation, host/venue management, cohort grouping |
  
 ---
  
@@ -59,12 +59,21 @@ york-student-events/
 │   │   │   │   └── york/
 │   │   │   │       └── studentevents/
 │   │   │   │           ├── Application.java
+│   │   │   │           ├── cohorts/
+│   │   │   │           │   ├── ICohort.java
+│   │   │   │           │   └── ICohortRepository.java
 │   │   │   │           ├── events/
 │   │   │   │           │   ├── IEvent.java
 │   │   │   │           │   ├── Event.java
 │   │   │   │           │   ├── EventService.java
 │   │   │   │           │   ├── EventController.java
 │   │   │   │           │   └── IEventRepository.java
+│   │   │   │           ├── exceptions/
+│   │   │   │           │   ├── CapacityExceededException.java
+│   │   │   │           │   ├── CohortNotFoundException.java
+│   │   │   │           │   ├── EventNotFoundException.java
+│   │   │   │           │   ├── UserNotFoundException.java
+│   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           ├── users/
 │   │   │   │           │   ├── IUser.java
 │   │   │   │           │   ├── User.java
@@ -92,6 +101,7 @@ york-student-events/
 │   │       └── java/
 │   │           └── york/
 │   │               └── studentevents/
+│   │                   ├── ApplicationTests.java
 │   │                   ├── events/
 │   │                   │   └── EventServiceTest.java
 │   │                   ├── users/
@@ -117,16 +127,24 @@ york-student-events/
 │       └── test_matching.py
 │
 ├── docs/
-│   └── api-spec.yaml
+│   ├── api-spec.yaml
+│   └── event-service/        # generated Javadoc (./mvnw javadoc:javadoc)
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   ├── feature.md
 │   │   └── bug.md
+│   ├── workflows/
+│   │   ├── lint.yml
+│   │   ├── claude.yml
+│   │   ├── move-to-in-review.yml
+│   │   └── manage-blocked-label.yml
 │   └── pull_request_template.md
 │
 ├── .gitignore
 ├── CHANGELOG.md
+├── CLAUDE.md
+├── LICENSE
 └── README.md
 ```
  
@@ -138,13 +156,14 @@ york-student-events/
  
 - Python 3.11+
 - Java 21+ (the `event-service` ships with the Maven Wrapper, `./mvnw`)
- 
+
 ### Running the Java service (`event-service`)
  
 ```bash
 cd event-service
 ./mvnw spring-boot:run        # start the service
 ./mvnw verify                 # compile, run tests, and run Checkstyle
+./mvnw javadoc:javadoc        # generate Javadoc into docs/apidocs
 ```
  
 ### Running the Python service (`api-core`)
@@ -164,6 +183,17 @@ Both checks run automatically on every pull request:
  
 - **`build.yml`** — builds, tests, and runs Checkstyle on `event-service` via `./mvnw -B verify`
 - **`lint.yml`** — runs `ruff check` against `api-core`
+ 
+---
+ 
+## Code Style
+ 
+The Java codebase follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), enforced by the `maven-checkstyle-plugin` against the bundled `google_checks.xml`. The `check` goal is bound to the `verify` phase, so `./mvnw verify` runs Checkstyle as part of the build. Python code in `api-core` is linted with [Ruff](https://docs.astral.sh/ruff/).
+ 
+Both checks run automatically on every pull request via the **`lint.yml`** workflow:
+ 
+- `ruff check api-core/` for the Python service
+- `./mvnw checkstyle:check` for the Java service
  
 ---
  
@@ -202,7 +232,7 @@ development branches up through per-milestone stable branches into `main`:
   Development branches are merged here via pull request once ready.
 - **`main`** — a completed milestone is merged from its stable branch into `main`
   via a further pull request.
-
+ 
 ### Pull requests
 
 1. Open an issue describing the change before starting work.

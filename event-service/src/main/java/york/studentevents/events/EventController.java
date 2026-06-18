@@ -1,8 +1,6 @@
 package york.studentevents.events;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST controller exposing event data over HTTP.
@@ -11,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
  * {@link EventService}. Its only responsibility is to map incoming HTTP requests to the appropriate
  * service method and return the result, which Spring serialises to JSON.
  */
-@RestController
+@Deprecated
 public class EventController {
   
   private final EventService eventService;
@@ -39,7 +37,6 @@ public class EventController {
    *
    * @return a list of all events, serialised by Spring into a JSON array
    */
-  @GetMapping("/events")
   public List<IEvent> getAllEvents() {
     return eventService.getAllEvents();
   }

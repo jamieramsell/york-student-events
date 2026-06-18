@@ -1,0 +1,428 @@
+openapi: 3.0.3
+
+info:
+  title: york-student-events — event-service API
+  version: 0.1.0
+  description: >
+    Design specification for the `event-service` HTTP API (events, users, venues).
+
+
+    **Status (M1 — App Foundation):** this document defines the intended REST
+    contract for the foundation milestone. The domain interfaces (`IEvent`,
+    `IUser`, `IVenue`) and exception types backing these responses exist in the
+    codebase; the controllers that serve these routes are still being wired up,
+    so endpoints may not all be live yet. Schemas below mirror the current
+    domain interfaces and are the source of truth for the contract.
+  license:
+    name: See LICENSE
+    url: ../LICENSE
+
+servers:
+  - url: http://localhost:8080
+    description: Local development (Spring Boot default port)
+
+tags:
+  - name: events
+    description: Event discovery and management
+  - name: users
+    description: Student user accounts
+  - name: venues
+    description: Venues that host events
+
+paths:
+  /events:
+    get:
+      tags: [events]
+      summary: List all events
+      operationId: listEvents
+      responses:
+        '200':
+          description: The collection of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+    post:
+      tags: [events]
+      summary: Create an event
+      operationId: createEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+      responses:
+        '201':
+          description: The created event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /events/{eventId}:
+    parameters:
+      - $ref: '#/components/parameters/EventId'
+    get:
+      tags: [events]
+      summary: Get an event by id
+      operationId: getEvent
+      responses:
+        '200':
+          description: The requested event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [events]
+      summary: Update an event
+      operationId: updateEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+      responses:
+        '200':
+          description: The updated event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [events]
+      summary: Delete an event
+      operationId: deleteEvent
+      responses:
+        '204':
+          description: The event was deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users:
+    get:
+      tags: [users]
+      summary: List all users
+      operationId: listUsers
+      responses:
+        '200':
+          description: The collection of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      tags: [users]
+      summary: Create a user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: The created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      tags: [users]
+      summary: Get a user by id
+      operationId: getUser
+      responses:
+        '200':
+          description: The requested user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /venues:
+    get:
+      tags: [venues]
+      summary: List all venues
+      operationId: listVenues
+      responses:
+        '200':
+          description: The collection of venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Venue'
+    post:
+      tags: [venues]
+      summary: Create a venue
+      operationId: createVenue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueInput'
+      responses:
+        '201':
+          description: The created venue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Venue'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /venues/{venueId}:
+    parameters:
+      - $ref: '#/components/parameters/VenueId'
+    get:
+      tags: [venues]
+      summary: Get a venue by id
+      operationId: getVenue
+      responses:
+        '200':
+          description: The requested venue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Venue'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    EventId:
+      name: eventId
+      in: path
+      required: true
+      description: The event's UUID
+      schema:
+        type: string
+        format: uuid
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: The user's id
+      schema:
+        type: integer
+        format: int64
+    VenueId:
+      name: venueId
+      in: path
+      required: true
+      description: The venue's id
+      schema:
+        type: integer
+        format: int64
+
+  responses:
+    BadRequest:
+      description: The request body failed validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: No resource exists with the given id
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: The request violates a domain constraint (e.g. venue capacity exceeded)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    # Mirrors york.studentevents.events.IEvent
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          description: Unique identifier for the event
+        title:
+          type: string
+          description: The title of the event
+        description:
+          type: string
+          description: Extended description of the event
+        startDateTime:
+          type: string
+          format: date-time
+          description: When the event begins
+        endDateTime:
+          type: string
+          format: date-time
+          description: When the event ends; must be after startDateTime
+        location:
+          type: string
+          nullable: true
+          description: Venue or address where the event takes place (venue linkage TODO)
+        capacity:
+          type: integer
+          format: int32
+          nullable: true
+          description: Maximum number of attendees, or null for unlimited
+        category:
+          type: string
+          nullable: true
+          description: Classification label, e.g. "Music", "Sport", "Nightlife" (categories TODO)
+      required:
+        - id
+        - title
+
+    EventInput:
+      type: object
+      description: Fields accepted when creating or updating an event
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+          nullable: true
+        capacity:
+          type: integer
+          format: int32
+          nullable: true
+        category:
+          type: string
+          nullable: true
+      required:
+        - title
+
+    # Mirrors york.studentevents.users.IUser
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          description: Unique identifier for the user
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        cohort:
+          type: integer
+          format: int64
+          description: Identifier of the cohort the user belongs to
+        registeredEvents:
+          type: array
+          description: IDs of events the user has signed up to
+          items:
+            type: string
+            format: uuid
+      required:
+        - id
+        - username
+        - email
+
+    UserInput:
+      type: object
+      description: Fields accepted when creating a user
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        cohort:
+          type: integer
+          format: int64
+      required:
+        - username
+        - email
+
+    # Mirrors york.studentevents.venues.IVenue
+    Venue:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          description: Unique identifier for the venue
+        name:
+          type: string
+        address:
+          type: string
+        capacity:
+          type: integer
+          format: int32
+          description: Maximum number of attendees the venue can hold
+      required:
+        - id
+        - name
+
+    VenueInput:
+      type: object
+      description: Fields accepted when creating a venue
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        capacity:
+          type: integer
+          format: int32
+      required:
+        - name
+
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+          description: HTTP status code
+        error:
+          type: string
+          description: Short error label
+        message:
+          type: string
+          description: Human-readable explanation
+      required:
+        - status
+        - message

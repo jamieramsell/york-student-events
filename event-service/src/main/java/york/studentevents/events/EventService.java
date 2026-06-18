@@ -1,7 +1,6 @@
 package york.studentevents.events;
 
 import java.util.List;
-import org.springframework.stereotype.Service;
 
 /**
  * Application service exposing event-related business operations.
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Service;
  * @see IEventRepository
  * @see IEvent
  */
-@Service
+@Deprecated
 public class EventService {
 
   private IEventRepository repository;
@@ -24,6 +23,7 @@ public class EventService {
    * @param repositoryInjection the repository used to store and retrieve events; must not be
    *     {@code null}
    */
+  @Deprecated
   public EventService(IEventRepository repositoryInjection) {
     if (repositoryInjection == null) {
       throw new IllegalArgumentException("repositoryInjection must not be null");
@@ -37,6 +37,7 @@ public class EventService {
    * @return a {@link List} of all events; never {@code null}, but may be empty if no events have
    *     been saved
    */
+  @Deprecated
   public List<IEvent> getAllEvents() {
     return repository.findAll();
   }
