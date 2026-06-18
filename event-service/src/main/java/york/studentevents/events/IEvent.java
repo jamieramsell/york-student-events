@@ -29,8 +29,12 @@ public interface IEvent extends IEntity {
    */
   Integer getCapacity();
 
-  /** Returns the category that classifies this event (e.g. "Music", "Sport", "Nightlife"). */
-  String getCategory(); // todo: implement categories
+  /**
+   * Returns the category that classifies this event.
+   * 
+   * @see EventCategory
+   */
+  EventCategory getCategory();
 
   // Setters //
 
@@ -81,8 +85,10 @@ public interface IEvent extends IEntity {
   /**
    * Sets the category that classifies this event.
    *
-   * @param category the category label (e.g. "Music", "Sport", "Nightlife")
+   * @param category the category label
+   * 
+   * @see EventCategory
    */
-  void setCategory(String category); // todo: implement categories
+  void setCategory(EventCategory category);
 
 }
