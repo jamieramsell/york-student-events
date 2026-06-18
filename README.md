@@ -59,14 +59,12 @@ york-student-events/
 │   │   │   │       └── studentevents/
 │   │   │   │           ├── Application.java
 │   │   │   │           ├── cohorts/
-│   │   │   │           │   ├── ICohort.java
-│   │   │   │           │   └── ICohortRepository.java
+│   │   │   │           │   └── ICohort.java
 │   │   │   │           ├── events/
 │   │   │   │           │   ├── IEvent.java
 │   │   │   │           │   ├── Event.java
 │   │   │   │           │   ├── EventService.java
-│   │   │   │           │   ├── EventController.java
-│   │   │   │           │   └── IEventRepository.java
+│   │   │   │           │   └── EventController.java
 │   │   │   │           ├── exceptions/
 │   │   │   │           │   ├── CapacityExceededException.java
 │   │   │   │           │   ├── CohortNotFoundException.java
@@ -77,23 +75,25 @@ york-student-events/
 │   │   │   │           │   ├── IUser.java
 │   │   │   │           │   ├── User.java
 │   │   │   │           │   ├── UserService.java
-│   │   │   │           │   ├── UserController.java
-│   │   │   │           │   └── IUserRepository.java
+│   │   │   │           │   └── UserController.java
 │   │   │   │           ├── venues/
 │   │   │   │           │   ├── IVenue.java
 │   │   │   │           │   ├── Venue.java
 │   │   │   │           │   ├── VenueService.java
-│   │   │   │           │   ├── VenueController.java
-│   │   │   │           │   └── IVenueRepository.java
+│   │   │   │           │   └── VenueController.java
 │   │   │   │           ├── subscriptions/
 │   │   │   │           │   ├── IObserver.java
 │   │   │   │           │   ├── IObservable.java
 │   │   │   │           │   └── EventNotificationService.java
 │   │   │   │           └── repository/
+│   │   │   │               ├── IEntity.java
 │   │   │   │               ├── IRepository.java
 │   │   │   │               └── inmemory/
+│   │   │   │                   ├── AbstractInMemoryRepository.java
+│   │   │   │                   ├── InMemoryCohortRepository.java
 │   │   │   │                   ├── InMemoryEventRepository.java
-│   │   │   │                   └── InMemoryUserRepository.java
+│   │   │   │                   ├── InMemoryUserRepository.java
+│   │   │   │                   └── InMemoryVenueRepository.java
 │   │   │   └── resources/
 │   │   │       └── application.properties
 │   │   └── test/
