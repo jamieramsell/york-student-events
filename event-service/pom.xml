@@ -50,6 +50,26 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
+			<!-- Generate Javadoc into the repo-root docs/ folder. reportOutputDirectory is
+            the parent dir and destDir is the subdirectory placed inside it, so the HTML
+            lands in docs/api-docs/ (the pom lives in event-service/, hence ../docs). -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+				<outputDirectory>${project.basedir}/../docs/api-docs</outputDirectory>
+				</configuration>
+				<executions>
+				<execution>
+					<id>generate-javadoc</id>
+					<phase>package</phase>
+					<goals>
+					<goal>javadoc</goal>
+					</goals>
+				</execution>
+				</executions>
+			</plugin>
+
 			<!-- Enforce the Google Java Style Guide during `verify`. The google_checks.xml
             config ships inside the Checkstyle jar, so no local config file is needed.
             Google's checks are emitted at severity "warning", so violationSeverity is
