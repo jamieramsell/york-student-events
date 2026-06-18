@@ -49,18 +49,39 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
+			<!-- Enforce the Google Java Style Guide during `verify`. The google_checks.xml
+            config ships inside the Checkstyle jar, so no local config file is needed.
+            Google's checks are emitted at severity "warning", so violationSeverity is
+            lowered to warning to make any style violation fail the build. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.4.0</version>
+				<dependencies>
+				<dependency>
+					<groupId>com.puppycrawl.tools</groupId>
+					<artifactId>checkstyle</artifactId>
+					<version>${checkstyle.version}</version>
+				</dependency>
+				</dependencies>
 				<configuration>
-					<configLocation>google_checks.xml</configLocation>
-					<failsOnError>true</failsOnError>
+				<configLocation>google_checks.xml</configLocation>
+				<!-- Layer project-specific suppressions over google_checks.xml. The expression name is
+					the property google_checks' bundled SuppressionFilter reads for its file path. -->
+				<suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+				<suppressionsFileExpression>org.checkstyle.google.suppressionfilter.config</suppressionsFileExpression>
+				<includeTestSourceDirectory>true</includeTestSourceDirectory>
+				<failOnViolation>true</failOnViolation>
+				<violationSeverity>warning</violationSeverity>
 				</configuration>
 				<executions>
-					<execution>
-					<goals><goal>check</goal></goals>
-					</execution>
+				<execution>
+					<id>checkstyle-check</id>
+					<phase>verify</phase>
+					<goals>
+					<goal>check</goal>
+					</goals>
+				</execution>
 				</executions>
 			</plugin>
 		</plugins>
