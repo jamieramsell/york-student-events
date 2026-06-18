@@ -5,7 +5,7 @@ import york.studentevents.events.IEvent;
 /**
  * Hash-map backed repository for storing and retrieving {@link IEvent} entities.
  *
- * <p>Extends {@link york.studentevents.repository.AbstractInMemoryRepository} with {@link IEvent}
+ * <p>Extends {@link york.studentevents.repository.inmemory.AbstractInMemoryRepository} with {@link IEvent}
  * as the managed type, providing standard CRUD operations scoped to events.
  *
  * <p>Used for integration testing before implementing database-backed repositories.
