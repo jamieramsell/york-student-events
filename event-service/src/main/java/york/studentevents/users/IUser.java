@@ -5,6 +5,7 @@ import java.util.UUID;
 
 /** Defines the core contract for a user covering their profile data and relationships */
 public interface IUser{
+    
     /** Returns the unique identifier of the user
      * @return the user's ID
      */
@@ -15,7 +16,8 @@ public interface IUser{
 
     /** Sets the user's username
      * @param username the new username; must not be {@code null} or blank
-     * @throws IllegalArgumentException if the username is invalid*/
+     * @throws IllegalArgumentException if the username is invalid
+     */
     void setUsername(String username) throws IllegalArgumentException;
     
     /** Returns the user's password*/
@@ -28,11 +30,11 @@ public interface IUser{
     void setEmail(String email) throws IllegalArgumentException;
 
     /** Returns the user's cohort*/
-    long getCohort();
+    UUID getCohort();
 
     /** Sets the user's cohort
      * @param cohort the new cohort; currently no validation is performed*/
-    void setCohort(long cohort);
+    void setCohort(UUID cohort);
     
     /** Returns a list of events that the user has signed up to as a list of event IDs
      * @return List of eventIds
