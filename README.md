@@ -176,16 +176,52 @@ This project uses [Semantic Versioning](https://semver.org/). Releases follow th
 - `PATCH` — backwards-compatible bug fixes
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
  
+- **Breaking changes** are flagged with `!` (e.g. `feat!:`, `fix!:`). A breaking change must have a corresponding issue opened first.
+
 ---
- 
+
 ## Contributing
- 
+
 Contributions are welcome from University of York students and staff. Please open an issue before submitting a pull request so the proposed change can be discussed first.
- 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feat/your-feature`)
-3. Commit your changes (`git commit -m 'feat: add your feature'`)
-4. Push to the branch (`git push origin feat/your-feature`)
-5. Open a pull request
+
+This project uses a milestone-based branching model. Work flows from short-lived
+development branches up through per-milestone stable branches into `main`:
+
+```
+<milestone>/<label>/<name>  ──PR──▶  stable-<milestone>  ──PR──▶  main
+```
+
+### Branching
+
+- **Development branches** — `<milestone>/<label>/<name>`, where `<label>` is a
+  Conventional Commit type (`feat`, `fix`, `refactor`, `docs`, `chore`, …). Version
+  milestones replace dots with hyphens (`v1.0.0` → `v1-0-0`).
+  - `m1/feat/irepository` — defining the `IRepository` interface in milestone M1
+  - `v1-0-0/refactor/consoleview` — refactoring the console view in milestone v1.0.0
+- **Stable branches** — `stable-<milestone>` (e.g. `stable-m1`, `stable-v1-0-0`).
+  Development branches are merged here via pull request once ready.
+- **`main`** — a completed milestone is merged from its stable branch into `main`
+  via a further pull request.
+
+### Pull requests
+
+1. Open an issue describing the change before starting work.
+2. Branch from the relevant stable branch using the naming convention above.
+3. Open a pull request targeting the appropriate branch (development → `stable-<milestone>`;
+   completed milestone → `main`).
+4. Every pull request must pass the automated checks (build, test, lint) before it can be merged.
+
+### Commits & versioning
+
+- **[Conventional Commits](https://www.conventionalcommits.org/)** (`feat:`, `fix:`,
+  `refactor:`, `chore:`, `docs:`, …).
+- **Breaking changes** are flagged with `!` (e.g. `feat!:`, `fix!:`). A breaking change must have a corresponding issue opened first.
+- Releases follow **[Semantic Versioning](https://semver.org/)**.
 
 Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
