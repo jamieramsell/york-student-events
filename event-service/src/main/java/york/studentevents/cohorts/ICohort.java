@@ -1,6 +1,7 @@
 package york.studentevents.cohorts;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Represents a cohort of University of York students.
@@ -11,7 +12,7 @@ import java.util.List;
 public interface ICohort {
 
   /** Returns the unique identifier for this cohort. */
-  long getId();
+  UUID getId();
 
   /**
    * Returns the display name of this cohort.
@@ -56,6 +57,18 @@ public interface ICohort {
    *
    * @return a list of member user IDs; never {@code null}
    */
-  List<Long> getMembers();
+  List<UUID> getMembers();
+
+  /** Adds a member by UUID to this cohort.
+   * <p>
+   * @param memberId the user ID of the member to add*/
+  void addMember(UUID memberId);
+
+  /** Removes a member by UUID from this cohort.
+   * <p>
+   * @param memberId the user ID of the member to remove; must be a member of this cohort.
+   * <p>
+   * @throws IllegalArgumentException if the member is not a member of this cohort*/
+  void removeMember(UUID memberId) throws IllegalArgumentException;
   
 }
