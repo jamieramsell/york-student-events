@@ -29,12 +29,20 @@ public class Cohort implements ICohort {
      * </ul>
      * @throws IllegalArgumentException if the name, department, academic year, or year group is invalid
      */
-    public Cohort(String name, String department, int academicYear, int yearGroup) {
-        if (name == null || name.isBlank()) throw new IllegalArgumentException("Cohort name cannot be null or empty.");
-        if (department == null || department.isBlank()) throw new IllegalArgumentException("Cohort department cannot be null or empty.");
-        if (academicYear < 0) throw new IllegalArgumentException("Academic year must be greater than 0.");
-        if (yearGroup < 0) throw new IllegalArgumentException("Year group must be greater than or equal to 0");
-        if (yearGroup > 5) throw new IllegalArgumentException("Year group must be less than or equal to 5");
+    public Cohort(String name, String department, int academicYear, int yearGroup) implements {
+
+        // Validation
+        if (name == null || name.isBlank() || name.isEmpty()) {
+            throw new IllegalArgumentException("Cohort name cannot be null, blank, or empty.");
+        } else if (department == null || department.isBlank() || department.isEmpty()) {
+            throw new IllegalArgumentException("Cohort department cannot be null, blank, or empty.");
+        } else if (academicYear < 0) {
+            throw new IllegalArgumentException("Academic year must be >= 0");
+        } else if (yearGroup < 0) {
+            throw new IllegalArgumentException("Year group must be >= 0");
+        } else if (yearGroup > 5) {
+            throw new IllegalArgumentException("Year group must be @code <= 5");
+        }
 
         this.name = name;
         this.department = department;
@@ -45,9 +53,7 @@ public class Cohort implements ICohort {
         this.members = new ArrayList<>();
     }
 
-    /**
-     * Returns the unique identifier for this cohort.
-     */
+    /** Returns the unique identifier for this cohort. */
     @Override
     public UUID getId() {
         return id;
@@ -115,7 +121,6 @@ public class Cohort implements ICohort {
 
     /**
      * Adds a member by UUID to this cohort.
-     * <p>
      *
      * @param memberId the user ID of the member to add
      */
@@ -126,15 +131,16 @@ public class Cohort implements ICohort {
 
     /**
      * Removes a member by UUID from this cohort.
-     * <p>
      *
      * @param memberId the user ID of the member to remove; must be a member of this cohort.
-     *                 <p>
+     *
      * @throws IllegalArgumentException if the member is not a member of this cohort
      */
     @Override
-    public void removeMember(UUID memberId) throws IllegalArgumentException {
-        if (!members.contains(memberId)) throw new IllegalArgumentException("Member is not a member of this cohort.");
+    public void removeMember(UUID memberId) {
+        if (!members.contains(memberId)) {
+            throw new IllegalArgumentException("Member is not a member of this cohort.");
+        }
         members.remove(memberId);
     }
 
