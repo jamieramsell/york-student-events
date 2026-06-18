@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html","k":"18"},{"l":"york.studentevents"},{"l":"york.studentevents.events"},{"l":"york.studentevents.repository"},{"l":"york.studentevents.repository.inmemory"},{"l":"york.studentevents.subscriptions"},{"l":"york.studentevents.users"},{"l":"york.studentevents.venues"}];updateSearchResults();
