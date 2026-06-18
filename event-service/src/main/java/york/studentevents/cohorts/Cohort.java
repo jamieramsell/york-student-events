@@ -29,7 +29,7 @@ public class Cohort implements ICohort {
      * </ul>
      * @throws IllegalArgumentException if the name, department, academic year, or year group is invalid
      */
-    public Cohort(String name, String department, int academicYear, int yearGroup) implements {
+    public Cohort(String name, String department, int academicYear, int yearGroup) {
 
         // Validation
         if (name == null || name.isBlank() || name.isEmpty()) {
