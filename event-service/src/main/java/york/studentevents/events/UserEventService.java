@@ -10,6 +10,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Application service exposing user-related business operations.
+ *
+ * <p>This service forms the {@code Service} layer of the stack, sitting between the
+ * controllers and repositories. Persistence is delegated to the injected repository;
+ * the service holds no state of its own.
+ *
+ * @see IRepository
+ * @see IUserRepository
+ * @see IEventRepository
+ * @see IUser
+ */
 public class UserEventService {
     private final IEventRepository eventRepository;
     private final IUserRepository userRepository;
@@ -75,6 +87,11 @@ public class UserEventService {
         if (optionalIUser.isEmpty()) throw new UserNotFoundException("User does not exist");
 
         IUser user = optionalIUser.get();
+
+        /*
+         * Get a stream of event IDs and map them onto their actual entities. If an event ID points
+         * to an event which does not exist, throw an error.
+         */
         List<UUID> events = user.getRegisteredEvents();
         return events.stream()
                 .map(eventId -> eventRepository.findByID(eventId)
