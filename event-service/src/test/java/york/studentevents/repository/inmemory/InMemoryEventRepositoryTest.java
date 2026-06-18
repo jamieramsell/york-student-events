@@ -11,20 +11,35 @@ import org.junit.jupiter.api.Test;
 import york.studentevents.events.IEvent;
 import york.studentevents.events.Event;
 
+/**
+ * Tests for {@link InMemoryEventRepository}.
+ *
+ * <p>The repository seeds a number of hardcoded events in its constructor, so assertions are
+ * expressed relative to the {@link #baseline} count captured in {@link #setUp()} rather than
+ * against absolute totals. Events are located by id rather than by list position, since the
+ * backing {@code HashMap} provides no ordering guarantee.
+ */
 class InMemoryEventRepositoryTest {
 
   private InMemoryEventRepository repository;
+  private int baseline;
 
   @BeforeEach
   void setUp() {
     repository = new InMemoryEventRepository();
+    baseline = repository.findAll().size();
+  }
+
+  /** Returns the event with the given id from {@code events}, or {@code null} if absent. */
+  private static IEvent findById(List<IEvent> events, UUID id) {
+    return events.stream().filter(e -> e.getId().equals(id)).findFirst().orElse(null);
   }
 
   // --- Initial state ---
 
   @Test
-  void findAll_onNewRepository_returnsEmptyList() {
-    assertTrue(repository.findAll().isEmpty());
+  void findAll_onNewRepository_returnsOnlySeededEvents() {
+    assertEquals(baseline, repository.findAll().size());
   }
 
   @Test
@@ -40,7 +55,8 @@ class InMemoryEventRepositoryTest {
     repository.save(event);
 
     List<IEvent> result = repository.findAll();
-    assertEquals(1, result.size());
+    assertEquals(baseline + 1, result.size());
+    assertNotNull(findById(result, event.getId()));
   }
 
   @Test
@@ -48,8 +64,7 @@ class InMemoryEventRepositoryTest {
     Event event = new Event("York Ball", 200, "Social");
     repository.save(event);
 
-    UUID storedId = repository.findAll().get(0).getId();
-    assertEquals(event.getId(), storedId);
+    assertNotNull(findById(repository.findAll(), event.getId()));
   }
 
   @Test
@@ -57,7 +72,9 @@ class InMemoryEventRepositoryTest {
     Event event = new Event("Film Night", "Culture");
     repository.save(event);
 
-    assertEquals(1, repository.findAll().size());
+    List<IEvent> result = repository.findAll();
+    assertEquals(baseline + 1, result.size());
+    assertNotNull(findById(result, event.getId()));
   }
 
   // --- save: multiple events ---
@@ -67,7 +84,7 @@ class InMemoryEventRepositoryTest {
     repository.save(new Event("Quiz Night", 50, "Social"));
     repository.save(new Event("Band Night", 150, "Music"));
 
-    assertEquals(2, repository.findAll().size());
+    assertEquals(baseline + 2, repository.findAll().size());
   }
 
   @Test
@@ -92,7 +109,7 @@ class InMemoryEventRepositoryTest {
       repository.save(new Event("Event " + i, 30, "Social"));
     }
 
-    assertEquals(count, repository.findAll().size());
+    assertEquals(baseline + count, repository.findAll().size());
   }
 
   // --- save: overwrite on same ID ---
@@ -103,7 +120,7 @@ class InMemoryEventRepositoryTest {
     repository.save(event);
     repository.save(event);
 
-    assertEquals(1, repository.findAll().size());
+    assertEquals(baseline + 1, repository.findAll().size());
   }
 
   @Test
@@ -115,8 +132,8 @@ class InMemoryEventRepositoryTest {
     repository.save(event);
 
     List<IEvent> result = repository.findAll();
-    assertEquals(1, result.size());
-    assertEquals("Hackathon 2026", result.get(0).getTitle());
+    assertEquals(baseline + 1, result.size());
+    assertEquals("Hackathon 2026", findById(result, event.getId()).getTitle());
   }
 
   // --- findAll: defensive copy ---
@@ -128,7 +145,7 @@ class InMemoryEventRepositoryTest {
     List<IEvent> firstResult = repository.findAll();
     firstResult.add(new Event("Phantom Event", "Sport"));
 
-    assertEquals(1, repository.findAll().size());
+    assertEquals(baseline + 1, repository.findAll().size());
   }
 
   // --- Reference semantics ---
@@ -140,7 +157,7 @@ class InMemoryEventRepositoryTest {
 
     event.setTitle("Updated Title");
 
-    assertEquals("Updated Title", repository.findAll().get(0).getTitle());
+    assertEquals("Updated Title", findById(repository.findAll(), event.getId()).getTitle());
   }
 
   // --- Interleaved save and findAll ---
@@ -149,11 +166,11 @@ class InMemoryEventRepositoryTest {
   void findAll_calledBetweenSaves_returnsOnlyEventsSavedSoFar() {
     Event e1 = new Event("First Event", 30, "Music");
     repository.save(e1);
-    assertEquals(1, repository.findAll().size());
+    assertEquals(baseline + 1, repository.findAll().size());
 
     Event e2 = new Event("Second Event", 60, "Sport");
     repository.save(e2);
-    assertEquals(2, repository.findAll().size());
+    assertEquals(baseline + 2, repository.findAll().size());
   }
 
 }

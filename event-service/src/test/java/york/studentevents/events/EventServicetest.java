@@ -18,27 +18,39 @@ import york.studentevents.repository.inmemory.InMemoryEventRepository;
  * <p>Unlike a mock-based unit test, these tests exercise the full service-to-repository
  * collaboration so that the contract between the two (delegation, ordering independence,
  * defensive copying) is verified end to end.
+ *
+ * <p>{@link InMemoryEventRepository} seeds a number of hardcoded events in its constructor, so
+ * assertions are expressed relative to the {@link #baseline} count captured in {@link #setUp()}
+ * rather than against absolute totals. Likewise, events are located by id rather than by list
+ * position, since the backing {@code HashMap} provides no ordering guarantee.
  */
 class EventServiceTest {
 
   private InMemoryEventRepository repository;
   private EventService service;
+  private int baseline;
 
   @BeforeEach
   void setUp() {
     repository = new InMemoryEventRepository();
     service = new EventService(repository);
+    baseline = service.getAllEvents().size();
   }
 
-  // --- Empty repository ---
+  /** Returns the event with the given id from {@code events}, or {@code null} if absent. */
+  private static IEvent findById(List<IEvent> events, UUID id) {
+    return events.stream().filter(e -> e.getId().equals(id)).findFirst().orElse(null);
+  }
+
+  // --- Freshly constructed repository ---
 
   @Test
-  void getAllEvents_onEmptyRepository_returnsEmptyList() {
-    assertTrue(service.getAllEvents().isEmpty());
+  void getAllEvents_onFreshRepository_returnsOnlySeededEvents() {
+    assertEquals(baseline, service.getAllEvents().size());
   }
 
   @Test
-  void getAllEvents_onEmptyRepository_isNotNull() {
+  void getAllEvents_onFreshRepository_isNotNull() {
     assertNotNull(service.getAllEvents());
   }
 
@@ -51,8 +63,8 @@ class EventServiceTest {
 
     List<IEvent> result = service.getAllEvents();
 
-    assertEquals(1, result.size());
-    assertEquals(event.getId(), result.get(0).getId());
+    assertEquals(baseline + 1, result.size());
+    assertNotNull(findById(result, event.getId()));
   }
 
   @Test
@@ -60,10 +72,10 @@ class EventServiceTest {
     Event event = new Event("Film Night", "Culture");
     repository.save(event);
 
-    List<IEvent> result = service.getAllEvents();
+    IEvent stored = findById(service.getAllEvents(), event.getId());
 
-    assertEquals(1, result.size());
-    assertEquals("Film Night", result.get(0).getTitle());
+    assertNotNull(stored);
+    assertEquals("Film Night", stored.getTitle());
   }
 
   // --- Multiple events ---
@@ -79,7 +91,7 @@ class EventServiceTest {
 
     List<UUID> ids = service.getAllEvents().stream().map(IEvent::getId).toList();
 
-    assertEquals(3, ids.size());
+    assertEquals(baseline + 3, ids.size());
     assertTrue(ids.contains(e1.getId()));
     assertTrue(ids.contains(e2.getId()));
     assertTrue(ids.contains(e3.getId()));
@@ -87,11 +99,11 @@ class EventServiceTest {
 
   @Test
   void getAllEvents_reflectsEventsSavedAfterServiceConstruction() {
-    assertTrue(service.getAllEvents().isEmpty());
+    assertEquals(baseline, service.getAllEvents().size());
 
     repository.save(new Event("Late Addition", 30, "Social"));
 
-    assertEquals(1, service.getAllEvents().size());
+    assertEquals(baseline + 1, service.getAllEvents().size());
   }
 
   // --- Delegation to repository ---
@@ -105,8 +117,8 @@ class EventServiceTest {
     repository.save(event);
 
     List<IEvent> result = service.getAllEvents();
-    assertEquals(1, result.size());
-    assertEquals("Hackathon 2026", result.get(0).getTitle());
+    assertEquals(baseline + 1, result.size());
+    assertEquals("Hackathon 2026", findById(result, event.getId()).getTitle());
   }
 
   @Test
@@ -116,7 +128,7 @@ class EventServiceTest {
 
     event.setTitle("Updated Title");
 
-    assertEquals("Updated Title", service.getAllEvents().get(0).getTitle());
+    assertEquals("Updated Title", findById(service.getAllEvents(), event.getId()).getTitle());
   }
 
   // --- Defensive copy ---
@@ -128,7 +140,7 @@ class EventServiceTest {
     List<IEvent> firstResult = service.getAllEvents();
     firstResult.add(new Event("Phantom Event", "Sport"));
 
-    assertEquals(1, service.getAllEvents().size());
+    assertEquals(baseline + 1, service.getAllEvents().size());
   }
 
   // --- Repeated invocation ---
@@ -143,10 +155,10 @@ class EventServiceTest {
   @Test
   void getAllEvents_calledBetweenSaves_returnsOnlyEventsSavedSoFar() {
     repository.save(new Event("First Event", 30, "Music"));
-    assertEquals(1, service.getAllEvents().size());
+    assertEquals(baseline + 1, service.getAllEvents().size());
 
     repository.save(new Event("Second Event", 60, "Sport"));
-    assertEquals(2, service.getAllEvents().size());
+    assertEquals(baseline + 2, service.getAllEvents().size());
   }
 
   @Test
@@ -157,7 +169,7 @@ class EventServiceTest {
     }
 
     List<IEvent> result = service.getAllEvents();
-    assertEquals(count, result.size());
+    assertEquals(baseline + count, result.size());
     assertFalse(result.isEmpty());
   }
 }
