@@ -1,0 +1,28 @@
+name: Build
+
+# Runs on every pull request, so all code is built, tested, and linted before merge.
+on:
+  pull_request:
+
+# Cancel an in-progress run when the same ref is pushed again, to avoid piling
+# up redundant builds.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: event-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      # `verify` compiles, runs the JUnit suite, and runs Checkstyle in one pass.
+      - name: Build, test and lint
+        run: ./mvnw -B verify

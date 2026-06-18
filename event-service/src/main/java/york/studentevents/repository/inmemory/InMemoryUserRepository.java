@@ -1,5 +1,4 @@
 package york.studentevents.repository.inmemory;
 
-public class InMemoryUserRepository {
-    
-}
+/** todo. */
+public class InMemoryUserRepository {}
