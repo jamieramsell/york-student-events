@@ -11,19 +11,6 @@ import york.studentevents.repository.IEntity;
 import york.studentevents.repository.IRepository;
 
 /**
- * Hash-map backed repository for storing and retrieving {@link ICohort} entities.
- *
- * <p>Extends {@link york.studentevents.repository.inmemory.AbstractInMemoryRepository} with {@link ICohort}
- * as the managed type, providing standard CRUD operations scoped to cohorts.
- *
- * <p>Used for integration testing before implementing database-backed repositories.
- * 
- * @see york.studentevents.repository.IRepository
- * @see AbstractInMemoryRepository
- * @see ICohort
- */
-
-/**
  * Hash-map backed repository for storing and retrieving entities.
  *
  * <p>Extends {@link york.studentevents.repository.IRepository} with {@link IEntity} as the
