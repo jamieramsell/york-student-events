@@ -4,6 +4,7 @@
  
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
+[![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
 [![Python](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org)
 [![Java](https://img.shields.io/badge/java-21+-orange.svg)](https://openjdk.org)
  
@@ -154,7 +155,7 @@ york-student-events/
 ### Prerequisites
  
 - Python 3.11+
-- Java 21+
+- Java 21+ (the `event-service` ships with the Maven Wrapper, `./mvnw`)
 
 ### Running api-core (Python)
 
@@ -169,8 +170,20 @@ python -m pytest api-core/tests/
 cd event-service
 ./mvnw spring-boot:run        # run the service
 ./mvnw test                   # run tests
+./mvnw verify                 # compile, run tests, and run Checkstyle
 ./mvnw javadoc:javadoc        # generate Javadoc into target/reports/apidocs
 ```
+ 
+---
+ 
+## Code Style
+ 
+The Java codebase follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), enforced by the `maven-checkstyle-plugin` against the bundled `google_checks.xml`. The `check` goal is bound to the `verify` phase, so `./mvnw verify` runs Checkstyle as part of the build. Python code in `api-core` is linted with [Ruff](https://docs.astral.sh/ruff/).
+ 
+Both checks run automatically on every pull request via the **`lint.yml`** workflow:
+ 
+- `ruff check api-core/` for the Python service
+- `./mvnw checkstyle:check` for the Java service
  
 ---
  
@@ -189,10 +202,42 @@ See [CHANGELOG.md](CHANGELOG.md) for the full release history.
  
 Contributions are welcome from University of York students and staff. Please open an issue before submitting a pull request so the proposed change can be discussed first.
  
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feat/your-feature`)
-3. Commit your changes (`git commit -m 'feat: add your feature'`)
-4. Push to the branch (`git push origin feat/your-feature`)
-5. Open a pull request
-
-Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. Breaking changes should be marked using an exclamation mark (`!`) after the type/scope, before the colon — e.g. `fix!:` or `feat!:`.
+This project uses a milestone-based branching model. Work flows from short-lived
+development branches up through per-milestone stable branches into `main`:
+ 
+```
+<milestone>/<label>/<name>  ──PR──▶  stable-<milestone>  ──PR──▶  main
+```
+ 
+### Branching
+ 
+- **Development branches** — `<milestone>/<label>/<name>`, where `<label>` is a
+  Conventional Commit type (`feat`, `fix`, `refactor`, `docs`, `chore`, …). Version
+  milestones replace dots with hyphens (`v1.0.0` → `v1-0-0`).
+  - `m1/feat/repositories` — adding the in-memory repositories in milestone M1
+  - `v1-0-0/refactor/consoleview` — refactoring the console view in milestone v1.0.0
+- **Stable branches** — `stable-<milestone>` (e.g. `stable-m1`, `stable-v1-0-0`).
+  Development branches are merged here via pull request once ready.
+- **`main`** — a completed milestone is merged from its stable branch into `main`
+  via a further pull request.
+ 
+### Pull requests
+ 
+1. Open an issue describing the change before starting work.
+2. Branch from the relevant stable branch using the naming convention above.
+3. Open a pull request targeting the appropriate branch (development → `stable-<milestone>`;
+   completed milestone → `main`).
+4. Every pull request must pass the automated checks (tests and lint) before it can be merged.
+ 
+### Commits & versioning
+ 
+- **[Conventional Commits](https://www.conventionalcommits.org/)** (`feat:`, `fix:`,
+  `refactor:`, `chore:`, `docs:`, …).
+- **Breaking changes** are flagged with `!` (e.g. `feat!:`, `fix!:`). A breaking change must have a corresponding issue opened first.
+- Releases follow **[Semantic Versioning](https://semver.org/)**.
+ 
+---
+ 
+## License
+ 
+This project is licensed under the [MIT License](LICENSE).
