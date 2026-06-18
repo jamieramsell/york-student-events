@@ -156,7 +156,7 @@ york-student-events/
  
 - Python 3.11+
 - Java 21+ (the `event-service` ships with the Maven Wrapper, `./mvnw`)
- 
+
 ### Running the Java service (`event-service`)
  
 ```bash
@@ -183,6 +183,17 @@ Both checks run automatically on every pull request:
  
 - **`build.yml`** — builds, tests, and runs Checkstyle on `event-service` via `./mvnw -B verify`
 - **`lint.yml`** — runs `ruff check` against `api-core`
+ 
+---
+ 
+## Code Style
+ 
+The Java codebase follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), enforced by the `maven-checkstyle-plugin` against the bundled `google_checks.xml`. The `check` goal is bound to the `verify` phase, so `./mvnw verify` runs Checkstyle as part of the build. Python code in `api-core` is linted with [Ruff](https://docs.astral.sh/ruff/).
+ 
+Both checks run automatically on every pull request via the **`lint.yml`** workflow:
+ 
+- `ruff check api-core/` for the Python service
+- `./mvnw checkstyle:check` for the Java service
  
 ---
  
@@ -221,7 +232,7 @@ development branches up through per-milestone stable branches into `main`:
   Development branches are merged here via pull request once ready.
 - **`main`** — a completed milestone is merged from its stable branch into `main`
   via a further pull request.
-
+ 
 ### Pull requests
 
 1. Open an issue describing the change before starting work.

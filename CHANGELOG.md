@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.1.0] - 2026-06-19
+
+First milestone (M0) release. Establishes the `event-service` (Java / Spring
+Boot) foundation with the Event domain, an end-to-end read endpoint, in-memory
+persistence, and automated build, test, and style-guide enforcement.
+
+### Added
+- `event-service` (Java 21 / Spring Boot 3.x) scaffolding with `events`, `users`, `venues`, `subscriptions`, `cohorts`, `exceptions`, and `repository` packages
+- Domain interfaces: `IEvent`, `IUser`, `IVenue`, `ICohort`, generic `IRepository<T>` and its per-domain extensions
+- Custom exception types (`EventNotFoundException`, `UserNotFoundException`, `VenueNotFoundException`, `CohortNotFoundException`, `CapacityExceededException`)
+- `api-core` (Python) data structures: `Badge`, `Friendship`
+- OpenAPI design spec for `event-service` under `docs/api-spec.yaml`
+- Generated Javadoc published under `docs/event-service/`
+
+[v0.1.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.1.0
+
 ## [v1.0.0-alpha] - 2026-06-18
 
 First milestone (M0) release. Establishes the `event-service` (Java / Spring
