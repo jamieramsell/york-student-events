@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import york.studentevents.events.IEvent;
 import york.studentevents.events.Event;
+import york.studentevents.events.IEvent;
 
 /**
  * Tests for {@link InMemoryEventRepository}.

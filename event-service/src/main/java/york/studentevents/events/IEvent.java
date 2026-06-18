@@ -52,24 +52,22 @@ public interface IEvent {
 
   /**
    * Sets the start and end date/time for this event.
-   * 
-   * <p> An event can only be assigned a date and time once it has been given a location.
+   *
+   * <p>An event can only be assigned a date and time once it has been given a location.
    *
    * @param startDateTime when the event begins; must not be {@code null}
    * @param endDateTime when the event ends; must not be {@code null} and must be after
-   * {@code startDateTime}
-   * 
+   *     {@code startDateTime}
    * @throws IllegalStateException if no location has been assigned to the event.
    */
   void setDateTime(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
   /**
    * Sets the location of this event.
-   * 
-   * @param location the venue or address where the event takes place
-   * 
+   *
+   * @param location the room or venue where this event takes place.
    * @throws IllegalStateException if trying to remove the location when the event has already been
-   * assigned a date and time.
+   *     assigned a date and time.
    */
   void setLocation(String location); // todo: implement venues
 

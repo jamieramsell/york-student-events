@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>york</groupId>
 	<artifactId>studentevents</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-alpha</version>
 	<name/>
 	<description/>
 	<url/>
@@ -48,6 +48,27 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Generate Javadoc into the repo-root docs/ folder during `package`. The
+            javadoc report goal always writes into an `apidocs` subdirectory of
+            outputDirectory, so the HTML lands in docs/apidocs/ (the pom lives in
+            event-service/, hence ../docs). -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+				<outputDirectory>${project.basedir}/../docs</outputDirectory>
+				</configuration>
+				<executions>
+				<execution>
+					<id>generate-javadoc</id>
+					<phase>package</phase>
+					<goals>
+					<goal>javadoc</goal>
+					</goals>
+				</execution>
+				</executions>
 			</plugin>
 
 			<!-- Enforce the Google Java Style Guide during `verify`. The google_checks.xml
