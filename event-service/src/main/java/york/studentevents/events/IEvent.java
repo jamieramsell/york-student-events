@@ -52,7 +52,7 @@ public interface IEvent {
 
   /**
    * Sets the start and end date/time for this event.
-   * 
+   *
    * <p>An event can only be assigned a date and time once it has been given a location.
    *
    * @param startDateTime when the event begins; must not be {@code null}
@@ -64,7 +64,7 @@ public interface IEvent {
 
   /**
    * Sets the location of this event.
-   * 
+   *
    * @param location the room or venue where this event takes place.
    * @throws IllegalStateException if trying to remove the location when the event has already been
    *     assigned a date and time.
