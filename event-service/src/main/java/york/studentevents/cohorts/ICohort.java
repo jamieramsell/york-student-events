@@ -37,15 +37,15 @@ public interface ICohort extends IEntity {
   /**
    * Returns the year group / stage of the cohort.
    * 
-   * <p> First year students are year 1; second year represented by 2.
+   * <p>First year students are year 1; second year represented by 2.
    * 
-   * <p> Foundation year cohorts are represented as 'year 0'.
+   * <p>Foundation year cohorts are represented as 'year 0'.
    * 
-   * <p> Placement years are represented by a year of 3; third years are represented by 4. Note that
+   * <p>Placement years are represented by a year of 3; third years are represented by 4. Note that
    * this means that any students who are not following a placement year route seemingly jump
    * straight from year 2 into year 4.
    * 
-   * <p> The masters stage is represented by 5.
+   * <p>The masters stage is represented by 5.
    * 
    * @return the stage to which the cohort belongs
    */
@@ -57,5 +57,19 @@ public interface ICohort extends IEntity {
    * @return a list of member user IDs; never {@code null}
    */
   List<UUID> getMembers();
+
+  /** Adds a member by UUID to this cohort.
+   *
+   * @param memberId the user ID of the member to add
+   */
+  void addMember(UUID memberId);
+
+  /** Removes a member by UUID from this cohort.
+   * 
+   * @param memberId the user ID of the member to remove; must be a member of this cohort.
+   * 
+   * @throws IllegalArgumentException if the member is not a member of this cohort
+   */
+  void removeMember(UUID memberId);
   
 }
