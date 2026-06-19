@@ -1,20 +1,26 @@
 import sys
 import json
 
-
+#TODO
 def get_user_badges(payload):
-    #TODO
     return {"badges": ["First Event", "Social5"]}
 
+#TODO
 def get_user_friends(payload):
-    #TODO
     return "TEMP FRIEND"
 
+#TODO
 def award_badge(payload):
-    #TODO
     raise ValueError("THIS IS A TEST ERROR")
 
 class MessageHandlerFactory:
+    """
+        Routes incoming messages to their corresponding handler functions.
+
+        Attributes:
+            _handlers (dict[str, Callable): An internal mapping of supported
+                message types and their handler functions.
+    """
     def __init__(self):
         self._handlers = {
             "GET_USER_BADGES": get_user_badges,
@@ -23,6 +29,22 @@ class MessageHandlerFactory:
         }
 
     def get_handler(self, message_type):
+        """
+            Fetches the correct message handler from the message type provided.
+
+            Args:
+                message_type (str): String defining the type of request being
+                    passed. Currently supported types are:
+                        `GET_USER_BADGES`, `GET_USER_FRIENDS`, and `AWARD_BADGE`.
+
+            Raises:
+                ValueError: If the message type is unknown or doesn't have a
+                    corresponding handler.
+
+            Returns:
+                Callable: The function or method assigned to handle the
+                    message type.
+            """
         handler = self._handlers.get(message_type)
         if not handler:
             raise ValueError(f"Unable to find handler for: `{message_type}`.")
@@ -66,4 +88,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
