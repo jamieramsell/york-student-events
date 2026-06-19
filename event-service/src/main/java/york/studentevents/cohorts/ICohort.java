@@ -2,7 +2,6 @@ package york.studentevents.cohorts;
 
 import java.util.List;
 import java.util.UUID;
-
 import york.studentevents.repository.IEntity;
 
 /**
@@ -65,9 +64,8 @@ public interface ICohort extends IEntity {
   void addMember(UUID memberId);
 
   /** Removes a member by UUID from this cohort.
-   * 
+   *
    * @param memberId the user ID of the member to remove; must be a member of this cohort.
-   * 
    * @throws IllegalArgumentException if the member is not a member of this cohort
    */
   void removeMember(UUID memberId);

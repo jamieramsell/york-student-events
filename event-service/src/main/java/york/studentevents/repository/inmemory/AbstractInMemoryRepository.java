@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
 import york.studentevents.repository.IEntity;
 import york.studentevents.repository.IRepository;
 

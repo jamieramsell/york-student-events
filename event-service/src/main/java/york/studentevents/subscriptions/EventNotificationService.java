@@ -1,5 +1,4 @@
 package york.studentevents.subscriptions;
 
-public class EventNotificationService {
-    
-}
+/** todo. */
+public class EventNotificationService {}
