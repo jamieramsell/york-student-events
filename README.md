@@ -2,7 +2,7 @@
  
 > A centralised event discovery and social platform exclusively for University of York students.
  
-[![Version](https://img.shields.io/badge/version-v1.0.0--alpha-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
 [![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
 [![Python](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org)
