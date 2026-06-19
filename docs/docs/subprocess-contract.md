@@ -14,7 +14,7 @@ message, and a `payload` object containing the specific arguments.
 
 The `type` string must be one of the following:
 - `GET_USER_BADGES`
-- `GET_USER_FRENDS`
+- `GET_USER_FRIENDS`
 - `AWARD_BADGE` 
 
 For example:
