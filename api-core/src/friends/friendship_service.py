@@ -71,6 +71,11 @@ def acceptFriendRequest(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
         Friendship
         FriendshipStatus
     """
+    key = __dictKey(user_id, friend_id)
+    status = FriendshipStatus.ACCEPTED
+
+    # Update record in dict
+    friendship_records[key].status = status
 
 def removeFriend(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
     pass
