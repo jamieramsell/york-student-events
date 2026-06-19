@@ -10,9 +10,11 @@ import york.studentevents.venues.IVenueRepository;
  * {@link IVenue} as the managed type, providing standard CRUD operations scoped to venues.
  *
  * <p>Used for integration testing before implementing database-backed repositories.
- * 
+ *
  * @see york.studentevents.repository.IRepository
+ *
  * @see AbstractInMemoryRepository
+ *
  * @see IVenue
  */
 public class InMemoryVenueRepository extends AbstractInMemoryRepository<IVenue>

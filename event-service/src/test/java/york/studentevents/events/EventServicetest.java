@@ -1,5 +1,4 @@
 package york.studentevents.events;
 
-public class EventServiceTest {
-    
-}
+/** todo. */
+public class EventServiceTest {}

@@ -17,11 +17,13 @@ import york.studentevents.repository.IRepository;
  * managed type, providing standard CRUD operations which are accessible by {@code UUID}.
  *
  * <p>Abstract class used as a generic common ancestor for all memory-based repositories.
- * 
+ *
  * <p>Used for integration testing before implementing database-backed repositories.
- * 
+ *
  * @see york.studentevents.repository.IRepository
+ *
  * @see IEntity
+ *
  * @see UUID
  */
 abstract class AbstractInMemoryRepository<T extends IEntity> implements IRepository<T> {
