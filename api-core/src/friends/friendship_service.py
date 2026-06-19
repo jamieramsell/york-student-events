@@ -37,6 +37,16 @@ class Friendship:
 
 friendship_records = {}
 
+def __dictKey(id1: uuid.UUID, id2: uuid.UUID) -> frozenset:
+    """
+    Utility function to generate the key of a Friendship between two users.
+    
+    See Also:
+        Friendship
+    """
+    id_list = [id1, id2]
+    return frozenset(id_list)
+
 def sendFriendRequest(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
     """
     Creates a new Friendship record with a PENDING status.
@@ -45,16 +55,12 @@ def sendFriendRequest(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
         Friendship
         FriendshipStatus
     """
-    # Create frienship attributes
     request_sent = datetime.datetime.now()
     status = FriendshipStatus.PENDING
-    
-    # Generate dict key
-    id_list = [user_id, friend_id]
-    id_set = frozenset(id_list)
+    key = __dictKey(user_id, friend_id)
 
     # Store record in dict
-    friendship_records[id_set] = Friendship(user_id, friend_id, request_sent,
+    friendship_records[key] = Friendship(user_id, friend_id, request_sent,
                                             status)
 
 def acceptFriendRequest(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
