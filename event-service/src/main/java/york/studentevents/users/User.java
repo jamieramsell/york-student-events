@@ -3,6 +3,10 @@ package york.studentevents.users;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Represents a user of the platform, including their profile details, cohort, and registered
+ * events.
+ */
 public class User implements IUser {
   
   private final UUID id;

@@ -2,6 +2,9 @@ package york.studentevents.venues;
 
 import java.util.UUID;
 
+/**
+ * Represents a venue at which events can be held, identified by name, address, and capacity.
+ */
 public class Venue implements IVenue {
 
   private UUID id;

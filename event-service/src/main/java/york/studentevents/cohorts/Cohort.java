@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Represents a cohort of students grouped by department, academic year, and year group.
+ *
+ * <p>A cohort maintains the set of member user IDs belonging to it.
+ */
 public class Cohort implements ICohort {
   private final UUID id;
   private String name;
