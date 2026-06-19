@@ -36,12 +36,12 @@ abstract class AbstractInMemoryRepository<T extends IEntity> implements IReposit
   }
 
   @Override
-  public void save (T entity) {
+  public void save(T entity) {
     hashMap.put(entity.getId(), entity);
   }
 
   @Override
-  public void delete (UUID id) {
+  public void delete(UUID id) {
     hashMap.remove(id);
   }
 
