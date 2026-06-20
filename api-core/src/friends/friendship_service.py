@@ -87,9 +87,10 @@ def getFriends(user_id: uuid.UUID) -> list[uuid.UUID]:
 
     for friendship in all_friendships:
 
-        # If the current friendship involves the target user, then add the ID of
-        # the friend to the friend list
-        if friendship.get_id().__contains__(user_id):
+        # If the current friendship is not pending, and involves the target
+        # user, then add the ID of the friend to the list
+        if (friendship.get_id().__contains__(user_id)
+            and friendship.friendship_status == base.FriendshipStatus.ACCEPTED):
 
             friendship_sender_id = friendship.user_id
             friendship_receiver_id = friendship.friend_id
@@ -119,6 +120,7 @@ def isFriend(id1: uuid.UUID, id2: uuid.UUID) -> bool:
     friendship_id = base._generate_id(id1, id2)
     friendship = friendship_repository._repository.find_by_id(friendship_id)
 
-    # Predicate resolves to true if the friendship exists within the repository;
-    # false if not.
-    return (friendship is not None) 
+    # Predicate resolves to true if the friendship exists within the repository
+    # and is accepted; returns false otherwise.
+    return ((friendship is not None)
+        and (friendship.friendship_status == base.FriendshipStatus.ACCEPTED))
