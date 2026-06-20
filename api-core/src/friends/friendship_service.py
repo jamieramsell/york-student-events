@@ -82,13 +82,20 @@ def removeFriend(id1: uuid.UUID, id2: uuid.UUID) -> None:
     Args:
         id1: The ID of one friend.
         id2: The ID of the other friend.
+    
+    Raises:
+        ValueError: if no friendship exists between the two users
         
     See Also:
         Friendship
     """
 
     friendship_id = base._generate_id(id1, id2)
-    friendship_repository._repository.delete(friendship_id)
+
+    try:
+        friendship_repository._repository.delete(friendship_id)
+    except KeyError:
+        raise ValueError("No friendship exists between the two users.")
 
 def getFriends(user_id: uuid.UUID) -> list[uuid.UUID]:
     """Retrieves a list of user IDs of the user's friends.
