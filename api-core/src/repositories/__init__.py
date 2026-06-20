@@ -2,11 +2,10 @@
 
 This package defines a storage-agnostic repository abstraction. Domain slices
 (attendance, badges, friends, matching) depend only on the ``IRepository``
-interface, never on a concrete backend. Today the only implementation is
-``InMemoryRepository``; a future database-backed implementation can be dropped
-in without changing any caller.
+interface, never on a concrete backend, so a future database-backed
+implementation can be dropped in without changing any caller.
 """
 
-from repositories.base import IRepository, IEntity
+from repositories.base import IEntity, IRepository
 
-__all__ = ["IRepository", "IEntity"]
+__all__ = ["IEntity", "IRepository"]
