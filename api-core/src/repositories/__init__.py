@@ -7,6 +7,6 @@ interface, never on a concrete backend. Today the only implementation is
 in without changing any caller.
 """
 
-from repositories.base import IRepository
+from repositories.base import IRepository, IEntity
 
-__all__ = ["IRepository"]
+__all__ = ["IRepository", "IEntity"]
