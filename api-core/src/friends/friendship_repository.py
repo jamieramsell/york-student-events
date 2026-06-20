@@ -37,7 +37,7 @@ class InMemoryFriendshipRepository(repositories.IRepository[frozenset]):
         return self.__dict.get(entity_id)
 
     def find_all(self) -> list[base.Friendship]:
-        return self.__dict.values()
+        return list(self.__dict.values())
 
 # Variable used to inject an instance of a repository into friendship_service.
 # Package-internal (single leading underscore): consumed by other modules in the
