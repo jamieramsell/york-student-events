@@ -1,5 +1,5 @@
+import base
 import repositories
-import friendship_service
 
 class InMemoryFriendshipRepository(repositories.IRepository[frozenset]):
     """Dictionary backed repository for storing and retrieving Friendship
@@ -17,7 +17,7 @@ class InMemoryFriendshipRepository(repositories.IRepository[frozenset]):
     def __init__(self):
         self.__dict = {}
 
-    def save(self, entity: friendship_service.Friendship) -> None:
+    def save(self, entity: base.Friendship) -> None:
         self.__dict[entity.get_id()] = entity
 
     def delete(self, entity_id: frozenset) -> None:
@@ -25,8 +25,8 @@ class InMemoryFriendshipRepository(repositories.IRepository[frozenset]):
 
     def find_by_id(
         self, entity_id: frozenset
-    ) -> friendship_service.Friendship | None:
+    ) -> base.Friendship | None:
         return self.__dict.get(entity_id)
 
-    def find_all(self) -> list[friendship_service.Friendship]:
+    def find_all(self) -> list[base.Friendship]:
         return self.__dict.values()
