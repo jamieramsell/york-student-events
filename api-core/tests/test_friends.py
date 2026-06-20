@@ -216,6 +216,33 @@ class TestFriendshipService:
         stored = _repo().find_by_id(_generate_id(a, b))
         assert isinstance(stored.created_at, datetime.datetime)
 
+    def test_send_duplicate_pending_raises_value_error(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.sendFriendRequest(a, b)
+        with pytest.raises(ValueError):
+            friendship_service.sendFriendRequest(a, b)
+
+    def test_send_duplicate_is_direction_independent(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.sendFriendRequest(a, b)
+        with pytest.raises(ValueError):
+            friendship_service.sendFriendRequest(b, a)
+
+    def test_send_duplicate_after_accept_raises_value_error(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.sendFriendRequest(a, b)
+        friendship_service.acceptFriendRequest(a, b)
+        with pytest.raises(ValueError):
+            friendship_service.sendFriendRequest(a, b)
+
+    def test_send_duplicate_does_not_overwrite_existing(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.sendFriendRequest(a, b)
+        original = _repo().find_by_id(_generate_id(a, b))
+        with pytest.raises(ValueError):
+            friendship_service.sendFriendRequest(a, b)
+        assert _repo().find_by_id(_generate_id(a, b)) == original
+
     # -- acceptFriendRequest ------------------------------------------------
     def test_accept_sets_status_to_accepted(self):
         a, b = uuid.uuid4(), uuid.uuid4()
@@ -242,6 +269,18 @@ class TestFriendshipService:
         assert after.friend_id == before.friend_id
         assert after.created_at == before.created_at
 
+    def test_accept_already_accepted_raises_value_error(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.sendFriendRequest(a, b)
+        friendship_service.acceptFriendRequest(a, b)
+        with pytest.raises(ValueError):
+            friendship_service.acceptFriendRequest(a, b)
+
+    def test_accept_missing_raises_value_error(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        with pytest.raises(ValueError):
+            friendship_service.acceptFriendRequest(a, b)
+
     # -- removeFriend -------------------------------------------------------
     def test_remove_deletes_friendship(self):
         a, b = uuid.uuid4(), uuid.uuid4()
@@ -255,9 +294,9 @@ class TestFriendshipService:
         friendship_service.removeFriend(b, a)
         assert _repo().find_by_id(_generate_id(a, b)) is None
 
-    def test_remove_missing_raises_key_error(self):
+    def test_remove_missing_raises_value_error(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             friendship_service.removeFriend(a, b)
 
     # -- getFriends ---------------------------------------------------------
