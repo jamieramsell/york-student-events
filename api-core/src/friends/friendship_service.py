@@ -59,22 +59,21 @@ def acceptFriendRequest(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """
 
     friendship_id = base._generate_id(id1, id2)
-
-    try:
-        friendship = friendship_repository._repository.find_by_id(friendship_id)
-        if friendship.friendship_status == base.FriendshipStatus.ACCEPTED:
-            raise ValueError("An accepted friend request already exists between"
-                             + " the two users.")
-        # Create a new Friendship instance as they are immutable.
-        status = base.FriendshipStatus.ACCEPTED
-        friendship = base.Friendship(friendship.user_id,
-                                    friendship.friend_id,
-                                    friendship.created_at,
-                                    status)
-        friendship_repository._repository.save(friendship)
-
-    except KeyError:
+    friendship = friendship_repository._repository.find_by_id(friendship_id)
+    
+    if friendship is None:
         raise ValueError("No friendship record exists between the two users.")
+    elif friendship.friendship_status == base.FriendshipStatus.ACCEPTED:
+        raise ValueError("An accepted friend request already exists between"
+                            + " the two users.")
+    
+    # Create a new Friendship instance as they are immutable.
+    status = base.FriendshipStatus.ACCEPTED
+    friendship = base.Friendship(friendship.user_id,
+                                friendship.friend_id,
+                                friendship.created_at,
+                                status)
+    friendship_repository._repository.save(friendship)
 
 def removeFriend(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """Removes the Frienship record between two users from the repository.
@@ -85,7 +84,7 @@ def removeFriend(id1: uuid.UUID, id2: uuid.UUID) -> None:
     
     Raises:
         ValueError: if no friendship exists between the two users
-        
+
     See Also:
         Friendship
     """
