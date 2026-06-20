@@ -3,8 +3,6 @@ import datetime
 import friendship_repository
 import uuid
 
-repository = friendship_repository.InMemoryFriendshipRepository()
-
 def sendFriendRequest(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
     """Creates a new Friendship record with a PENDING status.
 
@@ -21,7 +19,7 @@ def sendFriendRequest(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
     status = base.FriendshipStatus.PENDING
     friendship = base.Friendship(user_id, friend_id, time, status)
 
-    repository.save(friendship)
+    friendship_repository.repository.save(friendship)
 
 def acceptFriendRequest(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """Updates the status of a friendship record to ACCEPTED.
@@ -37,14 +35,14 @@ def acceptFriendRequest(id1: uuid.UUID, id2: uuid.UUID) -> None:
 
     friendship_id = base._generate_id(id1, id2)
 
-    friendship = repository.find_by_id(friendship_id)
+    friendship = friendship_repository.repository.find_by_id(friendship_id)
     # Create a new Friendship instance as they are immutable.
     status = base.FriendshipStatus.ACCEPTED
     friendship = base.Friendship(friendship.user_id,
                                  friendship.friend_id,
                                  friendship.created_at,
                                  status)
-    repository.save(friendship)
+    friendship_repository.repository.save(friendship)
 
 def removeFriend(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """Removes the Frienship record between two users from the repository.
@@ -58,7 +56,7 @@ def removeFriend(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """
 
     friendship_id = base._generate_id(id1, id2)
-    repository.delete(friendship_id)
+    friendship_repository.repository.delete(friendship_id)
 
 def getFriends(user_id: uuid.UUID) -> list[uuid.UUID]:
     """Retrieves a list of user IDs of the user's friends.
@@ -76,7 +74,7 @@ def getFriends(user_id: uuid.UUID) -> list[uuid.UUID]:
     
     # Retrieve all friendships from the repository and initialise the user's
     # friend list.
-    all_friendships = repository.find_all()
+    all_friendships = friendship_repository.repository.find_all()
     friend_list = []
 
     for friendship in all_friendships:
@@ -111,7 +109,7 @@ def isFriend(id1: uuid.UUID, id2: uuid.UUID) -> bool:
     """
 
     friendship_id = base._generate_id(id1, id2)
-    friendship = repository.find_by_id(friendship_id)
+    friendship = friendship_repository.repository.find_by_id(friendship_id)
 
     # Predicate resolves to true if the friendship exists within the repository;
     # false if not.
