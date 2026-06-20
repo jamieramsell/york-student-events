@@ -1,3 +1,12 @@
+"""Core domain model for the friends slice.
+
+Defines the ``Friendship`` entity, its ``FriendshipStatus`` lifecycle states,
+and the ``_generate_id`` helper that derives a Friendship's repository key from
+the two user IDs it relates. This is the lowest layer of the friends package: it
+depends only on the generic ``repositories`` abstraction and is consumed by both
+the repository and service layers.
+"""
+
 import dataclasses
 import datetime
 import enum

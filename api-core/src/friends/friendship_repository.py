@@ -1,3 +1,11 @@
+"""In-memory persistence for ``Friendship`` entities.
+
+Provides ``InMemoryFriendshipRepository``, a dictionary-backed implementation of
+``repositories.IRepository`` keyed by the frozenset IDs of Friendship objects,
+plus the package-internal ``_repository`` singleton injected into the service
+layer. This stands in for a database-backed repository during early development.
+"""
+
 import base
 import repositories
 

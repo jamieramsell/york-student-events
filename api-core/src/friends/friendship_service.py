@@ -1,3 +1,11 @@
+"""Service-level operations for the friends slice.
+
+Exposes the friend-graph use cases callers depend on -- sending, accepting, and
+removing friend requests, and querying a user's friends or whether two users are
+friends. Orchestrates the ``Friendship`` domain model from ``base`` with the
+in-memory repository, keeping persistence details out of callers.
+"""
+
 import base
 import datetime
 import friendship_repository
