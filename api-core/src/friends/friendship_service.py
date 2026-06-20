@@ -18,10 +18,22 @@ def sendFriendRequest(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
         user_id: The user sending the request.
         friend_id: The user recieving the request.
 
+    Throws:
+        ValueError: if a friend request or Friendship already exists between
+            the two users.
+
     See Also:
         Friendship
         FriendshipStatus
     """
+
+    friendship_id = base._generate_id(user_id, friend_id)
+    friendship = friendship_repository._repository.find_by_id(friendship_id)
+
+    if friendship is not None:
+        raise ValueError("A friend request already exists between the two"
+                         + " users, and has either been accepted, or is still"
+                         + " pending.")
 
     time = datetime.datetime.now()
     status = base.FriendshipStatus.PENDING
@@ -47,7 +59,7 @@ def acceptFriendRequest(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """
 
     friendship_id = base._generate_id(id1, id2)
-    
+
     try:
         friendship = friendship_repository._repository.find_by_id(friendship_id)
         if friendship.friendship_status == base.FriendshipStatus.ACCEPTED:
