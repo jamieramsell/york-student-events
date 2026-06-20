@@ -30,8 +30,8 @@ class Friendship:
         friendship_status: Whether or not the friend request has been accepted
             yet.
     """
-    user_id: int
-    friend_id: int
+    user_id: uuid.UUID
+    friend_id: uuid.UUID
     created_at: datetime.datetime
     friendship_status: FriendshipStatus
 
