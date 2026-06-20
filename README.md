@@ -60,13 +60,17 @@ york-student-events/
 │   │   │   │           ├── Application.java
 │   │   │   │           ├── cohorts/
 │   │   │   │           │   ├── ICohort.java
-│   │   │   │           │   └── ICohortRepository.java
+│   │   │   │           │   ├── ICohortRepository.java
+│   │   │   │           │   ├── Cohort.java
+│   │   │   │           │   └── CohortService.java
 │   │   │   │           ├── events/
 │   │   │   │           │   ├── IEvent.java
+│   │   │   │           │   ├── IEventRepository.java
 │   │   │   │           │   ├── Event.java
+│   │   │   │           │   ├── EventCategory.java
 │   │   │   │           │   ├── EventService.java
 │   │   │   │           │   ├── EventController.java
-│   │   │   │           │   └── IEventRepository.java
+│   │   │   │           │   └── UserEventService.java
 │   │   │   │           ├── exceptions/
 │   │   │   │           │   ├── CapacityExceededException.java
 │   │   │   │           │   ├── CohortNotFoundException.java
@@ -75,6 +79,7 @@ york-student-events/
 │   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           ├── users/
 │   │   │   │           │   ├── IUser.java
+│   │   │   │           │   ├── IUserRepository.java
 │   │   │   │           │   ├── User.java
 │   │   │   │           │   ├── UserService.java
 │   │   │   │           │   └── UserController.java
@@ -105,7 +110,8 @@ york-student-events/
 │   │               └── studentevents/
 │   │                   ├── ApplicationTests.java
 │   │                   ├── events/
-│   │                   │   └── EventServiceTest.java
+│   │                   │   ├── EventServiceTest.java
+│   │                   │   └── EventTest.java
 │   │                   ├── users/
 │   │                   │   └── UserServiceTest.java
 │   │                   └── subscriptions/
@@ -119,9 +125,16 @@ york-student-events/
 │   │   ├── badges/
 │   │   │   └── badges.py
 │   │   ├── friends/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   ├── friendship_repository.py
+│   │   │   ├── friendship_service.py
 │   │   │   └── getFriendCircle.py
-│   │   └── matching/
-│   │       └── matching.py
+│   │   ├── matching/
+│   │   │   └── matching.py
+│   │   └── repositories/
+│   │       ├── __init__.py
+│   │       └── base.py
 │   └── tests/
 │       ├── test_attendance.py
 │       ├── test_badges.py
@@ -130,7 +143,7 @@ york-student-events/
 │
 ├── docs/
 │   ├── api-spec.yaml
-│   └── event-service/        # generated Javadoc (./mvnw javadoc:javadoc)
+│   └── apidocs/              # generated Javadoc (./mvnw javadoc:javadoc)
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
