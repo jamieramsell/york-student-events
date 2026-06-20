@@ -17,7 +17,7 @@ persistence, and automated build, test, and style-guide enforcement.
 - Custom exception types (`EventNotFoundException`, `UserNotFoundException`, `VenueNotFoundException`, `CohortNotFoundException`, `CapacityExceededException`)
 - `api-core` (Python) data structures: `Badge`, `Friendship`
 - OpenAPI design spec for `event-service` under `docs/api-spec.yaml`
-- Generated Javadoc published under `docs/event-service/`
+- Generated Javadoc published under `docs/apidocs/`
 
 [v0.1.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.1.0
 
