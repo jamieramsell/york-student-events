@@ -18,7 +18,7 @@ class InMemoryFriendshipRepository(repositories.IRepository[frozenset]):
         self.__dict = {}
 
     def save(self, entity: friendship_service.Friendship) -> None:
-        self.__dict[entity.getId()] = entity
+        self.__dict[entity.get_id()] = entity
 
     def delete(self, entity_id: frozenset) -> None:
         self.__dict.pop(entity_id)
@@ -29,4 +29,4 @@ class InMemoryFriendshipRepository(repositories.IRepository[frozenset]):
         return self.__dict.get(entity_id)
 
     def find_all(self) -> list[friendship_service.Friendship]:
-        return self.__dict.values
+        return self.__dict.values()
