@@ -28,9 +28,9 @@ import typing
 # K parameterises both IEntity and IRepository, so it must be defined first.
 K = typing.TypeVar("K")
 
+
 class IEntity(abc.ABC, typing.Generic[K]):
-    """
-    Represents an entity which can be stored in a repository.
+    """Represents an entity which can be stored in a repository.
 
     This common interface enforces that all entities have an ID which can be
     used as a key. Due to the nature of the interfaces used by api-core, these
@@ -51,8 +51,7 @@ class IEntity(abc.ABC, typing.Generic[K]):
 
 
 class IRepository(abc.ABC, typing.Generic[K]):
-    """
-    Generic repository interface providing standard CRUD operations.
+    """Generic repository interface providing standard CRUD operations.
 
     All domain-specific repository interfaces should extend this interface,
     binding the key type and narrowing the entity return types to their
@@ -72,9 +71,9 @@ class IRepository(abc.ABC, typing.Generic[K]):
 
     @abc.abstractmethod
     def save(self, entity: IEntity[K]) -> None:
-        """
-        Saves an entity to the repository. If an entity with the same ID already
-        exists, it is overwritten.
+        """Saves an entity to the repository.
+
+        If an entity with the same ID already exists, it is overwritten.
 
         Args:
             entity: the entity to save; must not be None.
@@ -82,8 +81,7 @@ class IRepository(abc.ABC, typing.Generic[K]):
 
     @abc.abstractmethod
     def delete(self, entity_id: K) -> None:
-        """
-        Removes the entity with the given ID from the repository.
+        """Removes the entity with the given ID from the repository.
 
         Args:
             entity_id: the ID of the entity to remove.
@@ -94,8 +92,7 @@ class IRepository(abc.ABC, typing.Generic[K]):
 
     @abc.abstractmethod
     def find_by_id(self, entity_id: K) -> IEntity[K] | None:
-        """
-        Looks up an entity by its ID.
+        """Looks up an entity by its ID.
 
         Args:
             entity_id: the ID of the entity to retrieve.
@@ -106,9 +103,8 @@ class IRepository(abc.ABC, typing.Generic[K]):
 
     @abc.abstractmethod
     def find_all(self) -> list[IEntity[K]]:
-        """
-        Retrieves all entities currently held in the repository.
+        """Retrieves all entities currently held in the repository.
 
         Returns:
-            a list of all entities; never None, but may be empty.
+            A list of all entities; never None, but may be empty.
         """
