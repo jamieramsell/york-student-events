@@ -13,23 +13,23 @@ public class Event implements IEvent {
   private LocalDateTime endDateTime;
   private String location;
   private Integer capacity;
-  private String category;
+  private EventCategory category;
 
   /**
    * Creates an {@code Event} with a maximum attendee capacity.
    *
-   * <p>All other fields are assigned via setters after instantiation.
+   * <p> All other fields are assigned via setters after instantiation.
    *
    * @param title the event title; must not be {@code null}
    * @param capacity the maximum number of attendees; must be greater than zero
    * @param category the event category; must not be {@code null}
    * @throws IllegalArgumentException if {@code title} or {@code category} is {@code null}, or
-   *     {@code capacity} is less than one
+   * {@code capacity} is less than one
    */
-  public Event(String title, int capacity, String category) {
+  public Event(String title, int capacity, EventCategory category) {
     // Validation //
-    if (title == null) {
-      throw new IllegalArgumentException("title cannot be null");
+    if (title == null || title.isBlank() || title.isEmpty()) {
+      throw new IllegalArgumentException("title cannot be null, empty, or blank");
     } else if (category == null) {
       throw new IllegalArgumentException("category cannot be null");
     } else if (capacity < 1) {
@@ -45,16 +45,16 @@ public class Event implements IEvent {
   /**
    * Creates an {@code Event} with no maximum attendee capacity.
    *
-   * <p>All other fields are assigned via setters after instantiation.
+   * <p> All other fields are assigned via setters after instantiation.
    *
    * @param title the event title; must not be {@code null}
    * @param category the event category; must not be {@code null}
    * @throws IllegalArgumentException if {@code title} or {@code category} is {@code null}
    */
-  public Event(String title, String category) {
+  public Event(String title, EventCategory category) {
     // Validation //
-    if (title == null) {
-      throw new IllegalArgumentException("title cannot be null");
+    if (title == null || title.isBlank() || title.isEmpty()) {
+      throw new IllegalArgumentException("title cannot be null, empty, or blank");
     } else if (category == null) {
       throw new IllegalArgumentException("category cannot be null");
     }
@@ -103,7 +103,7 @@ public class Event implements IEvent {
   }
 
   @Override
-  public String getCategory() { // todo: implement categories
+  public EventCategory getCategory() { // todo: implement categories
     return category;
   }
 
@@ -112,7 +112,7 @@ public class Event implements IEvent {
   @Override
   public void setTitle(String title) {
     if (title == null || title.isBlank() || title.isEmpty()) {
-      throw new IllegalArgumentException("title cannot be blank, empty, or null");
+      throw new IllegalArgumentException("title cannot be null, empty, or blank");
     }
     this.title = title;
   }
@@ -124,10 +124,18 @@ public class Event implements IEvent {
 
   @Override
   public void setDateTime(LocalDateTime startDateTime, LocalDateTime endDateTime) {
+
+    // Validation
     if (this.location == null) {
       throw new IllegalStateException("The event must have a location in order to assign a date and"
           + " time");
+    } else if (startDateTime.compareTo(endDateTime) >= 0) {
+      throw new IllegalArgumentException("startDateTime must be before endDateTime");
+    } else if (LocalDateTime.now().compareTo(startDateTime) >= 0) {
+      throw new IllegalArgumentException("The event must start in the future (startDateTime cannot"
+          + " be in the past)");
     }
+
     this.startDateTime = startDateTime;
     this.endDateTime = endDateTime;
   }
@@ -148,7 +156,7 @@ public class Event implements IEvent {
   }
 
   @Override
-  public void setCategory(String category) { // todo: implement categories
+  public void setCategory(EventCategory category) { // todo: implement categories
     this.category = category;
   }
 

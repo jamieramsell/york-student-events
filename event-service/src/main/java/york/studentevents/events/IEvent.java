@@ -1,15 +1,13 @@
 package york.studentevents.events;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+
+import york.studentevents.repository.IEntity;
 
 /** Represents a social event that can be attended by students. */
-public interface IEvent {
+public interface IEvent extends IEntity {
 
   // Getters //
-
-  /** Returns the unique identifier for this event. */
-  UUID getId();
 
   /** Returns the title of this event. */
   String getTitle();
@@ -31,8 +29,12 @@ public interface IEvent {
    */
   Integer getCapacity();
 
-  /** Returns the category that classifies this event (e.g. "Music", "Sport", "Nightlife"). */
-  String getCategory(); // todo: implement categories
+  /**
+   * Returns the category that classifies this event.
+   * 
+   * @see EventCategory
+   */
+  EventCategory getCategory();
 
   // Setters //
 
@@ -52,22 +54,24 @@ public interface IEvent {
 
   /**
    * Sets the start and end date/time for this event.
-   *
-   * <p>An event can only be assigned a date and time once it has been given a location.
+   * 
+   * <p> An event can only be assigned a date and time once it has been given a location.
    *
    * @param startDateTime when the event begins; must not be {@code null}
    * @param endDateTime when the event ends; must not be {@code null} and must be after
-   *     {@code startDateTime}
+   * {@code startDateTime}
+   * 
    * @throws IllegalStateException if no location has been assigned to the event.
    */
   void setDateTime(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
   /**
    * Sets the location of this event.
-   *
-   * @param location the room or venue where this event takes place.
+   * 
+   * @param location the venue or address where the event takes place
+   * 
    * @throws IllegalStateException if trying to remove the location when the event has already been
-   *     assigned a date and time.
+   * assigned a date and time.
    */
   void setLocation(String location); // todo: implement venues
 
@@ -81,8 +85,10 @@ public interface IEvent {
   /**
    * Sets the category that classifies this event.
    *
-   * @param category the category label (e.g. "Music", "Sport", "Nightlife")
+   * @param category the category label
+   * 
+   * @see EventCategory
    */
-  void setCategory(String category); // todo: implement categories
+  void setCategory(EventCategory category);
 
 }

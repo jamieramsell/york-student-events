@@ -1,0 +1,55 @@
+# Subprocess JSON Communication Contract
+
+This document defines the JSON schema for standard input/output (stdin/stdout) 
+communication between the Python `api-core` and the Java `event-service`.
+
+## 1. Envelope Shapes
+
+To ensure consistent parsing across both languages, every message must adhere 
+to strict envelope structures.
+
+### Request Envelope
+Every request sent to a subprocess must contain a `type` string to route the 
+message, and a `payload` object containing the specific arguments.
+
+The `type` string must be one of the following:
+- `GET_USER_BADGES`
+- `GET_USER_FRIENDS`
+- `AWARD_BADGE` 
+
+For example:
+```json
+{ 
+  "type": "GET_USER_BADGES", 
+  "payload": { 
+    "user_id": 1
+  }
+}
+```
+
+### Response Envelope
+Every response from a subprocess must contain a `"ok"` in the `status` 
+field, and a `payload` object containing the specific response.
+
+For example:
+```json
+{ 
+  "status": "ok",
+  "payload": { 
+    "badges": ["First Event", "Social5"]
+  }
+}
+```
+
+### Error Envelope
+If an error occurs during processing, the response will have a status of 
+`error`, and a `error` field containing the error message.
+
+For example:
+```json
+{ 
+  "status": "error", 
+  "error": "User 1 not found"
+}
+```
+
