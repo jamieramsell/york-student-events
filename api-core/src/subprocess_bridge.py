@@ -7,7 +7,7 @@ def get_user_badges(payload):
 
 #TODO
 def get_user_friends(payload):
-    return "TEMP FRIEND"
+    return {"friends": ["James", "Jamie"]}
 
 #TODO
 def award_badge(payload):
