@@ -59,6 +59,10 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 				<outputDirectory>${project.basedir}/../docs</outputDirectory>
+				<!-- Disable doclint entirely. Javadoc only *generates* the docs here;
+	            it does not enforce its own (non-GJSG) rules. Style conformance is
+	            owned solely by the maven-checkstyle-plugin via google_checks.xml. -->
+				<doclint>none</doclint>
 				</configuration>
 				<executions>
 				<execution>
