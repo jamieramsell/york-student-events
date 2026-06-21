@@ -18,13 +18,13 @@ public class Event implements IEvent {
   /**
    * Creates an {@code Event} with a maximum attendee capacity.
    *
-   * <p> All other fields are assigned via setters after instantiation.
+   * <p>All other fields are assigned via setters after instantiation.
    *
    * @param title the event title; must not be {@code null}
    * @param capacity the maximum number of attendees; must be greater than zero
    * @param category the event category; must not be {@code null}
    * @throws IllegalArgumentException if {@code title} or {@code category} is {@code null}, or
-   * {@code capacity} is less than one
+   *     {@code capacity} is less than one
    */
   public Event(String title, int capacity, EventCategory category) {
     // Validation //
@@ -45,7 +45,7 @@ public class Event implements IEvent {
   /**
    * Creates an {@code Event} with no maximum attendee capacity.
    *
-   * <p> All other fields are assigned via setters after instantiation.
+   * <p>All other fields are assigned via setters after instantiation.
    *
    * @param title the event title; must not be {@code null}
    * @param category the event category; must not be {@code null}

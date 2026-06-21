@@ -54,12 +54,14 @@ class EventTest {
 
   @Test
   void constructor_withZeroCapacity_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", 0, EventCategory.SPORTS));
+    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", 0,
+        EventCategory.SPORTS));
   }
 
   @Test
   void constructor_withNegativeCapacity_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", -1, EventCategory.SPORTS));
+    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", -1,
+        EventCategory.SPORTS));
   }
 
   @Test
@@ -82,22 +84,26 @@ class EventTest {
 
   @Test
   void constructor_noCapacity_withNullTitle_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event(null, EventCategory.SPORTS));
+    assertThrows(IllegalArgumentException.class, () -> new Event(null,
+        EventCategory.SPORTS));
   }
 
   @Test
   void constructor_noCapacity_withBlankTitle_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event("   ", EventCategory.SPORTS));
+    assertThrows(IllegalArgumentException.class, () -> new Event("   ",
+        EventCategory.SPORTS));
   }
 
   @Test
   void constructor_noCapacity_withEmptyTitle_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event("", EventCategory.SPORTS));
+    assertThrows(IllegalArgumentException.class, () -> new Event("",
+        EventCategory.SPORTS));
   }
 
   @Test
   void constructor_noCapacity_withNullCategory_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", (EventCategory) null));
+    assertThrows(IllegalArgumentException.class, () -> new Event("York Social",
+        (EventCategory) null));
   }
 
   // --- Initial state ---

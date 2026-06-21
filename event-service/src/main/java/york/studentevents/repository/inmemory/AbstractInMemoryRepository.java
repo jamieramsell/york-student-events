@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
 import york.studentevents.repository.IEntity;
 import york.studentevents.repository.IRepository;
 
@@ -17,11 +16,13 @@ import york.studentevents.repository.IRepository;
  * managed type, providing standard CRUD operations which are accessible by {@code UUID}.
  *
  * <p>Abstract class used as a generic common ancestor for all memory-based repositories.
- * 
+ *
  * <p>Used for integration testing before implementing database-backed repositories.
- * 
+ *
  * @see york.studentevents.repository.IRepository
+ *
  * @see IEntity
+ *
  * @see UUID
  */
 abstract class AbstractInMemoryRepository<T extends IEntity> implements IRepository<T> {
@@ -34,12 +35,12 @@ abstract class AbstractInMemoryRepository<T extends IEntity> implements IReposit
   }
 
   @Override
-  public void save (T entity) {
+  public void save(T entity) {
     hashMap.put(entity.getId(), entity);
   }
 
   @Override
-  public void delete (UUID id) {
+  public void delete(UUID id) {
     hashMap.remove(id);
   }
 

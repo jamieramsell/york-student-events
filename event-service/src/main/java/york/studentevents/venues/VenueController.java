@@ -1,5 +1,4 @@
 package york.studentevents.venues;
 
-public class VenueController {
-    
-}
+/** to do. */
+public class VenueController {}

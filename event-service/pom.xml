@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>york</groupId>
 	<artifactId>studentevents</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 	<name/>
 	<description/>
 	<url/>
@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<checkstyle.version>10.17.0</checkstyle.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -55,29 +56,61 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
+			<!-- Generate Javadoc into the repo-root docs/ folder during `package`. The
+            javadoc report goal always writes into an `apidocs` subdirectory of
+            outputDirectory, so the HTML lands in docs/apidocs/ (the pom lives in
+            event-service/, hence ../docs). -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+				<outputDirectory>${project.basedir}/../docs</outputDirectory>
+				</configuration>
+				<executions>
+				<execution>
+					<id>generate-javadoc</id>
+					<phase>package</phase>
+					<goals>
+					<goal>javadoc</goal>
+					</goals>
+				</execution>
+				</executions>
+			</plugin>
+
+			<!-- Enforce the Google Java Style Guide during `verify`. The google_checks.xml
+            config ships inside the Checkstyle jar, so no local config file is needed.
+            Google's checks are emitted at severity "warning", so violationSeverity is
+            lowered to warning to make any style violation fail the build. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.4.0</version>
+				<dependencies>
+				<dependency>
+					<groupId>com.puppycrawl.tools</groupId>
+					<artifactId>checkstyle</artifactId>
+					<version>${checkstyle.version}</version>
+				</dependency>
+				</dependencies>
 				<configuration>
-					<configLocation>google_checks.xml</configLocation>
-					<failsOnError>true</failsOnError>
+				<configLocation>google_checks.xml</configLocation>
+				<!-- Layer project-specific suppressions over google_checks.xml. The expression name is
+					the property google_checks' bundled SuppressionFilter reads for its file path. -->
+				<suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+				<suppressionsFileExpression>org.checkstyle.google.suppressionfilter.config</suppressionsFileExpression>
+				<includeTestSourceDirectory>true</includeTestSourceDirectory>
+				<failOnViolation>true</failOnViolation>
+				<violationSeverity>warning</violationSeverity>
 				</configuration>
 				<executions>
-					<execution>
-					<goals><goal>check</goal></goals>
-					</execution>
+				<execution>
+					<id>checkstyle-check</id>
+					<phase>verify</phase>
+					<goals>
+					<goal>check</goal>
+					</goals>
+				</execution>
 				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.11.2</version>
-				<configuration>
-					<source>21</source>
-					<outputDirectory>${project.basedir}/../docs</outputDirectory>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>

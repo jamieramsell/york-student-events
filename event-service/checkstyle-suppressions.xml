@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<!-- Project-level Checkstyle suppressions, layered on top of the bundled google_checks.xml. -->
+<suppressions>
+
+  <!-- This project's convention (see CLAUDE.md) prefixes every interface name with `I`
+       (e.g. IController). google_checks' AbbreviationAsWordInName rule counts the leading `I`
+       plus the following capital as two consecutive capitals and rejects it. Suppress that one
+       rule for I-prefixed interface source files so the naming convention is allowed, without
+       weakening the rule anywhere else. -->
+  <suppress checks="AbbreviationAsWordInName" files="[/\\]I[A-Z][^/\\]*\.java$"/>
+
+</suppressions>
