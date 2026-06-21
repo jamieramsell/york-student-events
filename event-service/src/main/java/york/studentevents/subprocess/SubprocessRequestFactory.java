@@ -137,4 +137,12 @@ public class SubprocessRequestFactory {
             throw new RuntimeException(String.format("Failed to process JSON: %s", requestJson), e);
         }
     }
+
+    // TODO REMOVE
+    public static void main(String[] args){
+        SubprocessRequestFactory factory = new SubprocessRequestFactory();
+        System.out.println(factory.ProcessBuilder(buildGetUserBadges(1L)));
+        System.out.println(factory.ProcessBuilder(buildGetUserFriends(1L)));
+        System.out.println(factory.ProcessBuilder(buildAwardBadge(1L, "test error")));
+    }
 }
