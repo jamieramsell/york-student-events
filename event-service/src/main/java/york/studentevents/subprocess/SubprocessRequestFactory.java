@@ -24,11 +24,11 @@ public class SubprocessRequestFactory {
      * <li> {@link AwardBadgePayload}
      * </ul>
      * */
-    static class Request<T> {
-        private final String type;
-        private final T payload;
+  static class Request<T> {
+    private final String type;
+    private final T payload;
 
-        /**
+    /**
          * Constructor for the Request class.
          *
          * @param type the type of the request:
@@ -43,106 +43,106 @@ public class SubprocessRequestFactory {
          *          <li> {@link AwardBadgePayload}
          *      </ul>
          * */
-        public Request(String type, T payload) {
+    public Request(String type, T payload) {
             this.type = type;
             this.payload = payload;
         }
-    }
+  }
 
-    /**
-     * Builds a request for the subprocess where the payload is only a user ID.
-     *
-     * @param userId the user's ID
-     */
-    record UserIdPayload(Long userId) {}
+  /**
+   * Builds a request for the subprocess where the payload is only a user ID.
+   *
+   * @param userId the user's ID
+   */
+  record UserIdPayload(Long userId) {}
 
-    /**
-     * Builds a request for the subprocess where the payload is a user ID and a badge name.
-     *
-     * @param userId the user's ID
-     * @param badgeName the name of the badge to award
-     */
-    record AwardBadgePayload(Long userId, String badgeName) {}
+  /**
+   * Builds a request for the subprocess where the payload is a user ID and a badge name.
+   *
+   * @param userId the user's ID
+   * @param badgeName the name of the badge to award
+   */
+  record AwardBadgePayload(Long userId, String badgeName) {}
 
-    private static final Gson GSON = new Gson();
-    Scanner in = new Scanner(System.in);
+  private static final Gson GSON = new Gson();
+  Scanner in = new Scanner(System.in);
 
-    /**
-     * Builds a JSON request for the subprocess to get the user's badges.
-     *
-     * @param userId the user's ID
-     */
-    private static String buildGetUserBadges(Long userId) {
-        Request<UserIdPayload> request = new Request<>("GET_USER_BADGES", new UserIdPayload(userId));
-        return GSON.toJson(request);
-    }
+  /**
+   * Builds a JSON request for the subprocess to get the user's badges.
+   *
+   * @param userId the user's ID
+   */
+  private static String buildGetUserBadges(Long userId) {
+    Request<UserIdPayload> request = new Request<>("GET_USER_BADGES", new UserIdPayload(userId));
+    return GSON.toJson(request);
+  }
 
-    /**
-     * Builds a JSON request for the subprocess to get the user's friends.
-     *
-     * @param userId the user's ID
-     */
-    private static String buildGetUserFriends(Long userId) {
-        Request<UserIdPayload> request = new Request<>("GET_USER_FRIENDS", new UserIdPayload(userId));
-        return GSON.toJson(request);
-    }
+  /**
+   * Builds a JSON request for the subprocess to get the user's friends.
+   *
+   * @param userId the user's ID
+   */
+  private static String buildGetUserFriends(Long userId) {
+    Request<UserIdPayload> request = new Request<>("GET_USER_FRIENDS", new UserIdPayload(userId));
+    return GSON.toJson(request);
+  }
 
-    /**
-     * Builds a JSON request for the subprocess to award a badge to a user.
-     *
-     * @param userId the user's ID
-     * @param badgeName the name of the badge to award
-     */
-    private static String buildAwardBadge(Long userId, String badgeName) {
-        Request<AwardBadgePayload> request = new Request<>("AWARD_BADGE", new AwardBadgePayload(userId, badgeName));
-        return GSON.toJson(request);
-    }
+  /**
+   * Builds a JSON request for the subprocess to award a badge to a user.
+   *
+   * @param userId the user's ID
+   * @param badgeName the name of the badge to award
+   */
+  private static String buildAwardBadge(Long userId, String badgeName) {
+    Request<AwardBadgePayload> request = new Request<>("AWARD_BADGE", new AwardBadgePayload(userId, badgeName));
+    return GSON.toJson(request);
+  }
 
-    /**
-     * Takes a JSON request and sends it to the subprocess and returns the JSON
-     * response.
-     *
-     * @param requestJson the JSON request to send to the subprocess; must be a
-     *      valid JSON string.
-     *
-     * @return the JSON response from the subprocess.
-     * 
-     * @throws RuntimeException if the subprocess fails to process the request.
-     * */
-    String processBuilder(String requestJson) {
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder("python", "api-core/src/subprocess_bridge.py");
-            Process process = processBuilder.start();
+  /**
+   * Takes a JSON request and sends it to the subprocess and returns the JSON
+   * response.
+   *
+   * @param requestJson the JSON request to send to the subprocess; must be a
+   *      valid JSON string.
+   *
+   * @return the JSON response from the subprocess.
+   *
+   * @throws RuntimeException if the subprocess fails to process the request.
+   */
+  String processBuilder(String requestJson) {
+    try {
+      ProcessBuilder processBuilder = new ProcessBuilder("python", "api-core/src/subprocess_bridge.py");
+      Process process = processBuilder.start();
 
-            try (OutputStream os = process.getOutputStream()) {
-                OutputStreamWriter osw = new OutputStreamWriter(os, StandardCharsets.UTF_8);
-                BufferedWriter writer = new BufferedWriter(osw);
+      try (OutputStream os = process.getOutputStream()) {
+        OutputStreamWriter osw = new OutputStreamWriter(os, StandardCharsets.UTF_8);
+        BufferedWriter writer = new BufferedWriter(osw);
 
-                writer.write(requestJson);
-                writer.newLine();
-                writer.flush();
-            }
+        writer.write(requestJson);
+        writer.newLine();
+        writer.flush();
+      }
 
-            StringBuilder responseBuilder = new StringBuilder();
-            try (InputStream is = process.getInputStream();
-                 InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-                 BufferedReader reader = new BufferedReader(isr)) {
+      StringBuilder responseBuilder = new StringBuilder();
+      try (InputStream is = process.getInputStream();
+           InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+           BufferedReader reader = new BufferedReader(isr)) {
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    responseBuilder.append(line);
-                }
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException("Python script failed with exit code: " + exitCode);
-            }
-
-            return responseBuilder.toString();
-
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Failed to process JSON: %s", requestJson), e);
+        String line;
+        while ((line = reader.readLine()) != null) {
+          responseBuilder.append(line);
         }
+      }
+
+      int exitCode = process.waitFor();
+      if (exitCode != 0) {
+        throw new RuntimeException("Python script failed with exit code: " + exitCode);
+      }
+
+      return responseBuilder.toString();
+
+    } catch (Exception e) {
+      throw new RuntimeException(String.format("Failed to process JSON: %s", requestJson), e);
     }
+  }
 }
