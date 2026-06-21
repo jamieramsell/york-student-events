@@ -1,4 +1,15 @@
 package york.studentevents.subscriptions;
 
-/** todo. */
-public interface IObserver {}
+import york.studentevents.events.IEvent;
+
+/**
+ * Interface for observers of {@link IEvent}s.
+ */
+public interface IObserver {
+  /**
+   * Called when an event is updated.
+   *
+   * @param event the updated event
+   */
+  void update(IEvent event);
+}
