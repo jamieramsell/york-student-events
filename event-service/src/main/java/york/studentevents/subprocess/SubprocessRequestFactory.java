@@ -10,39 +10,40 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-
 /**
  * Factory class for building requests to the subprocess.
  */
 public class SubprocessRequestFactory {
+
   /**
    * Request class for the subprocess communication.
    *
    * @param <T> the type of the payload:
-   * <ul>
-   * <li> {@link UserIdPayload}
-   * <li> {@link AwardBadgePayload}
-   * </ul>
+   *     <ul>
+   *         <li> {@link UserIdPayload}
+   *         <li> {@link AwardBadgePayload}
+   *     </ul>
    */
   static class Request<T> {
+
     private final String type;
     private final T payload;
 
     /**
-         * Constructor for the Request class.
-         *
-         * @param type the type of the request:
-         *      <ul>
-         *          <li> GET_USER_BADGES
-         *          <li> GET_USER_FRIENDS
-         *          <li> AWARD_BADGE
-         *      </ul>
-         * @param payload the payload of the request:
-         *      <ul>
-         *          <li> {@link UserIdPayload}
-         *          <li> {@link AwardBadgePayload}
-         *      </ul>
-         * */
+     * Constructor for the Request class.
+     *
+     * @param type the type of the request:
+     *     <ul>
+     *         <li> GET_USER_BADGES
+     *         <li> GET_USER_FRIENDS
+     *         <li> AWARD_BADGE
+     *     </ul>
+     * @param payload the payload of the request:
+     *      <ul>
+     *          <li> {@link UserIdPayload}
+     *          <li> {@link AwardBadgePayload}
+     *      </ul>
+     */
     public Request(String type, T payload) {
       this.type = type;
       this.payload = payload;
