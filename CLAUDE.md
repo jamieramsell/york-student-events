@@ -23,8 +23,9 @@ york-student-events/
 │   ├── src/
 │   │   ├── attendance/attendance.py
 │   │   ├── badges/badges.py
-│   │   ├── friends/getFriendCircle.py
-│   │   └── matching/matching.py
+│   │   ├── friends/        (base, friendship_service, friendship_repository, getFriendCircle)
+│   │   ├── matching/matching.py
+│   │   └── repositories/   (base — IEntity, IRepository)
 │   └── tests/
 │       ├── test_attendance.py
 │       ├── test_badges.py
@@ -81,6 +82,8 @@ cd event-service
 
 - **Files**: snake_case (e.g. `attendance.py`, `matching.py`)
 - **Functions / variables**: snake_case
+- **Interfaces**: prefix with `I` — e.g. `IRepository`, `IEntity` (mirrors the Java convention; defined as `abc.ABC` abstract base classes under `repositories/`)
+- **Packages**: each domain slice is a package whose `__init__.py` re-exports its public surface via `__all__` (e.g. `friends/`, `repositories/`)
 - **Test files**: prefixed `test_` and co-located in `api-core/tests/` (e.g. `test_attendance.py`)
 - **Test runner**: pytest — run from repo root with `python -m pytest api-core/tests/`
 - No third-party dependencies yet; avoid adding any without a `requirements.txt`
