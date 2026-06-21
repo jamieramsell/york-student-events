@@ -1,11 +1,19 @@
 package york.studentevents.subprocess;
 
 import com.google.gson.Gson;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
+
+/**
+ * Factory class for building requests to the subprocess.
+ */
 public class SubprocessRequestFactory {
     /**
      * Request class for the subprocess communication.
@@ -44,17 +52,17 @@ public class SubprocessRequestFactory {
     /**
      * Builds a request for the subprocess where the payload is only a user ID.
      *
-     * @param user_id the user's ID
+     * @param userId the user's ID
      */
-    record UserIdPayload(Long user_id) {}
+    record UserIdPayload(Long userId) {}
 
     /**
      * Builds a request for the subprocess where the payload is a user ID and a badge name.
      *
-     * @param user_id the user's ID
-     * @param badge_name the name of the badge to award
+     * @param userId the user's ID
+     * @param badgeName the name of the badge to award
      */
-    record AwardBadgePayload(Long user_id, String badge_name) {}
+    record AwardBadgePayload(Long userId, String badgeName) {}
 
     private static final Gson GSON = new Gson();
     Scanner in = new Scanner(System.in);
@@ -101,7 +109,7 @@ public class SubprocessRequestFactory {
      * 
      * @throws RuntimeException if the subprocess fails to process the request.
      * */
-    String ProcessBuilder(String requestJson) {
+    String processBuilder(String requestJson) {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("python", "api-core/src/subprocess_bridge.py");
             Process process = processBuilder.start();
