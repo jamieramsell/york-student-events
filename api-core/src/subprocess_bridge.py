@@ -66,7 +66,7 @@ def main():
                 if not msg_type:
                     raise ValueError("Missing 'type' field.")
 
-                handler = factory.get_handler(line)
+                handler = factory.get_handler(msg_type)
                 result_payload = handler(payload)
 
                 response = {
