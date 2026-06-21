@@ -15,15 +15,15 @@ import java.util.Scanner;
  * Factory class for building requests to the subprocess.
  */
 public class SubprocessRequestFactory {
-    /**
-     * Request class for the subprocess communication.
-     *
-     * @param <T> the type of the payload:
-     * <ul>
-     * <li> {@link UserIdPayload}
-     * <li> {@link AwardBadgePayload}
-     * </ul>
-     * */
+  /**
+   * Request class for the subprocess communication.
+   *
+   * @param <T> the type of the payload:
+   * <ul>
+   * <li> {@link UserIdPayload}
+   * <li> {@link AwardBadgePayload}
+   * </ul>
+   */
   static class Request<T> {
     private final String type;
     private final T payload;
@@ -44,9 +44,9 @@ public class SubprocessRequestFactory {
          *      </ul>
          * */
     public Request(String type, T payload) {
-            this.type = type;
-            this.payload = payload;
-        }
+      this.type = type;
+      this.payload = payload;
+    }
   }
 
   /**
@@ -57,7 +57,8 @@ public class SubprocessRequestFactory {
   record UserIdPayload(Long userId) {}
 
   /**
-   * Builds a request for the subprocess where the payload is a user ID and a badge name.
+   * Builds a request for the subprocess where the payload is a user ID and a
+   *    badge name.
    *
    * @param userId the user's ID
    * @param badgeName the name of the badge to award
@@ -94,7 +95,10 @@ public class SubprocessRequestFactory {
    * @param badgeName the name of the badge to award
    */
   private static String buildAwardBadge(Long userId, String badgeName) {
-    Request<AwardBadgePayload> request = new Request<>("AWARD_BADGE", new AwardBadgePayload(userId, badgeName));
+    Request<AwardBadgePayload> request = new Request<>(
+        "AWARD_BADGE",
+        new AwardBadgePayload(userId, badgeName)
+    );
     return GSON.toJson(request);
   }
 
@@ -103,7 +107,7 @@ public class SubprocessRequestFactory {
    * response.
    *
    * @param requestJson the JSON request to send to the subprocess; must be a
-   *      valid JSON string.
+   *     valid JSON string.
    *
    * @return the JSON response from the subprocess.
    *
@@ -111,7 +115,10 @@ public class SubprocessRequestFactory {
    */
   String processBuilder(String requestJson) {
     try {
-      ProcessBuilder processBuilder = new ProcessBuilder("python", "api-core/src/subprocess_bridge.py");
+      ProcessBuilder processBuilder = new ProcessBuilder(
+          "python",
+          "api-core/src/subprocess_bridge.py"
+      );
       Process process = processBuilder.start();
 
       try (OutputStream os = process.getOutputStream()) {
