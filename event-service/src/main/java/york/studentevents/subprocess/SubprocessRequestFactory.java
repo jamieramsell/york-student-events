@@ -27,28 +27,26 @@ public class SubprocessRequestFactory {
    */
   static class Request<T> {
 
-    private final String type;
+    private final RequestType type;
     private final T payload;
 
     /**
      * Constructor for the Request class.
      *
-     * @param type the type of the request:
-     *     <ul>
-     *         <li> GET_USER_BADGES
-     *         <li> GET_USER_FRIENDS
-     *         <li> AWARD_BADGE
-     *     </ul>
+     * @param type the type of the request
      * @param payload the payload of the request:
      *      <ul>
      *          <li> {@link UserIdPayload}
      *          <li> {@link AwardBadgePayload}
      *      </ul>
+     * 
+     * @see RequestType
      */
-    public Request(String type, T payload) {
+    public Request(RequestType type, T payload) {
       this.type = type;
       this.payload = payload;
     }
+
   }
 
   /**
@@ -76,7 +74,10 @@ public class SubprocessRequestFactory {
    * @param userId the user's ID
    */
   private static String buildGetUserBadges(UUID userId) {
-    Request<UserIdPayload> request = new Request<>("GET_USER_BADGES", new UserIdPayload(userId));
+    Request<UserIdPayload> request = new Request<>(
+        RequestType.GET_USER_BADGES,
+        new UserIdPayload(userId)
+    );
     return GSON.toJson(request);
   }
 
@@ -86,7 +87,11 @@ public class SubprocessRequestFactory {
    * @param userId the user's ID
    */
   private static String buildGetUserFriends(UUID userId) {
-    Request<UserIdPayload> request = new Request<>("GET_USER_FRIENDS", new UserIdPayload(userId));
+    Request<UserIdPayload> request = new Request<>(
+        RequestType.GET_USER_FRIENDS,
+        new UserIdPayload(userId)
+    );
+
     return GSON.toJson(request);
   }
 
@@ -98,9 +103,10 @@ public class SubprocessRequestFactory {
    */
   private static String buildAwardBadge(UUID userId, String badgeName) {
     Request<AwardBadgePayload> request = new Request<>(
-        "AWARD_BADGE",
+        RequestType.AWARD_BADGE,
         new AwardBadgePayload(userId, badgeName)
     );
+
     return GSON.toJson(request);
   }
 
