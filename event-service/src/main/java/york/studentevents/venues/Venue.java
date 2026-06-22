@@ -41,6 +41,34 @@ public class Venue implements IVenue {
     setCapacity(capacity);
   }
 
+  // Getters //
+
+  /** Returns the unique identifier of the venue. */
+  @Override
+  public UUID getId() {
+    return id;
+  }
+
+  /** Returns the name of the venue. */
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  /** Returns the address of the venue. */
+  @Override
+  public String getAddress() {
+    return address;
+  }
+
+  /** Returns the maximum number of attendees the venue can hold. */
+  @Override
+  public int getCapacity() {
+    return capacity;
+  }
+
+  // Setters //
+  
   /**
    * Sets the address of the venue.
    *
@@ -83,31 +111,8 @@ public class Venue implements IVenue {
     this.capacity = capacity;
   }
 
-
-  /** Returns the unique identifier of the venue. */
-  @Override
-  public UUID getId() {
-    return id;
-  }
-
-  /** Returns the name of the venue. */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /** Returns the address of the venue. */
-  @Override
-  public String getAddress() {
-    return address;
-  }
-
-  /** Returns the maximum number of attendees the venue can hold. */
-  @Override
-  public int getCapacity() {
-    return capacity;
-  }
-
+  // Method overrides //
+  
   /** Returns a string representation for debugging purposes. */
   @Override
   public String toString() {
