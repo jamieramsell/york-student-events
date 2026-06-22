@@ -32,7 +32,7 @@ public class Venue implements IVenue {
    * @param capacity the maximum number of attendees the venue can hold; must be greater than 0.
    */
   protected Venue(UUID id, String name, String address, int capacity) {
-    if(id == null) {
+    if (id == null) {
       throw new IllegalArgumentException("Venue ID cannot be null");
     }
     this.id = id;
@@ -49,7 +49,7 @@ public class Venue implements IVenue {
    * @throws IllegalArgumentException if the name is invalid.
    */
   private void setName(String name) {
-    if(name == null || name.isBlank()) {
+    if (name == null || name.isBlank()) {
       throw new IllegalArgumentException("Venue name cannot be null, blank, or empty.");
     }
     this.name = name;
@@ -63,7 +63,7 @@ public class Venue implements IVenue {
    * @throws IllegalArgumentException if the address is invalid.
    */
   private void setAddress(String address) {
-    if(address == null || address.isBlank()) {
+    if (address == null || address.isBlank()) {
       throw new IllegalArgumentException("Venue address cannot be null, blank, or empty.");
     }
     this.address = address;
@@ -77,7 +77,7 @@ public class Venue implements IVenue {
    * @throws IllegalArgumentException if the capacity is invalid.
    */
   private void setCapacity(int capacity) {
-    if(capacity < 1) {
+    if (capacity < 1) {
       throw new IllegalArgumentException("Venue capacity must be greater than zero.");
     }
     this.capacity = capacity;
