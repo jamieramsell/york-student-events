@@ -13,4 +13,4 @@ M1 - App Foundation: project scaffolding for both backend services.
 - Domain interfaces: `IEvent`, `IUser`, `IVenue`, `ICohort`, generic `IRepository<T>` and its per-domain extensions
 - Custom exception types (`EventNotFoundException`, `UserNotFoundException`, `VenueNotFoundException`, `CohortNotFoundException`, `CapacityExceededException`)
 - `api-core` (Python) data structures: `Badge`, `Friendship`
-- Generated Javadoc published under `docs/event-service/`
+- Generated Javadoc published under `docs/apidocs/`
