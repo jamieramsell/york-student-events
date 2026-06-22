@@ -25,7 +25,7 @@ class SubprocessRequestFactory {
    * @see AwardBadgePayload
    * @see RequestType
    */
-  static private record Request<T>(RequestType requestType, T payload) {}
+  private static record Request<T>(RequestType requestType, T payload) {}
 
   /**
    * Builds a request for the subprocess where the payload is only a user ID.
