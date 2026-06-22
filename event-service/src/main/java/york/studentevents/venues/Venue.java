@@ -15,23 +15,71 @@ public class Venue implements IVenue {
   /**
    * Creates a {@code Venue} with the given details.
    *
-   * @param name the name of the venue; must not be {@code null} or blank
-   * @param address the address of the venue; must not be {@code null} or blank
-   * @param capacity the maximum number of attendees the venue can hold; must be greater than 0
+   * @param name the name of the venue; must not be {@code null} or blank.
+   * @param address the address of the venue; must not be {@code null} or blank.
+   * @param capacity the maximum number of attendees the venue can hold; must be greater than 0.
    */
   public Venue(String name, String address, int capacity) {
-    // Validation
-    if (name == null || name.isBlank() || name.isEmpty()) {
-      throw new IllegalArgumentException("Venue name cannot be null, blank, or empty.");
-    } else if (address == null || address.isBlank() || address.isEmpty()) {
-      throw new IllegalArgumentException("Venue address cannot be null, blank, or empty.");
-    } else if (capacity <= 0) {
-      throw new IllegalArgumentException("Venue capacity must be greater than 0.");
-    }
+    this(UUID.randomUUID(), name, address, capacity);
+  }
 
-    this.id = UUID.randomUUID();
+  /**
+   * Creates a {@code Venue} with the given details.
+   *
+   * @param id the venue's ID; must not be {@code null}.
+   * @param name the name of the venue; must not be {@code null} or blank.
+   * @param address the address of the venue; must not be {@code null} or blank.
+   * @param capacity the maximum number of attendees the venue can hold; must be greater than 0.
+   */
+  public Venue(UUID id, String name, String address, int capacity) {
+    if(id == null) {
+      throw new IllegalArgumentException("Venue ID cannot be null");
+    }
+    this.id = id;
+    setName(name);
+    setAddress(address);
+    setCapacity(capacity);
+  }
+
+  /**
+   * Sets the address of the venue.
+   *
+   * @param name the new name; must not be {@code null} or blank.
+   *
+   * @throws IllegalArgumentException if the name is invalid.
+   */
+  private void setName(String name) {
+    if(name == null || name.isBlank()) {
+      throw new IllegalArgumentException("Venue name cannot be null, blank, or empty.");
+    }
     this.name = name;
+  }
+
+  /**
+   * Sets the address of the venue.
+   *
+   * @param address the new address; must not be {@code null} or blank.
+   *
+   * @throws IllegalArgumentException if the address is invalid.
+   */
+  private void setAddress(String address) {
+    if(address == null || address.isBlank()) {
+      throw new IllegalArgumentException("Venue address cannot be null, blank, or empty.");
+    }
     this.address = address;
+  }
+
+  /**
+   * Sets the capacity of the venue.
+   *
+   * @param capacity the new capacity; must be greater than 0.
+   *
+   * @throws IllegalArgumentException if the capacity is invalid.
+   */
+  private void setCapacity(int capacity) {
+    if(capacity < 1) {
+      throw new IllegalArgumentException("Venue capacity must be greater than zero.");
+    }
     this.capacity = capacity;
   }
 
