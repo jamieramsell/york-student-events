@@ -24,7 +24,23 @@ public class User implements IUser {
    * @throws IllegalArgumentException if the username or email is invalid
    */
   public User(String username, String email, UUID cohort, List<UUID> registeredEvents) {
-    this.id = UUID.randomUUID();
+    this(UUID.randomUUID(), username, email, cohort, registeredEvents);
+  }
+
+  /** Creates a {@code User} with the given details.
+   *
+   * @param id the user's ID; must not be {@code null}.
+   * @param username the user's username; must not be {@code null}, blank, or empty.
+   * @param email the user's email; must not be {@code null}, blank, or empty.
+   * @param cohort the user's cohort; no validation is performed
+   * @param registeredEvents the user's registered events; no validation is performed
+   * @throws IllegalArgumentException if the username or email is invalid
+   */
+  public User(UUID id, String username, String email, UUID cohort, List<UUID> registeredEvents) {
+    if (id == null) {
+      throw new IllegalArgumentException("User ID cannot be null");
+    }
+    this.id = id;
     setUsername(username);
     setEmail(email);
     setCohort(cohort);
@@ -49,7 +65,7 @@ public class User implements IUser {
    */
   @Override
   public void setUsername(String username) {
-    if (username == null || username.isBlank() || username.isEmpty()) {
+    if (username == null || username.isBlank()) {
       throw new IllegalArgumentException("Username cannot be null, blank, or empty.");
     }
     this.username = username;
@@ -68,7 +84,7 @@ public class User implements IUser {
    */
   @Override
   public void setEmail(String email) throws IllegalArgumentException {
-    if (email == null || email.isBlank() || email.isEmpty()) {
+    if (email == null || email.isBlank()) {
       throw new IllegalArgumentException("email cannot be null, blank, or empty.");
     } else if (email.split("@").length != 2) {
       throw new IllegalArgumentException("email provided is not valid");
@@ -115,7 +131,7 @@ public class User implements IUser {
   @Override
   public String toString() {
     return String.format(
-        "User[id=%s, username='%s', email='%s', cohort=%d, registeredEvents=%s]",
+        "User[id=%s, username='%s', email='%s', cohort=%s, registeredEvents=%s]",
         id,
         username,
         email,
