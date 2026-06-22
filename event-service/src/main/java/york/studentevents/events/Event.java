@@ -184,7 +184,7 @@ public class Event implements IEvent {
    */
   @Override
   public void setCapacity(Integer capacity) {
-    if (capacity < 1) {
+    if (capacity != null && capacity < 1) {
       throw new IllegalArgumentException("capacity must be greater than zero");
     }
     this.capacity = capacity;
@@ -192,6 +192,9 @@ public class Event implements IEvent {
 
   @Override
   public void setCategory(EventCategory category) { // todo: implement categories and validation
+    if (category == null) {
+      throw new IllegalArgumentException("category cannot be null");
+    }
     this.category = category;
   }
 
