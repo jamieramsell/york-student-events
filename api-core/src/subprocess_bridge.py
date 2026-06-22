@@ -53,38 +53,43 @@ class MessageHandlerFactory:
 
 def main():
     factory = MessageHandlerFactory()
+
     for line in sys.stdin:
-            line = line.strip()
-            if not line:
-                continue
 
-            try:
-                request = json.loads(line)
-                msg_type = request.get("type")
-                payload = request.get("payload", {})
+        line = line.strip()
+        if not line:
+            continue
 
-                if not msg_type:
-                    raise ValueError("Missing 'type' field.")
+        try:
+            request = json.loads(line)
+            msg_type = request.get("requestType")
+            payload = request.get("payload", {})
 
-                handler = factory.get_handler(msg_type)
-                result_payload = handler(payload)
+            if not msg_type:
+                raise ValueError("Missing 'requestType' field.")
 
-                response = {
-                    "status": "ok",
-                    "payload": result_payload,
-                }
-            except json.JSONDecodeError:
-                response = {
-                    "status": "error",
-                    "error": "Incorrectly formated json."
-                }
-            except Exception as e:
-                response = {
-                    "status": "error",
-                    "error": str(e)
-                }
-            sys.stdout.write(json.dumps(response) + "\n")
-            sys.stdout.flush()
+            handler = factory.get_handler(msg_type)
+            result_payload = handler(payload)
+
+            response = {
+                "status": "ok",
+                "payload": result_payload,
+            }
+
+        except json.JSONDecodeError:
+            response = {
+                "status": "error",
+                "error": "Incorrectly formated json."
+            }
+
+        except Exception as e:
+            response = {
+                "status": "error",
+                "error": str(e)
+            }
+
+        sys.stdout.write(json.dumps(response) + "\n")
+        sys.stdout.flush()
 
 if __name__ == "__main__":
     main()
