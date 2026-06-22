@@ -17,51 +17,30 @@ class SubprocessRequestFactory {
   /**
    * Request class for the subprocess communication.
    *
-   * @param T the type of the payload:
-   *     <ul>
-   *         <li> {@link UserIdPayload}
-   *         <li> {@link AwardBadgePayload}
-   *     </ul>
+   * @param T the type of the payload
+   * @param requestType the type of the request
+   * @param payload the payload of the request
+   * 
+   * @see UserIdPayload
+   * @see AwardBadgePayload
+   * @see RequestType
    */
-  static class Request<T> {
-
-    private final RequestType type;
-    private final T payload;
-
-    /**
-     * Constructor for the Request class.
-     *
-     * @param type the type of the request
-     * @param payload the payload of the request:
-     *      <ul>
-     *          <li> {@link UserIdPayload}
-     *          <li> {@link AwardBadgePayload}
-     *      </ul>
-     * 
-     * @see RequestType
-     */
-    public Request(RequestType type, T payload) {
-      this.type = type;
-      this.payload = payload;
-    }
-
-  }
+  static private record Request<T>(RequestType requestType, T payload) {}
 
   /**
    * Builds a request for the subprocess where the payload is only a user ID.
    *
    * @param userId the user's ID
    */
-  record UserIdPayload(UUID userId) {}
+  static record UserIdPayload(UUID userId) {}
 
   /**
-   * Builds a request for the subprocess where the payload is a user ID and a
-   *    badge name.
+   * Builds a request for the subprocess where the payload is a user ID and a badge name.
    *
    * @param userId the user's ID
    * @param badgeName the name of the badge to award
    */
-  record AwardBadgePayload(UUID userId, String badgeName) {}
+  static record AwardBadgePayload(UUID userId, String badgeName) {}
 
   private static final Gson GSON = new Gson();
   Scanner in = new Scanner(System.in);
