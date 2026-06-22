@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
 import java.util.UUID;
 
 /** Factory class for building requests to the subprocess. */
@@ -43,7 +42,6 @@ class SubprocessRequestFactory {
   static record AwardBadgePayload(UUID userId, String badgeName) {}
 
   private static final Gson GSON = new Gson();
-  Scanner in = new Scanner(System.in);
 
   /**
    * Builds a JSON request for the subprocess to get the user's badges.
