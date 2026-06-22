@@ -33,7 +33,7 @@ public class Cohort implements ICohort {
    *     <li>The masters stage is represented by 5.</li>
    *     </ul>
    * @throws IllegalArgumentException if the name, department, academic year, or year group is
-   *    invalid
+   *      invalid
    */
   public Cohort(String name, String department, int academicYear, int yearGroup) {
     this(UUID.randomUUID(), name, department, academicYear, yearGroup);
@@ -56,7 +56,7 @@ public class Cohort implements ICohort {
    *     <li>The masters stage is represented by 5.</li>
    *     </ul>
    * @throws IllegalArgumentException if the name, department, academic year, or year group is
-   *    invalid
+   *      invalid
    */
   public Cohort(UUID id, String name, String department, int academicYear, int yearGroup) {
     if (id == null) {
