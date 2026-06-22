@@ -57,8 +57,7 @@ public class Event implements IEvent {
    * @param title the event title; must not be {@code null}.
    * @param category the event category; must not be {@code null}.
    *
-   * @throws IllegalArgumentException if any of the parameters are {@code null}, or
-   *      if {@code capacity} is less than one.
+   * @throws IllegalArgumentException if any of the parameters are {@code null}
    * */
   protected Event(UUID id, String title, EventCategory category) {
     if (id == null) {
@@ -76,8 +75,7 @@ public class Event implements IEvent {
    * @param title the event title; must not be {@code null}.
    * @param category the event category; must not be {@code null}.
    *
-   * @throws IllegalArgumentException if any of the parameters are {@code null}, or
-   *      if {@code capacity} is less than one.
+   * @throws IllegalArgumentException if any of the parameters are {@code null}
    * */
   public Event(String title, EventCategory category) {
     this(UUID.randomUUID(), title, category);
