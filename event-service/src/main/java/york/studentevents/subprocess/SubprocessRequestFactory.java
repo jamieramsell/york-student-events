@@ -19,7 +19,7 @@ public class SubprocessRequestFactory {
   /**
    * Request class for the subprocess communication.
    *
-   * @param <T> the type of the payload:
+   * @param T the type of the payload:
    *     <ul>
    *         <li> {@link UserIdPayload}
    *         <li> {@link AwardBadgePayload}
@@ -116,7 +116,9 @@ public class SubprocessRequestFactory {
    * @throws RuntimeException if the subprocess fails to process the request.
    */
   String processBuilder(String requestJson) {
+
     try {
+
       ProcessBuilder processBuilder = new ProcessBuilder(
           "python",
           "api-core/src/subprocess_bridge.py"
@@ -124,19 +126,22 @@ public class SubprocessRequestFactory {
       Process process = processBuilder.start();
 
       try (OutputStream os = process.getOutputStream()) {
+
         OutputStreamWriter osw = new OutputStreamWriter(os, StandardCharsets.UTF_8);
         BufferedWriter writer = new BufferedWriter(osw);
 
         writer.write(requestJson);
         writer.newLine();
         writer.flush();
+
       }
 
       StringBuilder responseBuilder = new StringBuilder();
-      try (InputStream is = process.getInputStream();
-           InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-           BufferedReader reader = new BufferedReader(isr)) {
-
+      try (
+          InputStream is = process.getInputStream();
+          InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+          BufferedReader reader = new BufferedReader(isr)
+      ) {
         String line;
         while ((line = reader.readLine()) != null) {
           responseBuilder.append(line);
@@ -153,5 +158,6 @@ public class SubprocessRequestFactory {
     } catch (Exception e) {
       throw new RuntimeException(String.format("Failed to process JSON: %s", requestJson), e);
     }
+
   }
 }
