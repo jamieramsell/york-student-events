@@ -9,10 +9,10 @@ To ensure consistent parsing across both languages, every message must adhere
 to strict envelope structures.
 
 ### Request Envelope
-Every request sent to a subprocess must contain a `type` string to route the 
-message, and a `payload` object containing the specific arguments.
+Every request sent to a subprocess must contain a `requestType` string to route
+the message, and a `payload` object containing the specific arguments.
 
-The `type` string must be one of the following:
+The `requestType` string must be one of the following:
 - `GET_USER_BADGES`
 - `GET_USER_FRIENDS`
 - `AWARD_BADGE` 
@@ -20,9 +20,9 @@ The `type` string must be one of the following:
 For example:
 ```json
 { 
-  "type": "GET_USER_BADGES", 
+  "requestType": "GET_USER_BADGES", 
   "payload": { 
-    "user_id": 1
+    "userId": 1
   }
 }
 ```
