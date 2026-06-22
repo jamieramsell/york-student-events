@@ -11,10 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.UUID;
 
-/**
- * Factory class for building requests to the subprocess.
- */
-public class SubprocessRequestFactory {
+/** Factory class for building requests to the subprocess. */
+class SubprocessRequestFactory {
 
   /**
    * Request class for the subprocess communication.
@@ -73,7 +71,7 @@ public class SubprocessRequestFactory {
    *
    * @param userId the user's ID
    */
-  private static String buildGetUserBadges(UUID userId) {
+  public static String buildGetUserBadges(UUID userId) {
     Request<UserIdPayload> request = new Request<>(
         RequestType.GET_USER_BADGES,
         new UserIdPayload(userId)
@@ -86,7 +84,7 @@ public class SubprocessRequestFactory {
    *
    * @param userId the user's ID
    */
-  private static String buildGetUserFriends(UUID userId) {
+  public static String buildGetUserFriends(UUID userId) {
     Request<UserIdPayload> request = new Request<>(
         RequestType.GET_USER_FRIENDS,
         new UserIdPayload(userId)
@@ -101,7 +99,7 @@ public class SubprocessRequestFactory {
    * @param userId the user's ID
    * @param badgeName the name of the badge to award
    */
-  private static String buildAwardBadge(UUID userId, String badgeName) {
+  public static String buildAwardBadge(UUID userId, String badgeName) {
     Request<AwardBadgePayload> request = new Request<>(
         RequestType.AWARD_BADGE,
         new AwardBadgePayload(userId, badgeName)
@@ -121,7 +119,7 @@ public class SubprocessRequestFactory {
    *
    * @throws RuntimeException if the subprocess fails to process the request.
    */
-  String processBuilder(String requestJson) {
+  public String processBuilder(String requestJson) {
 
     try {
 
