@@ -58,7 +58,7 @@ public class Cohort implements ICohort {
    * @throws IllegalArgumentException if the name, department, academic year, or year group is
    *      invalid
    */
-  public Cohort(UUID id, String name, String department, int academicYear, int yearGroup) {
+  protected Cohort(UUID id, String name, String department, int academicYear, int yearGroup) {
     if (id == null) {
       throw new IllegalArgumentException("Cohort ID cannot be null");
     }

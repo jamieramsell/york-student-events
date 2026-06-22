@@ -31,7 +31,7 @@ public class Venue implements IVenue {
    * @param address the address of the venue; must not be {@code null} or blank.
    * @param capacity the maximum number of attendees the venue can hold; must be greater than 0.
    */
-  public Venue(UUID id, String name, String address, int capacity) {
+  protected Venue(UUID id, String name, String address, int capacity) {
     if(id == null) {
       throw new IllegalArgumentException("Venue ID cannot be null");
     }

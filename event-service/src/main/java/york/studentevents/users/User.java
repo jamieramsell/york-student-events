@@ -36,7 +36,7 @@ public class User implements IUser {
    * @param registeredEvents the user's registered events; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
    */
-  public User(UUID id, String username, String email, UUID cohort, List<UUID> registeredEvents) {
+  protected User(UUID id, String username, String email, UUID cohort, List<UUID> registeredEvents) {
     if (id == null) {
       throw new IllegalArgumentException("User ID cannot be null");
     }
