@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+import java.util.UUID;
 
 /**
  * Factory class for building requests to the subprocess.
@@ -55,7 +56,7 @@ public class SubprocessRequestFactory {
    *
    * @param userId the user's ID
    */
-  record UserIdPayload(Long userId) {}
+  record UserIdPayload(UUID userId) {}
 
   /**
    * Builds a request for the subprocess where the payload is a user ID and a
@@ -64,7 +65,7 @@ public class SubprocessRequestFactory {
    * @param userId the user's ID
    * @param badgeName the name of the badge to award
    */
-  record AwardBadgePayload(Long userId, String badgeName) {}
+  record AwardBadgePayload(UUID userId, String badgeName) {}
 
   private static final Gson GSON = new Gson();
   Scanner in = new Scanner(System.in);
@@ -74,7 +75,7 @@ public class SubprocessRequestFactory {
    *
    * @param userId the user's ID
    */
-  private static String buildGetUserBadges(Long userId) {
+  private static String buildGetUserBadges(UUID userId) {
     Request<UserIdPayload> request = new Request<>("GET_USER_BADGES", new UserIdPayload(userId));
     return GSON.toJson(request);
   }
@@ -84,7 +85,7 @@ public class SubprocessRequestFactory {
    *
    * @param userId the user's ID
    */
-  private static String buildGetUserFriends(Long userId) {
+  private static String buildGetUserFriends(UUID userId) {
     Request<UserIdPayload> request = new Request<>("GET_USER_FRIENDS", new UserIdPayload(userId));
     return GSON.toJson(request);
   }
@@ -95,7 +96,7 @@ public class SubprocessRequestFactory {
    * @param userId the user's ID
    * @param badgeName the name of the badge to award
    */
-  private static String buildAwardBadge(Long userId, String badgeName) {
+  private static String buildAwardBadge(UUID userId, String badgeName) {
     Request<AwardBadgePayload> request = new Request<>(
         "AWARD_BADGE",
         new AwardBadgePayload(userId, badgeName)
