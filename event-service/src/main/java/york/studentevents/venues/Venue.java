@@ -10,7 +10,7 @@ public class Venue implements IVenue {
   private UUID id;
   private String name;
   private String address;
-  private int capacity;
+  private Integer capacity;
 
   /**
    * Creates a {@code Venue} with the given details.
