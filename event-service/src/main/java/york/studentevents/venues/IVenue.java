@@ -11,8 +11,9 @@ public interface IVenue extends IEntity {
   /** Returns the address of the venue. */
   String getAddress();
 
-  /** Returns the maximum number of attendees the venue can hold
-   * 
+  /**
+   * Returns the maximum number of attendees the venue can hold.
+   *
    * @returns the capacity of the venue, or {@code null} if the venue has no maximum capacity.
    */
   Integer getCapacity();
