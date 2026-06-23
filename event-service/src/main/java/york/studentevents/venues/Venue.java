@@ -13,23 +13,29 @@ public class Venue implements IVenue {
   private Integer capacity;
 
   /**
-   * Creates a {@code Venue} with the given details.
+   * Creates a {@code Venue} with a maximum attendee capacity.
    *
-   * @param name the name of the venue; must not be {@code null} or blank.
-   * @param address the address of the venue; must not be {@code null} or blank.
-   * @param capacity the maximum number of attendees the venue can hold; must be greater than 0.
+   * @param name the name of the venue.
+   * @param address the address of the venue.
+   * @param capacity the maximum number of attendees the venue can hold.
+   * 
+   * @throws IllegalArgumentException if any of the parameters are {@code null}, blank, or empty, or
+   *      if {@code capacity} is less than one.
    */
   public Venue(String name, String address, int capacity) {
     this(UUID.randomUUID(), name, address, capacity);
   }
 
   /**
-   * Creates a {@code Venue} with the given details.
+   * Creates a {@code Venue} with a specific ID value and a maximum attendee capacity.
    *
-   * @param id the venue's ID; must not be {@code null}.
-   * @param name the name of the venue; must not be {@code null} or blank.
-   * @param address the address of the venue; must not be {@code null} or blank.
-   * @param capacity the maximum number of attendees the venue can hold; must be greater than 0.
+   * @param id the venue's ID.
+   * @param name the name of the venue.
+   * @param address the address of the venue.
+   * @param capacity the maximum number of attendees the venue can hold.
+   * 
+   * @throws IllegalArgumentException if any of the parameters are {@code null}, blank, or empty, or
+   *      if {@code capacity} is less than one.
    */
   protected Venue(UUID id, String name, String address, int capacity) {
     if (id == null) {
@@ -43,25 +49,21 @@ public class Venue implements IVenue {
 
   // Getters //
 
-  /** Returns the unique identifier of the venue. */
   @Override
   public UUID getId() {
     return id;
   }
 
-  /** Returns the name of the venue. */
   @Override
   public String getName() {
     return name;
   }
 
-  /** Returns the address of the venue. */
   @Override
   public String getAddress() {
     return address;
   }
 
-  /** Returns the maximum number of attendees the venue can hold. */
   @Override
   public int getCapacity() {
     return capacity;
