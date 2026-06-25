@@ -24,22 +24,7 @@ class SubprocessRequestFactory {
    * @see AwardBadgePayload
    * @see RequestType
    */
-  private static record Request<T>(RequestType requestType, T payload) {}
-
-  /**
-   * Builds a request for the subprocess where the payload is only a user ID.
-   *
-   * @param userId the user's ID
-   */
-  static record UserIdPayload(UUID userId) {}
-
-  /**
-   * Builds a request for the subprocess where the payload is a user ID and a badge name.
-   *
-   * @param userId the user's ID
-   * @param badgeName the name of the badge to award
-   */
-  static record AwardBadgePayload(UUID userId, String badgeName) {}
+  static record Request<T extends Payload>(RequestType requestType, T payload) {}
 
   private static final Gson GSON = new Gson();
 
