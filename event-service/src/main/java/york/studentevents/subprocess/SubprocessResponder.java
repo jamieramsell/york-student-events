@@ -29,7 +29,7 @@ import java.util.UUID;
  */
 public class SubprocessResponder {
 
-  private static record RequestEnvelope(RequestType requestType, Payload payload) {}
+  private static record RequestEnvelope(RequestType requestType, IPayload payload) {}
 
   private static final Gson GSON = new Gson();
 
@@ -38,7 +38,7 @@ public class SubprocessResponder {
    *
    * <p>The supplied string must be a single JSON object containing a {@code requestType} field
    * (one of {@link RequestType}) and a {@code payload} object. The payload is converted into the
-   * {@link Payload} implementation appropriate to the request type; for {@code GET_USER_EVENTS}
+   * {@link IPayload} implementation appropriate to the request type; for {@code GET_USER_EVENTS}
    * this is a {@link UserIdPayload} built from the payload's {@code userId}.
    *
    * @param json the raw JSON request envelope, as received on standard input; expected to be a
@@ -82,7 +82,7 @@ public class SubprocessResponder {
     UUID userId = getUserId(payload);
     RequestType requestType = getRequestType(envelope);
 
-    Payload requestPayload = switch (requestType) {
+    IPayload requestPayload = switch (requestType) {
       case GET_USER_EVENTS -> new UserIdPayload(userId);
       default -> throw new IllegalArgumentException("Unsupported requestType for event-service: "
           + requestType);

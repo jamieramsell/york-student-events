@@ -24,7 +24,7 @@ class SubprocessRequestFactory {
    * @see AwardBadgePayload
    * @see RequestType
    */
-  static record Request<T extends Payload>(RequestType requestType, T payload) {}
+  static record Request<T extends IPayload>(RequestType requestType, T payload) {}
 
   private static final Gson GSON = new Gson();
 
