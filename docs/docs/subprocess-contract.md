@@ -16,6 +16,7 @@ The `requestType` string must be one of the following:
 - `GET_USER_BADGES`
 - `GET_USER_FRIENDS`
 - `AWARD_BADGE` 
+- `GET_USER_EVENTS`
 
 For example:
 ```json
