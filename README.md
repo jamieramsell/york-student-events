@@ -177,17 +177,6 @@ python -m pytest api-core/tests/
  
 ## Code Style
  
-The Java codebase follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), enforced by the `maven-checkstyle-plugin` (Checkstyle 10.17.0) against the bundled `google_checks.xml` during `mvn verify`. Python code is linted with [Ruff](https://docs.astral.sh/ruff/).
- 
-Both checks run automatically on every pull request:
- 
-- **`build.yml`** — builds, tests, and runs Checkstyle on `event-service` via `./mvnw -B verify`
-- **`lint.yml`** — runs `ruff check` against `api-core`
- 
----
- 
-## Code Style
- 
 The Java codebase follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), enforced by the `maven-checkstyle-plugin` against the bundled `google_checks.xml`. The `check` goal is bound to the `verify` phase, so `./mvnw verify` runs Checkstyle as part of the build. Python code in `api-core` is linted with [Ruff](https://docs.astral.sh/ruff/).
  
 Both checks run automatically on every pull request via the **`lint.yml`** workflow:
