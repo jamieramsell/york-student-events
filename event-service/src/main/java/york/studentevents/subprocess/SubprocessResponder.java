@@ -36,7 +36,7 @@ import java.util.UUID;
  */
 public class SubprocessResponder {
 
-  private static record RequestEnvelope(RequestType requestType, IPayload payload) {}
+  private static record RequestEnvelope(RequestType requestType, JsonObject payload) {}
 
   private static final Gson GSON = new Gson();
 
@@ -44,18 +44,14 @@ public class SubprocessResponder {
    * Deserialises a raw JSON request envelope into a typed {@link RequestEnvelope}.
    *
    * <p>The supplied string must be a single JSON object containing a {@code requestType} field
-   * (one of {@link RequestType}) and a {@code payload} object. The payload is converted into the
-   * {@link IPayload} implementation appropriate to the request type; for {@code GET_USER_EVENTS}
-   * this is a {@link UserIdPayload} built from the payload's {@code userId}.
+   * (one of {@link RequestType}) and a {@code payload} object.
    *
    * @param json the raw JSON request envelope, as received on standard input; expected to be a
    *     single JSON object.
    * @return the deserialised {@link RequestEnvelope} holding the request type and its payload.
    *
    * @throws IllegalArgumentException if {@code json} is not a valid JSON object; if the
-   *     {@code requestType} or {@code payload} fields are missing or malformed; if
-   *     {@code requestType} is not a recognised {@link RequestType} or is one this responder does
-   *     not support; or if {@code userId} is missing or not a valid UUID.
+   *     {@code requestType} or {@code payload} fields are missing or malformed.
    */
   private static RequestEnvelope deserialiseEnvelope(String json) {
 
@@ -86,16 +82,8 @@ public class SubprocessResponder {
     }
 
     // Create the envelope object and return it
-    UUID userId = getUserId(payload);
     RequestType requestType = getRequestType(envelope);
-
-    IPayload requestPayload = switch (requestType) {
-      case GET_USER_EVENTS -> new UserIdPayload(userId);
-      default -> throw new IllegalArgumentException("Unsupported requestType for event-service: "
-          + requestType);
-    };
-
-    RequestEnvelope requestEnvelope = new RequestEnvelope(requestType, requestPayload);
+    RequestEnvelope requestEnvelope = new RequestEnvelope(requestType, payload);
     return requestEnvelope;
 
   }
@@ -118,42 +106,6 @@ public class SubprocessResponder {
     if (!envelope.has("payload") || !envelope.get("payload").isJsonObject()) {
       throw new IllegalArgumentException("Missing 'payload' field.");
     }
-  }
-
-  /**
-   * Convenience function which retrieves the user's ID from a request payload.
-   *
-   * @param payload The request payload from which to retrieve the target user's ID
-   * @return The UUID of the target user.
-   *
-   * @throws IllegalArgumentException if the envelope is missing a userId field, or the userId field
-   *     is not valid.
-   *
-   * @see validateEnvelope
-   */
-  private static UUID getUserId(JsonObject payload) {
-    // Checks that the payload contains a value named 'userId', which is not null.
-    if (!payload.has("userId") || payload.get("userId").isJsonNull()) {
-      throw new IllegalArgumentException("Missing 'userId' field.");
-    }
-
-    // Try to parse the userId element of the payload into a String
-    String userId;
-    try {
-      userId = payload.get("userId").getAsString();
-    } catch (UnsupportedOperationException | IllegalStateException e) {
-      throw new IllegalArgumentException("'userId' field is not valid.");
-    }
-
-    // Try to parse the userId String into a UUID
-    UUID uuidUserId;
-    try {
-      uuidUserId = UUID.fromString(userId);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("'userId' field is not a valid UUID.");
-    }
-
-    return uuidUserId;
   }
 
   /**
@@ -234,14 +186,53 @@ public class SubprocessResponder {
    * @param envelope the deserialised request.
    * @return the JSON {@code ok} response envelope.
    *
-   * @throws IllegalArgumentException if the request type is not supported by this responder.
+   * @throws IllegalArgumentException if the request type is not supported by this responder; or if
+   *     {@code userId} is missing or not a valid UUID.
    */
   private static String route(RequestEnvelope envelope) {
+    UUID userId = getUserId(envelope.payload());
+
     return switch (envelope.requestType()) {
-      case GET_USER_EVENTS -> getUserEvents(envelope.payload().userId());
+      case GET_USER_EVENTS -> getUserEvents(userId);
       default -> throw new IllegalArgumentException(
           "Unsupported requestType for event-service: " + envelope.requestType());
     };
+  }
+
+  /**
+   * Convenience function which retrieves the user's ID from a request payload.
+   *
+   * @param payload The request payload from which to retrieve the target user's ID
+   * @return The UUID of the target user.
+   *
+   * @throws IllegalArgumentException if the envelope is missing a userId field, or the userId field
+   *     is not valid.
+   *
+   * @see validateEnvelope
+   */
+  private static UUID getUserId(JsonObject payload) {
+    // Checks that the payload contains a value named 'userId', which is not null.
+    if (!payload.has("userId") || payload.get("userId").isJsonNull()) {
+      throw new IllegalArgumentException("Missing 'userId' field.");
+    }
+
+    // Try to parse the userId element of the payload into a String
+    String userId;
+    try {
+      userId = payload.get("userId").getAsString();
+    } catch (UnsupportedOperationException | IllegalStateException e) {
+      throw new IllegalArgumentException("'userId' field is not valid.");
+    }
+
+    // Try to parse the userId String into a UUID
+    UUID uuidUserId;
+    try {
+      uuidUserId = UUID.fromString(userId);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("'userId' field is not a valid UUID.");
+    }
+
+    return uuidUserId;
   }
 
   /**
