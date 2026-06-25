@@ -6,6 +6,27 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import java.util.UUID;
 
+/**
+ * Standalone entry point that answers subprocess requests issued by the Python {@code api-core}
+ * service.
+ *
+ * <p>This is the structural mirror of {@code api-core/src/subprocess_bridge.py}, but for the
+ * opposite direction of the bridge. Where {@link SubprocessRequestFactory} has
+ * {@code event-service} spawn Python and read its response, here {@code api-core} spawns this
+ * responder as a fresh process, writes a JSON request envelope to its standard input, and reads a
+ * JSON response envelope from its standard output.
+ *
+ * <p>Each invocation reads a single request envelope, routes on its {@link RequestType}, and emits
+ * a response envelope. Both follow the shared JSON contract documented in
+ * {@code docs/docs/subprocess-contract.md}. A malformed request, an unknown or unsupported request
+ * type, or an unknown user yields an {@code error} envelope and a non-zero exit status.
+ *
+ * <p>Only {@link RequestType#GET_USER_EVENTS} is currently supported, since {@code event-service}
+ * owns event data; badge and friend requests belong to {@code api-core}.
+ *
+ * @see RequestType
+ * @see SubprocessRequestFactory
+ */
 public class SubprocessResponder {
 
   private static record RequestEnvelope(RequestType requestType, Payload payload) {}
