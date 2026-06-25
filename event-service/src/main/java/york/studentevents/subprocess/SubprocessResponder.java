@@ -144,6 +144,21 @@ public class SubprocessResponder {
   /** Response envelope for a failed request. */
   private record ErrorResponse(String status, String error) {}
 
+  /**
+   * Entry point: answers a single subprocess request read from standard input and writes the
+   * response to standard output.
+   *
+   * <p>Reads one JSON request envelope, deserialises and validates it, dispatches it on its
+   * {@link RequestType}, and writes the resulting {@code ok} response envelope. On success the
+   * process exits normally (zero).
+   *
+   * <p>Any failure (a malformed request, an unknown or unsupported request type, an unknown user,
+   * or an unexpected error such as an I/O failure on standard input) is caught here, written to
+   * standard output as an {@code error} envelope, and terminated with a non-zero exit status. No
+   * exception is allowed to propagate out of this method.
+   *
+   * @param args command-line arguments; unused.
+   */
   public static void main(String[] args) {
     try {
       String requestJson = readRequest();
