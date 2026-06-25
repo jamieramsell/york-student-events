@@ -96,9 +96,9 @@ public class SubprocessResponder {
   /**
    * Convenience function which checks whether the structure of a given JsonObject matches that of a
    * valid request envelope.
-   * 
+   *
    * @param envelope The JsonObject to check.
-   * 
+   *
    * @throws IllegalArgumentException if the envelope is missing a requestType or payload field.
    */
   private static void validateEnvelope(JsonObject envelope) {
@@ -115,13 +115,13 @@ public class SubprocessResponder {
 
   /**
    * Convenience function which retrieves the user's ID from a request payload.
-   * 
+   *
    * @param payload The request payload from which to retrieve the target user's ID
    * @return The UUID of the target user.
-   * 
+   *
    * @throws IllegalArgumentException if the envelope is missing a userId field, or the userId field
    *     is not valid.
-   * 
+   *
    * @see validateEnvelope
    */
   private static UUID getUserId(JsonObject payload) {
@@ -153,10 +153,10 @@ public class SubprocessResponder {
    * Convenience function which retrieves the RequestType from a given envelope.
    *
    * <p>Note that the value stored at the field 'requestType' must be one of {@link RequestType}.
-   * 
+   *
    * @param envelope the request envelope from which to retrieve the RequestType.
    * @return The type of request
-   * 
+   *
    * @throws IllegalArgumentException if the value of requestType is not a value of the RequestType
    *     enum.
    */
