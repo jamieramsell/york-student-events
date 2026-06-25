@@ -17,7 +17,10 @@ public enum RequestType {
   GET_USER_FRIENDS("GET_USER_FRIENDS"),
 
   /** Request that a badge be awarded to a user. */
-  AWARD_BADGE("AWARD_BADGE");
+  AWARD_BADGE("AWARD_BADGE"),
+
+  /** Request a list of IDs of the events which a user has signed up for */
+  GET_USER_EVENTS("GET_USER_EVENTS");
 
   private String request;
 
