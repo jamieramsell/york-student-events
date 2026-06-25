@@ -4,6 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+
+import york.studentevents.events.UserEventService;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -168,8 +175,97 @@ public class SubprocessResponder {
 
     return type;
   }
+  
+  /** Sentinel user recognised by this canned-stub responder. */
+  private static final UUID KNOWN_USER_ID =
+      UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+  /** Canned event IDs returned for the known user (stands in for a real EventService query). */
+  private static final List<UUID> CANNED_EVENTS = List.of(
+      UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+      UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+
+  /** Response envelope for a successful request. */
+  private record OkResponse(String status, EventsPayload payload) {}
+
+  /** Payload of a successful {@code GET_USER_EVENTS} response. */
+  private record EventsPayload(List<UUID> events) {}
+
+  /** Response envelope for a failed request. */
+  private record ErrorResponse(String status, String error) {}
 
   public static void main(String[] args) {
-    
+    try {
+      String requestJson = readRequest();
+      RequestEnvelope envelope = deserialiseEnvelope(requestJson);
+      writeResponse(route(envelope));
+    } catch (IllegalArgumentException e) {
+      // Bad data: malformed request, unknown/unsupported type, or unknown user.
+      writeResponse(GSON.toJson(new ErrorResponse("error", e.getMessage())));
+      System.exit(1);
+    } catch (Exception e) {
+      // Anything unexpected (e.g. an I/O failure reading stdin).
+      writeResponse(GSON.toJson(new ErrorResponse("error", "Unexpected error: " + e.getMessage())));
+      System.exit(1);
+    }
+  }
+
+  /**
+   * Reads the single request envelope line from standard input.
+   *
+   * @return the raw JSON request line.
+   *
+   * @throws IllegalArgumentException if no input is received.
+   * @throws java.io.IOException if standard input cannot be read.
+   */
+  private static String readRequest() throws java.io.IOException {
+    BufferedReader reader =
+        new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+    String line = reader.readLine();
+    if (line == null || line.isBlank()) {
+      throw new IllegalArgumentException("No request received on standard input.");
+    }
+    return line;
+  }
+
+  /**
+   * Routes a deserialised request to its handler and returns the JSON response envelope.
+   *
+   * @param envelope the deserialised request.
+   * @return the JSON {@code ok} response envelope.
+   *
+   * @throws IllegalArgumentException if the request type is not supported by this responder.
+   */
+  private static String route(RequestEnvelope envelope) {
+    return switch (envelope.requestType()) {
+      case GET_USER_EVENTS -> getUserEvents(envelope.payload().userId());
+      default -> throw new IllegalArgumentException(
+          "Unsupported requestType for event-service: " + envelope.requestType());
+    };
+  }
+
+  /**
+   * Returns the events for the given user as a JSON {@code ok} response envelope.
+   *
+   * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
+   *     purposes. Logic must be ripped out and swapped for code which contacts
+   *     {@link UserEventService} when persistence is configured.
+   *
+   * @param userId the user whose events to return.
+   * @return the JSON {@code ok} response envelope.
+   *
+   * @throws IllegalArgumentException if the user ID is not recognised.
+   */
+  private static String getUserEvents(UUID userId) {
+    if (!KNOWN_USER_ID.equals(userId)) {
+      throw new IllegalArgumentException("User " + userId + " not found");
+    }
+    return GSON.toJson(new OkResponse("ok", new EventsPayload(CANNED_EVENTS)));
+  }
+
+  /** Writes a response envelope to standard output, newline-terminated and flushed. */
+  private static void writeResponse(String json) {
+    System.out.println(json);
+    System.out.flush();
   }
 }
