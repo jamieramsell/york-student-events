@@ -195,75 +195,75 @@ class TestInMemoryFriendshipRepository:
 # friendship_service  (integration through the repository singleton)
 # ---------------------------------------------------------------------------
 class TestFriendshipService:
-    # -- sendFriendRequest --------------------------------------------------
+    # -- send_friend_request --------------------------------------------------
     def test_send_creates_pending_friendship(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         stored = _repo().find_by_id(_generate_id(a, b))
         assert stored is not None
         assert stored.friendship_status == FriendshipStatus.PENDING
 
     def test_send_records_sender_and_receiver(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         stored = _repo().find_by_id(_generate_id(a, b))
         assert stored.user_id == a
         assert stored.friend_id == b
 
     def test_send_sets_created_at_datetime(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         stored = _repo().find_by_id(_generate_id(a, b))
         assert isinstance(stored.created_at, datetime.datetime)
 
     def test_send_duplicate_pending_raises_value_error(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         with pytest.raises(ValueError):
-            friendship_service.sendFriendRequest(a, b)
+            friendship_service.send_friend_request(a, b)
 
     def test_send_duplicate_is_direction_independent(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         with pytest.raises(ValueError):
-            friendship_service.sendFriendRequest(b, a)
+            friendship_service.send_friend_request(b, a)
 
     def test_send_duplicate_after_accept_raises_value_error(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
-        friendship_service.acceptFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
         with pytest.raises(ValueError):
-            friendship_service.sendFriendRequest(a, b)
+            friendship_service.send_friend_request(a, b)
 
     def test_send_duplicate_does_not_overwrite_existing(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         original = _repo().find_by_id(_generate_id(a, b))
         with pytest.raises(ValueError):
-            friendship_service.sendFriendRequest(a, b)
+            friendship_service.send_friend_request(a, b)
         assert _repo().find_by_id(_generate_id(a, b)) == original
 
-    # -- acceptFriendRequest ------------------------------------------------
+    # -- accept_friend_request ------------------------------------------------
     def test_accept_sets_status_to_accepted(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
-        friendship_service.acceptFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
         stored = _repo().find_by_id(_generate_id(a, b))
         assert stored.friendship_status == FriendshipStatus.ACCEPTED
 
     def test_accept_is_direction_independent(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         # Accept with arguments reversed relative to the original request.
-        friendship_service.acceptFriendRequest(b, a)
+        friendship_service.accept_friend_request(b, a)
         stored = _repo().find_by_id(_generate_id(a, b))
         assert stored.friendship_status == FriendshipStatus.ACCEPTED
 
     def test_accept_preserves_identity_and_created_at(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         before = _repo().find_by_id(_generate_id(a, b))
-        friendship_service.acceptFriendRequest(a, b)
+        friendship_service.accept_friend_request(a, b)
         after = _repo().find_by_id(_generate_id(a, b))
         assert after.user_id == before.user_id
         assert after.friend_id == before.friend_id
@@ -271,26 +271,26 @@ class TestFriendshipService:
 
     def test_accept_already_accepted_raises_value_error(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
-        friendship_service.acceptFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
         with pytest.raises(ValueError):
-            friendship_service.acceptFriendRequest(a, b)
+            friendship_service.accept_friend_request(a, b)
 
     def test_accept_missing_raises_value_error(self):
         a, b = uuid.uuid4(), uuid.uuid4()
         with pytest.raises(ValueError):
-            friendship_service.acceptFriendRequest(a, b)
+            friendship_service.accept_friend_request(a, b)
 
     # -- removeFriend -------------------------------------------------------
     def test_remove_deletes_friendship(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         friendship_service.removeFriend(a, b)
         assert _repo().find_by_id(_generate_id(a, b)) is None
 
     def test_remove_is_direction_independent(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
         friendship_service.removeFriend(b, a)
         assert _repo().find_by_id(_generate_id(a, b)) is None
 
@@ -299,68 +299,68 @@ class TestFriendshipService:
         with pytest.raises(ValueError):
             friendship_service.removeFriend(a, b)
 
-    # -- getFriends ---------------------------------------------------------
+    # -- get_friends ---------------------------------------------------------
     def test_get_friends_empty_when_none(self):
-        assert friendship_service.getFriends(uuid.uuid4()) == []
+        assert friendship_service.get_friends(uuid.uuid4()) == []
 
     def test_get_friends_returns_accepted_friend_both_directions(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
-        friendship_service.acceptFriendRequest(a, b)
-        assert friendship_service.getFriends(a) == [b]
-        assert friendship_service.getFriends(b) == [a]
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
+        assert friendship_service.get_friends(a) == [b]
+        assert friendship_service.get_friends(b) == [a]
 
     def test_get_friends_excludes_pending(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)  # left PENDING
-        assert friendship_service.getFriends(a) == []
-        assert friendship_service.getFriends(b) == []
+        friendship_service.send_friend_request(a, b)  # left PENDING
+        assert friendship_service.get_friends(a) == []
+        assert friendship_service.get_friends(b) == []
 
     def test_get_friends_returns_only_accepted_in_mixed_set(self):
         a, accepted, pending = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, accepted)
-        friendship_service.acceptFriendRequest(a, accepted)
-        friendship_service.sendFriendRequest(a, pending)  # stays PENDING
-        assert friendship_service.getFriends(a) == [accepted]
+        friendship_service.send_friend_request(a, accepted)
+        friendship_service.accept_friend_request(a, accepted)
+        friendship_service.send_friend_request(a, pending)  # stays PENDING
+        assert friendship_service.get_friends(a) == [accepted]
 
     def test_get_friends_returns_all_accepted_friends(self):
         a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
-        friendship_service.acceptFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
         # c sends to a (a is the receiver this time); still returned for a.
-        friendship_service.sendFriendRequest(c, a)
-        friendship_service.acceptFriendRequest(c, a)
-        assert set(friendship_service.getFriends(a)) == {b, c}
+        friendship_service.send_friend_request(c, a)
+        friendship_service.accept_friend_request(c, a)
+        assert set(friendship_service.get_friends(a)) == {b, c}
 
-    # -- isFriend -----------------------------------------------------------
+    # -- is_friend -----------------------------------------------------------
     def test_is_friend_false_when_no_friendship(self):
-        assert friendship_service.isFriend(uuid.uuid4(), uuid.uuid4()) is False
+        assert friendship_service.is_friend(uuid.uuid4(), uuid.uuid4()) is False
 
     def test_is_friend_true_when_accepted(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
-        friendship_service.acceptFriendRequest(a, b)
-        assert friendship_service.isFriend(a, b) is True
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
+        assert friendship_service.is_friend(a, b) is True
 
     def test_is_friend_false_when_pending(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)  # left PENDING
-        assert friendship_service.isFriend(a, b) is False
+        friendship_service.send_friend_request(a, b)  # left PENDING
+        assert friendship_service.is_friend(a, b) is False
 
     def test_is_friend_is_direction_independent(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
-        friendship_service.acceptFriendRequest(a, b)
-        assert friendship_service.isFriend(b, a) is True
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
+        assert friendship_service.is_friend(b, a) is True
 
     def test_is_friend_false_after_removal(self):
         a, b = uuid.uuid4(), uuid.uuid4()
-        friendship_service.sendFriendRequest(a, b)
-        friendship_service.acceptFriendRequest(a, b)
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
         friendship_service.removeFriend(a, b)
-        assert friendship_service.isFriend(a, b) is False
+        assert friendship_service.is_friend(a, b) is False
 
     def test_is_friend_same_user_raises_value_error(self):
         same = uuid.uuid4()
         with pytest.raises(ValueError):
-            friendship_service.isFriend(same, same)
+            friendship_service.is_friend(same, same)
