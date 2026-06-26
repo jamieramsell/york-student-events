@@ -14,7 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
-/** Factory class for building requests to the subprocess. */
+/** Builds JSON requests for the subprocess and sends them, returning the subprocess's response. */
 class SubprocessRequestFactory {
 
   /**
@@ -168,4 +168,5 @@ class SubprocessRequestFactory {
     }
 
   }
+  
 }
