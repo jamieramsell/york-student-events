@@ -22,7 +22,7 @@ public enum RequestType {
   /** Request a list of IDs of the events which a user has signed up for. */
   GET_USER_EVENTS("GET_USER_EVENTS");
 
-  private String request;
+  private final String request;
 
   /**
    * Constructor for the RequestType enum.
