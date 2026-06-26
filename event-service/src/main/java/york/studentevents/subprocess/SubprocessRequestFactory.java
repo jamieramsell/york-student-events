@@ -125,7 +125,7 @@ class SubprocessRequestFactory {
 
       Path scriptPath = resolveScriptPath();
       ProcessBuilder processBuilder = new ProcessBuilder(
-          "python",
+          "python3",
           scriptPath.toString()
       );
       Process process = processBuilder.start();
