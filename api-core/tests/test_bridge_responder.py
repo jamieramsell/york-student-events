@@ -74,23 +74,28 @@ class TestResponderSubprocess:
         assert response == {"status": "ok", "payload": {"badges": ["First Event", "Social5"]}}
 
     def test_unknown_request_type_yields_error(self):
-        request = json.dumps({"requestType": "NOPE", "payload": {}})
-        response = json.loads(_run(request + "\n").stdout.strip())
+        result = _run(json.dumps({"requestType": "NOPE", "payload": {}}) + "\n")
+        assert result.returncode == 1
+        response = json.loads(result.stdout.strip())
         assert response["status"] == "error"
         assert "Unable to find handler" in response["error"]
 
     def test_malformed_json_yields_error(self):
-        response = json.loads(_run("not json\n").stdout.strip())
+        result = _run("not json\n")
+        assert result.returncode == 1
+        response = json.loads(result.stdout.strip())
         assert response["status"] == "error"
         assert response["error"] == "Incorrectly formated json."
 
     def test_missing_request_type_yields_error(self):
-        request = json.dumps({"payload": {}})
-        response = json.loads(_run(request + "\n").stdout.strip())
+        result = _run(json.dumps({"payload": {}}) + "\n")
+        assert result.returncode == 1
+        response = json.loads(result.stdout.strip())
         assert response["status"] == "error"
         assert "Missing 'requestType'" in response["error"]
 
     def test_handler_exception_becomes_error_envelope(self):
-        request = json.dumps({"requestType": "AWARD_BADGE", "payload": {}})
-        response = json.loads(_run(request + "\n").stdout.strip())
+        result = _run(json.dumps({"requestType": "AWARD_BADGE", "payload": {}}) + "\n")
+        assert result.returncode == 1
+        response = json.loads(result.stdout.strip())
         assert response["status"] == "error"

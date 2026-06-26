@@ -1,6 +1,7 @@
 package york.studentevents.subprocess;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -64,9 +65,11 @@ class SubprocessRequestFactoryIntegrationTest {
   }
 
   @Test
-  void awardBadgeReturnsErrorEnvelope() {
-    JsonObject response = send(SubprocessRequestFactory.buildAwardBadge(USER_ID, "Social5"));
-    assertEquals("error", response.get("status").getAsString());
-    assertTrue(response.has("error"));
+  void awardBadgeFailsAndSurfacesResponderError() {
+    RuntimeException exception = assertThrows(
+        RuntimeException.class,
+        () -> SubprocessRequestFactory.sendRequest(
+            SubprocessRequestFactory.buildAwardBadge(USER_ID, "Social5")));
+    assertTrue(exception.getMessage().contains("THIS IS A TEST ERROR"));
   }
 }
