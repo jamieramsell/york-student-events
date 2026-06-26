@@ -16,9 +16,9 @@ import subprocess
 RESPONDER_MAIN_CLASS = "york.studentevents.subprocess.SubprocessResponder"
 _TIMEOUT_SECONDS = 30
 
-# subprocess_client.py lives at api-core/src/, so the repo root is two levels
-# up.
-_REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+# subprocess_client.py lives at api-core/src/bridge/, so the repo root is three
+# levels up.
+_REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 _EVENT_SERVICE = _REPO_ROOT / "event-service"
 _CLASSES_DIR = _EVENT_SERVICE / "target" / "classes"
 _CLASSPATH_FILE = _EVENT_SERVICE / "target" / "cp.txt"

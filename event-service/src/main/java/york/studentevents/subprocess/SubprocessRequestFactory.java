@@ -31,7 +31,7 @@ class SubprocessRequestFactory {
   static record Request<T extends IPayload>(RequestType requestType, T payload) {}
 
   private static final Gson GSON = new Gson();
-  private static final String BRIDGE_SCRIPT = "api-core/src/subprocess_bridge.py";
+  private static final String BRIDGE_SCRIPT = "api-core/src/bridge/subprocess_bridge.py";
   
   /**
    * Resolves the absolute path to the Python bridge script, anchored to the project root.

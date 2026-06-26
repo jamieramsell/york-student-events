@@ -15,7 +15,7 @@ import york.studentevents.events.UserEventService;
  * Standalone entry point that answers subprocess requests issued by the Python {@code api-core}
  * service.
  *
- * <p>This is the structural mirror of {@code api-core/src/subprocess_bridge.py}, but for the
+ * <p>This is the structural mirror of {@code api-core/src/bridge/subprocess_bridge.py}, but for the
  * opposite direction of the bridge. Where {@link SubprocessRequestFactory} has
  * {@code event-service} spawn Python and read its response, here {@code api-core} spawns this
  * responder as a fresh process, writes a JSON request envelope to its standard input, and reads a
