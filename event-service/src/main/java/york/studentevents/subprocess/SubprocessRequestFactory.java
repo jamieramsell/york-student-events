@@ -1,6 +1,8 @@
 package york.studentevents.subprocess;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -138,6 +140,9 @@ class SubprocessRequestFactory {
    */
   public static String sendRequest(String requestJson) {
 
+    String response;
+    int exitCode;
+
     try {
 
       // Launch the Python bridge as a fresh subprocess.
@@ -173,18 +178,39 @@ class SubprocessRequestFactory {
         }
       }
 
-      // A non-zero exit code means the subprocess failed to handle the request.
-      int exitCode = process.waitFor();
-      if (exitCode != 0) {
-        throw new RuntimeException("Python script failed with exit code: " + exitCode);
-      }
-
-      return responseBuilder.toString();
+      response = responseBuilder.toString();
+      exitCode = process.waitFor();
 
     } catch (Exception e) {
       throw new RuntimeException(String.format("Failed to process JSON: %s", requestJson), e);
     }
 
+    // A non-zero exit code means the subprocess returned an error envelope; surface its message.
+    if (exitCode != 0) {
+      throw new RuntimeException(
+          "Subprocess failed (exit code " + exitCode + "): " + extractError(response));
+    }
+
+    return response;
+  }
+
+  /**
+   * Extracts the {@code error} message from a response envelope.
+   *
+   * @param response the JSON response envelope from the subprocess.
+   * @return the value of the envelope's {@code error} field, or the raw response if it cannot be
+   *     parsed.
+   */
+  private static String extractError(String response) {
+    try {
+      JsonObject envelope = JsonParser.parseString(response).getAsJsonObject();
+      if (envelope.has("error") && !envelope.get("error").isJsonNull()) {
+        return envelope.get("error").getAsString();
+      }
+    } catch (RuntimeException e) {
+      // Fall through to returning the raw response below.
+    }
+    return response;
   }
   
 }
