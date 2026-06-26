@@ -125,6 +125,13 @@ class SubprocessResponderTest {
   }
 
   @Test
+  void blankInputReturnsError() throws Exception {
+    Result result = run("");
+    assertEquals(1, result.exitCode());
+    assertEquals("No request received on standard input.", errorOf(result));
+  }
+
+  @Test
   void invalidUserIdReturnsError() throws Exception {
     Result result = run(request("GET_USER_EVENTS", "not-a-uuid"));
     assertEquals(1, result.exitCode());
