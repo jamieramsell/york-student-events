@@ -3,8 +3,8 @@ package york.studentevents.subprocess;
 /**
  * Enumerates the types of requests that can be sent to the subprocess.
  *
- * <p>Each constant carries the string value used in the JSON {@code type} field of a subprocess
- * request.
+ * <p>Each constant carries the string value used in the JSON {@code requestType} field of a
+ * subprocess request.
  *
  * @see SubprocessRequestFactory
  */
@@ -27,7 +27,7 @@ public enum RequestType {
   /**
    * Constructor for the RequestType enum.
    *
-   * @param request the string value of the request type used in the JSON {@code type} field
+   * @param request the string value of the request type used in the JSON {@code requestType} field
    */
   private RequestType(String request) {
     this.request = request;
@@ -36,7 +36,7 @@ public enum RequestType {
   /**
    * Returns the string value of this request type.
    *
-   * @return the string value used in the JSON {@code type} field
+   * @return the string value used in the JSON {@code requestType} field
    */
   public String getRequest() {
     return request;
