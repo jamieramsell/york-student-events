@@ -3,7 +3,7 @@ package york.studentevents.subprocess;
 import java.util.UUID;
 
 /**
- * Builds a request for the subprocess where the payload is a user ID and a badge name.
+ * Payload carrying a user ID and a badge name, for requests that award a badge to a user.
  *
  * @param userId the user's ID
  * @param badgeName the name of the badge to award
