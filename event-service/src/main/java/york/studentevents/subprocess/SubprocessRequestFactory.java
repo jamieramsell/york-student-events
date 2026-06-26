@@ -109,8 +109,7 @@ class SubprocessRequestFactory {
   }
 
   /**
-   * Takes a JSON request and sends it to the subprocess and returns the JSON
-   * response.
+   * Sends a JSON request to the subprocess and returns its JSON response.
    *
    * @param requestJson the JSON request to send to the subprocess; must be a
    *     valid JSON string.
@@ -119,7 +118,7 @@ class SubprocessRequestFactory {
    *
    * @throws RuntimeException if the subprocess fails to process the request.
    */
-  public String processBuilder(String requestJson) {
+  public String sendRequest(String requestJson) {
 
     try {
 
