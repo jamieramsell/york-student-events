@@ -20,10 +20,10 @@ class SubprocessRequestFactory {
   /**
    * Request class for the subprocess communication.
    *
-   * @param T the type of the payload
+   * @param <T> the type of the payload
    * @param requestType the type of the request
    * @param payload the payload of the request
-   * 
+   *
    * @see UserIdPayload
    * @see AwardBadgePayload
    * @see RequestType
@@ -67,6 +67,7 @@ class SubprocessRequestFactory {
    * Builds a JSON request for the subprocess to get the user's badges.
    *
    * @param userId the user's ID
+   * @return the JSON request envelope.
    */
   public static String buildGetUserBadges(UUID userId) {
     Request<UserIdPayload> request = new Request<>(
@@ -80,6 +81,7 @@ class SubprocessRequestFactory {
    * Builds a JSON request for the subprocess to get the user's friends.
    *
    * @param userId the user's ID
+   * @return the JSON request envelope.
    */
   public static String buildGetUserFriends(UUID userId) {
     Request<UserIdPayload> request = new Request<>(
@@ -95,6 +97,7 @@ class SubprocessRequestFactory {
    *
    * @param userId the user's ID
    * @param badgeName the name of the badge to award
+   * @return the JSON request envelope.
    */
   public static String buildAwardBadge(UUID userId, String badgeName) {
     Request<AwardBadgePayload> request = new Request<>(

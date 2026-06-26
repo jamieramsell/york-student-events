@@ -73,7 +73,7 @@ public class SubprocessResponder {
     JsonObject payload = envelope.getAsJsonObject("payload");
 
     RequestEnvelope requestEnvelope = new RequestEnvelope(requestType, payload);
-    
+
     return requestEnvelope;
 
   }
@@ -210,10 +210,10 @@ public class SubprocessResponder {
    * @param payload The request payload from which to retrieve the target user's ID
    * @return The UUID of the target user.
    *
-   * @throws IllegalArgumentException if the envelope is missing a userId field, or the userId field
+   * @throws IllegalArgumentException if the payload is missing a userId field, or the userId field
    *     is not valid.
    *
-   * @see validateEnvelope
+   * @see #validateEnvelope(com.google.gson.JsonObject)
    */
   private static UUID getUserId(JsonObject payload) {
     // Checks that the payload contains a value named 'userId', which is not null.
