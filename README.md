@@ -2,7 +2,7 @@
  
 > A centralised event discovery and social platform exclusively for University of York students.
  
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
 [![Python](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org)
 [![Java](https://img.shields.io/badge/java-21+-orange.svg)](https://openjdk.org)
@@ -60,13 +60,18 @@ york-student-events/
 │   │   │   │           ├── Application.java
 │   │   │   │           ├── cohorts/
 │   │   │   │           │   ├── ICohort.java
-│   │   │   │           │   └── ICohortRepository.java
+│   │   │   │           │   ├── ICohortRepository.java
+│   │   │   │           │   ├── Cohort.java
+│   │   │   │           │   ├── CohortService.java
+│   │   │   │           │   └── CohortController.java
 │   │   │   │           ├── events/
 │   │   │   │           │   ├── IEvent.java
+│   │   │   │           │   ├── IEventRepository.java
 │   │   │   │           │   ├── Event.java
+│   │   │   │           │   ├── EventCategory.java
 │   │   │   │           │   ├── EventService.java
-│   │   │   │           │   ├── EventController.java
-│   │   │   │           │   └── IEventRepository.java
+│   │   │   │           │   ├── UserEventService.java
+│   │   │   │           │   └── EventController.java
 │   │   │   │           ├── exceptions/
 │   │   │   │           │   ├── CapacityExceededException.java
 │   │   │   │           │   ├── CohortNotFoundException.java
@@ -75,6 +80,7 @@ york-student-events/
 │   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           ├── users/
 │   │   │   │           │   ├── IUser.java
+│   │   │   │           │   ├── IUserRepository.java
 │   │   │   │           │   ├── User.java
 │   │   │   │           │   ├── UserService.java
 │   │   │   │           │   └── UserController.java
@@ -88,6 +94,13 @@ york-student-events/
 │   │   │   │           │   ├── IObserver.java
 │   │   │   │           │   ├── IObservable.java
 │   │   │   │           │   └── EventNotificationService.java
+│   │   │   │           ├── subprocess/
+│   │   │   │           │   ├── RequestType.java
+│   │   │   │           │   ├── IPayload.java
+│   │   │   │           │   ├── UserIdPayload.java
+│   │   │   │           │   ├── AwardBadgePayload.java
+│   │   │   │           │   ├── SubprocessRequestFactory.java   # Java→Python: spawns api-core
+│   │   │   │           │   └── SubprocessResponder.java        # Python→Java: entry point for api-core
 │   │   │   │           └── repository/
 │   │   │   │               ├── IEntity.java
 │   │   │   │               ├── IRepository.java
@@ -105,11 +118,19 @@ york-student-events/
 │   │               └── studentevents/
 │   │                   ├── ApplicationTests.java
 │   │                   ├── events/
-│   │                   │   └── EventServiceTest.java
+│   │                   │   ├── EventServiceTest.java
+│   │                   │   └── EventTest.java
 │   │                   ├── users/
 │   │                   │   └── UserServiceTest.java
-│   │                   └── subscriptions/
-│   │                       └── EventNotificationServiceTest.java
+│   │                   ├── subscriptions/
+│   │                   │   └── EventNotificationServiceTest.java
+│   │                   └── subprocess/
+│   │                       ├── RequestTypeTest.java
+│   │                       ├── PayloadTest.java
+│   │                       ├── SubprocessRequestFactoryTest.java
+│   │                       ├── SubprocessRequestFactoryPathTest.java
+│   │                       ├── SubprocessRequestFactoryIntegrationTest.java
+│   │                       └── SubprocessResponderTest.java
 │   └── pom.xml
 │
 ├── api-core/
@@ -118,25 +139,39 @@ york-student-events/
 │   │   │   └── attendance.py
 │   │   ├── badges/
 │   │   │   └── badges.py
+│   │   ├── bridge/                 # subprocess bridge to event-service
+│   │   │   ├── __init__.py
+│   │   │   ├── client.py           # Python→Java: spawns SubprocessResponder
+│   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
 │   │   │   └── getFriendCircle.py
-│   │   └── matching/
-│   │       └── matching.py
+│   │   ├── matching/
+│   │   │   └── matching.py
+│   │   └── repositories/           # in-memory repository pattern (mirrors Java)
+│   │       ├── __init__.py
+│   │       └── base.py
 │   └── tests/
+│       ├── conftest.py
 │       ├── test_attendance.py
 │       ├── test_badges.py
+│       ├── test_bridge_client.py
+│       ├── test_bridge_responder.py
+│       ├── test_bridge_integration.py
 │       ├── test_friends.py
 │       └── test_matching.py
 │
 ├── docs/
 │   ├── api-spec.yaml
-│   └── event-service/        # generated Javadoc (./mvnw javadoc:javadoc)
+│   ├── apidocs/              # generated Javadoc (mvn package / javadoc:javadoc)
+│   └── docs/
+│       └── subprocess-contract.md   # Python↔Java JSON envelope contract
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   ├── feature.md
 │   │   └── bug.md
 │   ├── workflows/
+│   │   ├── build.yml
 │   │   ├── lint.yml
 │   │   ├── claude.yml
 │   │   ├── move-to-in-review.yml
@@ -144,6 +179,7 @@ york-student-events/
 │   └── pull_request_template.md
 │
 ├── .gitignore
+├── pytest.ini
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── LICENSE
@@ -172,7 +208,7 @@ python -m pytest api-core/tests/
 cd event-service
 ./mvnw spring-boot:run        # run the service
 ./mvnw test                   # run tests
-./mvnw javadoc:javadoc        # generate Javadoc into target/reports/apidocs
+./mvnw javadoc:javadoc        # generate Javadoc into docs/apidocs/
 ```
  
 ---
