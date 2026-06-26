@@ -118,7 +118,7 @@ class SubprocessRequestFactory {
    *
    * @throws RuntimeException if the subprocess fails to process the request.
    */
-  public String sendRequest(String requestJson) {
+  public static String sendRequest(String requestJson) {
 
     try {
 
