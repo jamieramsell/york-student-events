@@ -34,33 +34,51 @@ class SubprocessRequestFactory {
   private static final String BRIDGE_SCRIPT = "api-core/src/bridge/responder.py";
   
   /**
-   * Resolves the absolute path to the Python bridge script, anchored to the project root.
+   * Resolves the absolute path to the Python bridge script.
    *
-   * <p>The project root is taken from the {@code PROJECT_ROOT} environment variable, falling back
-   * to the {@code project.root} system property, and finally to the JVM working directory
-   * ({@code user.dir}). Anchoring to an explicit root lets the script be found regardless of the
-   * directory the JVM was launched from.
+   * <p>If the {@code PROJECT_ROOT} environment variable or the {@code project.root} system property
+   * is set, the script is anchored to that root. Otherwise the working directory ({@code user.dir})
+   * and its ancestors are searched for the script, so it is found regardless of where within the
+   * checkout the JVM was launched. Explicit configuration always takes precedence, and a
+   * misconfigured root still fails rather than being silently discovered.
    *
    * @return the absolute, normalised path to {@code responder.py}.
    *
-   * @throws UncheckedIOException if the script does not exist at the resolved location.
+   * @throws UncheckedIOException if the script cannot be found.
    */
   private static Path resolveScriptPath() {
-    String root = System.getenv("PROJECT_ROOT");
-    if (root == null || root.isBlank()) {
-      root = System.getProperty("project.root");
-    }
-    if (root == null || root.isBlank()) {
-      root = System.getProperty("user.dir");
+    String configuredRoot = System.getenv("PROJECT_ROOT");
+    if (configuredRoot == null || configuredRoot.isBlank()) {
+      configuredRoot = System.getProperty("project.root");
     }
 
-    Path scriptPath = Path.of(root, BRIDGE_SCRIPT).toAbsolutePath().normalize();
-    if (!Files.exists(scriptPath)) {
-      throw new UncheckedIOException("Python bridge script not found at: " + scriptPath + ". Set"
+    Path scriptPath = (configuredRoot != null && !configuredRoot.isBlank())
+        ? Path.of(configuredRoot, BRIDGE_SCRIPT).toAbsolutePath().normalize()
+        : discoverScriptPath();
+
+    if (scriptPath == null || !Files.exists(scriptPath)) {
+      throw new UncheckedIOException("Python bridge script not found (" + scriptPath + "). Set"
           + " PROJECT_ROOT (or the project.root system property) to the repository root.",
-          new FileNotFoundException(scriptPath.toString()));
+          new FileNotFoundException(String.valueOf(scriptPath)));
     }
     return scriptPath;
+  }
+
+  /**
+   * Searches the working directory and its ancestors for the bridge script.
+   *
+   * @return the path to the script, or {@code null} if no ancestor contains it.
+   */
+  private static Path discoverScriptPath() {
+    Path dir = Path.of(System.getProperty("user.dir")).toAbsolutePath();
+    while (dir != null) {
+      Path candidate = dir.resolve(BRIDGE_SCRIPT);
+      if (Files.exists(candidate)) {
+        return candidate;
+      }
+      dir = dir.getParent();
+    }
+    return null;
   }
 
   /**

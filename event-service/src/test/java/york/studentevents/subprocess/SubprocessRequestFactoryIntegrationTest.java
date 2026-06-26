@@ -7,10 +7,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,36 +24,9 @@ class SubprocessRequestFactoryIntegrationTest {
   private static final UUID USER_ID =
       UUID.fromString("11111111-1111-1111-1111-111111111111");
 
-  private String previousProjectRoot;
-
   @BeforeEach
-  void setUp() {
-    previousProjectRoot = System.getProperty("project.root");
+  void requirePython3() {
     assumeTrue(python3Available(), "python3 is not available on PATH");
-    // Anchor the bridge script to the repo root regardless of launch context: Maven's surefire
-    // sets project.root, but an IDE running JUnit directly leaves user.dir at the module folder.
-    System.setProperty("project.root", repoRoot().toString());
-  }
-
-  @AfterEach
-  void restoreProjectRoot() {
-    if (previousProjectRoot == null) {
-      System.clearProperty("project.root");
-    } else {
-      System.setProperty("project.root", previousProjectRoot);
-    }
-  }
-
-  private static Path repoRoot() {
-    Path dir = Path.of(System.getProperty("user.dir")).toAbsolutePath();
-    while (dir != null && !Files.exists(dir.resolve("api-core/src/bridge/responder.py"))) {
-      dir = dir.getParent();
-    }
-    if (dir == null) {
-      throw new IllegalStateException(
-          "Could not locate the repository root from " + System.getProperty("user.dir"));
-    }
-    return dir;
   }
 
   private static boolean python3Available() {
