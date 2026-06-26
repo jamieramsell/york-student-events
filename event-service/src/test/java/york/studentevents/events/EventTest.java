@@ -17,24 +17,34 @@ class EventTest {
 
   @BeforeEach
   void setUp() {
-    event = new Event("Test Event", 100, "Music");
+    event = new Event("Test Event", 100, EventCategory.MUSIC);
   }
 
   // --- Constructor with capacity ---
 
   @Test
   void constructor_withValidArgs_assignsFieldsAndGeneratesId() {
-    Event e = new Event("York Social", 50, "Sport");
+    Event e = new Event("York Social", 50, EventCategory.SPORTS);
 
     assertEquals("York Social", e.getTitle());
     assertEquals(50, e.getCapacity());
-    assertEquals("Sport", e.getCategory());
+    assertEquals(EventCategory.SPORTS, e.getCategory());
     assertNotNull(e.getId());
   }
 
   @Test
   void constructor_withNullTitle_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event(null, 50, "Sport"));
+    assertThrows(IllegalArgumentException.class, () -> new Event(null, 50, EventCategory.SPORTS));
+  }
+
+  @Test
+  void constructor_withBlankTitle_throwsIllegalArgumentException() {
+    assertThrows(IllegalArgumentException.class, () -> new Event("   ", 50, EventCategory.SPORTS));
+  }
+
+  @Test
+  void constructor_withEmptyTitle_throwsIllegalArgumentException() {
+    assertThrows(IllegalArgumentException.class, () -> new Event("", 50, EventCategory.SPORTS));
   }
 
   @Test
@@ -44,17 +54,19 @@ class EventTest {
 
   @Test
   void constructor_withZeroCapacity_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", 0, "Sport"));
+    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", 0,
+        EventCategory.SPORTS));
   }
 
   @Test
   void constructor_withNegativeCapacity_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", -1, "Sport"));
+    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", -1,
+        EventCategory.SPORTS));
   }
 
   @Test
   void constructor_withCapacityOfOne_succeeds() {
-    Event e = new Event("York Social", 1, "Sport");
+    Event e = new Event("York Social", 1, EventCategory.SPORTS);
     assertEquals(1, e.getCapacity());
   }
 
@@ -62,22 +74,36 @@ class EventTest {
 
   @Test
   void constructor_noCapacity_withValidArgs_assignsFieldsAndCapacityIsNull() {
-    Event e = new Event("York Social", "Sport");
+    Event e = new Event("York Social", EventCategory.SPORTS);
 
     assertEquals("York Social", e.getTitle());
-    assertEquals("Sport", e.getCategory());
+    assertEquals(EventCategory.SPORTS, e.getCategory());
     assertNull(e.getCapacity());
     assertNotNull(e.getId());
   }
 
   @Test
   void constructor_noCapacity_withNullTitle_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event(null, "Sport"));
+    assertThrows(IllegalArgumentException.class, () -> new Event(null,
+        EventCategory.SPORTS));
+  }
+
+  @Test
+  void constructor_noCapacity_withBlankTitle_throwsIllegalArgumentException() {
+    assertThrows(IllegalArgumentException.class, () -> new Event("   ",
+        EventCategory.SPORTS));
+  }
+
+  @Test
+  void constructor_noCapacity_withEmptyTitle_throwsIllegalArgumentException() {
+    assertThrows(IllegalArgumentException.class, () -> new Event("",
+        EventCategory.SPORTS));
   }
 
   @Test
   void constructor_noCapacity_withNullCategory_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> new Event("York Social", (String) null));
+    assertThrows(IllegalArgumentException.class, () -> new Event("York Social",
+        (EventCategory) null));
   }
 
   // --- Initial state ---
@@ -106,7 +132,7 @@ class EventTest {
 
   @Test
   void getId_twoDistinctEvents_haveUniqueIds() {
-    Event other = new Event("Another Event", 50, "Sport");
+    Event other = new Event("Another Event", 50, EventCategory.SPORTS);
     assertNotEquals(event.getId(), other.getId());
   }
 
@@ -193,6 +219,29 @@ class EventTest {
     assertThrows(IllegalStateException.class, () -> event.setDateTime(start, end));
   }
 
+  @Test
+  void setDateTime_withStartAfterEnd_throwsIllegalArgumentException() {
+    event.setLocation("The Courtyard");
+    LocalDateTime start = LocalDateTime.of(2026, 8, 1, 22, 0);
+    LocalDateTime end = LocalDateTime.of(2026, 8, 1, 18, 0);
+    assertThrows(IllegalArgumentException.class, () -> event.setDateTime(start, end));
+  }
+
+  @Test
+  void setDateTime_withStartEqualToEnd_throwsIllegalArgumentException() {
+    event.setLocation("The Courtyard");
+    LocalDateTime same = LocalDateTime.of(2026, 8, 1, 18, 0);
+    assertThrows(IllegalArgumentException.class, () -> event.setDateTime(same, same));
+  }
+
+  @Test
+  void setDateTime_withStartInPast_throwsIllegalArgumentException() {
+    event.setLocation("The Courtyard");
+    LocalDateTime past = LocalDateTime.of(2020, 1, 1, 12, 0);
+    LocalDateTime end = LocalDateTime.of(2020, 1, 1, 14, 0);
+    assertThrows(IllegalArgumentException.class, () -> event.setDateTime(past, end));
+  }
+
   // --- setCapacity ---
 
   @Test
@@ -211,8 +260,8 @@ class EventTest {
 
   @Test
   void setCategory_withValidCategory_updatesCategory() {
-    event.setCategory("Nightlife");
-    assertEquals("Nightlife", event.getCategory());
+    event.setCategory(EventCategory.NIGHTLIFE);
+    assertEquals(EventCategory.NIGHTLIFE, event.getCategory());
   }
 
   // --- toString ---
@@ -221,7 +270,7 @@ class EventTest {
   void toString_containsExpectedFields() {
     String result = event.toString();
     assertTrue(result.contains("Test Event"));
-    assertTrue(result.contains("Music"));
+    assertTrue(result.contains("MUSIC"));
     assertTrue(result.contains(event.getId().toString()));
   }
 }

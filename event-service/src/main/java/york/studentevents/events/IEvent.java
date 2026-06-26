@@ -1,15 +1,12 @@
 package york.studentevents.events;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import york.studentevents.repository.IEntity;
 
 /** Represents a social event that can be attended by students. */
-public interface IEvent {
+public interface IEvent extends IEntity {
 
   // Getters //
-
-  /** Returns the unique identifier for this event. */
-  UUID getId();
 
   /** Returns the title of this event. */
   String getTitle();
@@ -31,8 +28,12 @@ public interface IEvent {
    */
   Integer getCapacity();
 
-  /** Returns the category that classifies this event (e.g. "Music", "Sport", "Nightlife"). */
-  String getCategory(); // todo: implement categories
+  /**
+   * Returns the category that classifies this event.
+   *
+   * @see EventCategory
+   */
+  EventCategory getCategory();
 
   // Setters //
 
@@ -65,7 +66,7 @@ public interface IEvent {
   /**
    * Sets the location of this event.
    *
-   * @param location the room or venue where this event takes place.
+   * @param location the venue or address where the event takes place
    * @throws IllegalStateException if trying to remove the location when the event has already been
    *     assigned a date and time.
    */
@@ -81,8 +82,10 @@ public interface IEvent {
   /**
    * Sets the category that classifies this event.
    *
-   * @param category the category label (e.g. "Music", "Sport", "Nightlife")
+   * @param category the category label
+   * 
+   * @see EventCategory
    */
-  void setCategory(String category); // todo: implement categories
+  void setCategory(EventCategory category);
 
 }

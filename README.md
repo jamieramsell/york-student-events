@@ -2,7 +2,7 @@
  
 > A centralised event discovery and social platform exclusively for University of York students.
  
-[![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
 [![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
 [![Python](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org)
@@ -61,13 +61,18 @@ york-student-events/
 │   │   │   │           ├── Application.java
 │   │   │   │           ├── cohorts/
 │   │   │   │           │   ├── ICohort.java
-│   │   │   │           │   └── ICohortRepository.java
+│   │   │   │           │   ├── ICohortRepository.java
+│   │   │   │           │   ├── Cohort.java
+│   │   │   │           │   ├── CohortService.java
+│   │   │   │           │   └── CohortController.java
 │   │   │   │           ├── events/
 │   │   │   │           │   ├── IEvent.java
+│   │   │   │           │   ├── IEventRepository.java
 │   │   │   │           │   ├── Event.java
+│   │   │   │           │   ├── EventCategory.java
 │   │   │   │           │   ├── EventService.java
-│   │   │   │           │   ├── EventController.java
-│   │   │   │           │   └── IEventRepository.java
+│   │   │   │           │   ├── UserEventService.java
+│   │   │   │           │   └── EventController.java
 │   │   │   │           ├── exceptions/
 │   │   │   │           │   ├── CapacityExceededException.java
 │   │   │   │           │   ├── CohortNotFoundException.java
@@ -76,25 +81,36 @@ york-student-events/
 │   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           ├── users/
 │   │   │   │           │   ├── IUser.java
+│   │   │   │           │   ├── IUserRepository.java
 │   │   │   │           │   ├── User.java
 │   │   │   │           │   ├── UserService.java
-│   │   │   │           │   ├── UserController.java
-│   │   │   │           │   └── IUserRepository.java
+│   │   │   │           │   └── UserController.java
 │   │   │   │           ├── venues/
 │   │   │   │           │   ├── IVenue.java
+│   │   │   │           │   ├── IVenueRepository.java
 │   │   │   │           │   ├── Venue.java
 │   │   │   │           │   ├── VenueService.java
-│   │   │   │           │   ├── VenueController.java
-│   │   │   │           │   └── IVenueRepository.java
+│   │   │   │           │   └── VenueController.java
 │   │   │   │           ├── subscriptions/
 │   │   │   │           │   ├── IObserver.java
 │   │   │   │           │   ├── IObservable.java
 │   │   │   │           │   └── EventNotificationService.java
+│   │   │   │           ├── subprocess/
+│   │   │   │           │   ├── RequestType.java
+│   │   │   │           │   ├── IPayload.java
+│   │   │   │           │   ├── UserIdPayload.java
+│   │   │   │           │   ├── AwardBadgePayload.java
+│   │   │   │           │   ├── SubprocessRequestFactory.java   # Java→Python: spawns api-core
+│   │   │   │           │   └── SubprocessResponder.java        # Python→Java: entry point for api-core
 │   │   │   │           └── repository/
+│   │   │   │               ├── IEntity.java
 │   │   │   │               ├── IRepository.java
 │   │   │   │               └── inmemory/
+│   │   │   │                   ├── AbstractInMemoryRepository.java
+│   │   │   │                   ├── InMemoryCohortRepository.java
 │   │   │   │                   ├── InMemoryEventRepository.java
-│   │   │   │                   └── InMemoryUserRepository.java
+│   │   │   │                   ├── InMemoryUserRepository.java
+│   │   │   │                   └── InMemoryVenueRepository.java
 │   │   │   └── resources/
 │   │   │       └── application.properties
 │   │   └── test/
@@ -103,11 +119,19 @@ york-student-events/
 │   │               └── studentevents/
 │   │                   ├── ApplicationTests.java
 │   │                   ├── events/
-│   │                   │   └── EventServiceTest.java
+│   │                   │   ├── EventServiceTest.java
+│   │                   │   └── EventTest.java
 │   │                   ├── users/
 │   │                   │   └── UserServiceTest.java
-│   │                   └── subscriptions/
-│   │                       └── EventNotificationServiceTest.java
+│   │                   ├── subscriptions/
+│   │                   │   └── EventNotificationServiceTest.java
+│   │                   └── subprocess/
+│   │                       ├── RequestTypeTest.java
+│   │                       ├── PayloadTest.java
+│   │                       ├── SubprocessRequestFactoryTest.java
+│   │                       ├── SubprocessRequestFactoryPathTest.java
+│   │                       ├── SubprocessRequestFactoryIntegrationTest.java
+│   │                       └── SubprocessResponderTest.java
 │   └── pom.xml
 │
 ├── api-core/
@@ -116,25 +140,39 @@ york-student-events/
 │   │   │   └── attendance.py
 │   │   ├── badges/
 │   │   │   └── badges.py
+│   │   ├── bridge/                 # subprocess bridge to event-service
+│   │   │   ├── __init__.py
+│   │   │   ├── client.py           # Python→Java: spawns SubprocessResponder
+│   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
 │   │   │   └── getFriendCircle.py
-│   │   └── matching/
-│   │       └── matching.py
+│   │   ├── matching/
+│   │   │   └── matching.py
+│   │   └── repositories/           # in-memory repository pattern (mirrors Java)
+│   │       ├── __init__.py
+│   │       └── base.py
 │   └── tests/
+│       ├── conftest.py
 │       ├── test_attendance.py
 │       ├── test_badges.py
+│       ├── test_bridge_client.py
+│       ├── test_bridge_responder.py
+│       ├── test_bridge_integration.py
 │       ├── test_friends.py
 │       └── test_matching.py
 │
 ├── docs/
 │   ├── api-spec.yaml
-│   └── event-service/        # generated Javadoc (./mvnw javadoc:javadoc)
+│   ├── apidocs/              # generated Javadoc (mvn package / javadoc:javadoc)
+│   └── docs/
+│       └── subprocess-contract.md   # Python↔Java JSON envelope contract
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   ├── feature.md
 │   │   └── bug.md
 │   ├── workflows/
+│   │   ├── build.yml
 │   │   ├── lint.yml
 │   │   ├── claude.yml
 │   │   ├── move-to-in-review.yml
@@ -142,6 +180,7 @@ york-student-events/
 │   └── pull_request_template.md
 │
 ├── .gitignore
+├── pytest.ini
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── LICENSE
@@ -155,34 +194,23 @@ york-student-events/
 ### Prerequisites
  
 - Python 3.11+
-- Java 21+ (the `event-service` ships with the Maven Wrapper, `./mvnw`)
+- Java 21+
 
-### Running the Java service (`event-service`)
- 
-```bash
-cd event-service
-./mvnw spring-boot:run        # start the service
-./mvnw verify                 # compile, run tests, and run Checkstyle
-./mvnw javadoc:javadoc        # generate Javadoc into docs/apidocs
-```
- 
-### Running the Python service (`api-core`)
- 
+### Running api-core (Python)
+
 ```bash
 # From the repo root — no requirements file yet
 python -m pytest api-core/tests/
 ```
- 
----
- 
-## Code Style
- 
-The Java codebase follows the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), enforced by the `maven-checkstyle-plugin` against the bundled `google_checks.xml`. The `check` goal is bound to the `verify` phase, so `./mvnw verify` runs Checkstyle as part of the build. Python code in `api-core` is linted with [Ruff](https://docs.astral.sh/ruff/).
- 
-Both checks run automatically on every pull request via the **`lint.yml`** workflow:
- 
-- `ruff check api-core/` for the Python service
-- `./mvnw checkstyle:check` for the Java service
+
+### Running event-service (Java / Maven)
+
+```bash
+cd event-service
+./mvnw spring-boot:run        # run the service
+./mvnw test                   # run tests
+./mvnw javadoc:javadoc        # generate Javadoc into docs/apidocs/
+```
  
 ---
  
@@ -237,10 +265,4 @@ development branches up through per-milestone stable branches into `main`:
 - **Breaking changes** are flagged with `!` (e.g. `feat!:`, `fix!:`). A breaking change must have a corresponding issue opened first.
 - Releases follow **[Semantic Versioning](https://semver.org/)**.
 
-Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
-
----
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. Breaking changes should be marked using an exclamation mark (`!`) after the type/scope, before the colon — e.g. `fix!:` or `feat!:`.

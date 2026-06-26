@@ -1,4 +1,4 @@
 package york.studentevents.subscriptions;
 
 /** todo. */
-public class IObserver {}
+public interface IObserver {}

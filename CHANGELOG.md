@@ -1,11 +1,40 @@
 # Changelog
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.1.0] - 2026-06-19
+## [0.2.0] - 2026-06-26
+
+M2 - Core Domain Logic: concrete domain models, the in-memory repository layer, the first service-layer methods, and a bidirectional Python↔Java subprocess bridge. Pure business logic: no HTTP layer or real persistence yet.
+
+### Added
+- Concrete domain models: `Event` (with new `EventCategory` enum), `User`, `Venue`, and `Cohort`
+- `IEntity` interface abstracting the UUID identifier shared by repository entities
+- Repository layer: `AbstractInMemoryRepository` base plus per-domain in-memory repositories (`InMemoryEventRepository`, `InMemoryUserRepository`, `InMemoryVenueRepository`, `InMemoryCohortRepository`)
+- Service layer: `UserEventService` and `CohortService`
+- Subprocess communication contract (`docs/docs/subprocess-contract.md`) defining strict stdin/stdout JSON envelopes — `request` (`requestType` + `payload`), `success` (`status: "ok"`), and `error` (`status: "error"`)
+- Bidirectional subprocess bridge:
+  - Java→Python: `RequestType` enum + `SubprocessRequestFactory` (Gson, `ProcessBuilder`) invoking Python's `api-core/src/bridge/responder.py`, which routes requests via `MessageHandlerFactory` (handlers stubbed)
+  - Python→Java: `api-core/src/bridge/client.py` spawning the Java `SubprocessResponder` entry point to answer `GET_USER_EVENTS` via `UserEventService`
+  - Java request payload models: `IPayload`, `UserIdPayload`, `AwardBadgePayload`
+- `api-core` `repositories` package mirroring the Java repository pattern, plus `badges.py` and `getFriendCircle.py` stubs
+- JUnit tests for domain/services (`EventTest`) and the subprocess layer (`RequestTypeTest`, `PayloadTest`, `SubprocessRequestFactoryTest`, `SubprocessRequestFactoryPathTest`, `SubprocessRequestFactoryIntegrationTest`, `SubprocessResponderTest`)
+- Python bridge tests (`test_bridge_client.py`, `test_bridge_responder.py`, `test_bridge_integration.py`) and `pytest.ini`
+- `build.yml` CI workflow
+
+### Changed
+- **Breaking:** migrated entity IDs from `long` to UUIDs; `IUser`, `IEvent`, and `IRepository` now operate on `UUID`, with `IRepository<T>` constrained to `T extends IEntity`
+- **Breaking:** `IVenue` now supports an optional maximum attendee capacity (`int` → `Integer`) and exposes setter methods for all attributes except ID
+- Aligned the Java codebase to Google Java Style (with checkstyle suppressions); updated `pom.xml` (project version `0.2.0`) and `README.md`
+
+### Fixed
+- Entity classes no longer regenerate a new UUID on each access
+
+### Docs
+- Javadoc site now generated under `docs/apidocs/` (previously `docs/event-service/`)
+
+## [0.1.0] - 2026-06-17
 
 M1 - App Foundation: project scaffolding for both backend services.
 
