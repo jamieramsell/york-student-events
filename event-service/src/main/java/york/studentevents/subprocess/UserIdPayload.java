@@ -3,7 +3,7 @@ package york.studentevents.subprocess;
 import java.util.UUID;
 
 /**
- * Builds a request for the subprocess where the payload is only a user ID.
+ * Payload carrying only a user ID, for requests that operate on a single user.
  *
  * @param userId the user's ID
  */
