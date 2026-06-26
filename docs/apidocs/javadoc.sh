@@ -1,1 +1,0 @@
-/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home/bin/javadoc -J-Duser.language= -J-Duser.country= @options @packages
