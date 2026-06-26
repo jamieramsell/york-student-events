@@ -68,20 +68,12 @@ public class SubprocessResponder {
     // Check the structure of the envelope is valid
     validateEnvelope(envelope);
 
-    /*
-     * Try to parse the payload element of root into a JsonObject. If this throws an error, then the
-     * element named 'payload' is not an Object.
-     */
-    JsonObject payload;
-    try {
-      payload = envelope.getAsJsonObject("payload");
-    } catch (ClassCastException e) {
-      throw new IllegalArgumentException("'payload' field is not valid.");
-    }
-
     // Create the envelope object and return it
     RequestType requestType = getRequestType(envelope);
+    JsonObject payload = envelope.getAsJsonObject("payload");
+
     RequestEnvelope requestEnvelope = new RequestEnvelope(requestType, payload);
+    
     return requestEnvelope;
 
   }
