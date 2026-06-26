@@ -1,12 +1,14 @@
 """Client for requesting payloads from the Java event-service over the
 subprocess bridge.
 
-This is the inverse of ``subprocess_bridge.py``: instead of event-service
+This is the inverse of ``responder.py``: instead of event-service
 spawning Python, api-core spawns the Java ``SubprocessResponder`` as a fresh
 process per call, writes a JSON request envelope to its stdin, and reads a JSON
 response envelope from its stdout. The envelope contract is documented in
 ``docs/docs/subprocess-contract.md``.
 """
+
+from __future__ import annotations
 
 import json
 import os
@@ -16,8 +18,7 @@ import subprocess
 RESPONDER_MAIN_CLASS = "york.studentevents.subprocess.SubprocessResponder"
 _TIMEOUT_SECONDS = 30
 
-# subprocess_client.py lives at api-core/src/bridge/, so the repo root is three
-# levels up.
+# client.py lives at api-core/src/bridge/, so the repo root is three levels up.
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 _EVENT_SERVICE = _REPO_ROOT / "event-service"
 _CLASSES_DIR = _EVENT_SERVICE / "target" / "classes"

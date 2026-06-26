@@ -31,7 +31,7 @@ class SubprocessRequestFactory {
   static record Request<T extends IPayload>(RequestType requestType, T payload) {}
 
   private static final Gson GSON = new Gson();
-  private static final String BRIDGE_SCRIPT = "api-core/src/bridge/subprocess_bridge.py";
+  private static final String BRIDGE_SCRIPT = "api-core/src/bridge/responder.py";
   
   /**
    * Resolves the absolute path to the Python bridge script, anchored to the project root.
@@ -41,7 +41,7 @@ class SubprocessRequestFactory {
    * ({@code user.dir}). Anchoring to an explicit root lets the script be found regardless of the
    * directory the JVM was launched from.
    *
-   * @return the absolute, normalised path to {@code subprocess_bridge.py}.
+   * @return the absolute, normalised path to {@code responder.py}.
    *
    * @throws UncheckedIOException if the script does not exist at the resolved location.
    */
