@@ -16,13 +16,14 @@ The `requestType` string must be one of the following:
 - `GET_USER_BADGES`
 - `GET_USER_FRIENDS`
 - `AWARD_BADGE` 
+- `GET_USER_EVENTS`
 
 For example:
 ```json
 { 
   "requestType": "GET_USER_BADGES", 
   "payload": { 
-    "userId": 1
+    "userId": "86aa54b8-2d08-498b-aee9-b2c26a97717e"
   }
 }
 ```
@@ -49,7 +50,7 @@ For example:
 ```json
 { 
   "status": "error", 
-  "error": "User 1 not found"
+  "error": "User 86aa54b8-2d08-498b-aee9-b2c26a97717e not found"
 }
 ```
 

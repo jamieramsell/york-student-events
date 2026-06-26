@@ -91,5 +91,8 @@ def main():
         sys.stdout.write(json.dumps(response) + "\n")
         sys.stdout.flush()
 
+        if response["status"] == "error":
+            sys.exit(1)
+
 if __name__ == "__main__":
     main()
