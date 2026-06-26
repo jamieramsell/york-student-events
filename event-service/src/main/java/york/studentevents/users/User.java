@@ -24,7 +24,23 @@ public class User implements IUser {
    * @throws IllegalArgumentException if the username or email is invalid
    */
   public User(String username, String email, UUID cohort, List<UUID> registeredEvents) {
-    this.id = UUID.randomUUID();
+    this(UUID.randomUUID(), username, email, cohort, registeredEvents);
+  }
+
+  /** Creates a {@code User} with the given details.
+   *
+   * @param id the user's ID; must not be {@code null}.
+   * @param username the user's username; must not be {@code null}, blank, or empty.
+   * @param email the user's email; must not be {@code null}, blank, or empty.
+   * @param cohort the user's cohort; no validation is performed
+   * @param registeredEvents the user's registered events; no validation is performed
+   * @throws IllegalArgumentException if the username or email is invalid
+   */
+  protected User(UUID id, String username, String email, UUID cohort, List<UUID> registeredEvents) {
+    if (id == null) {
+      throw new IllegalArgumentException("User ID cannot be null");
+    }
+    this.id = id;
     setUsername(username);
     setEmail(email);
     setCohort(cohort);

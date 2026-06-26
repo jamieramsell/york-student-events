@@ -2,8 +2,9 @@
  
 > A centralised event discovery and social platform exclusively for University of York students.
  
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
+[![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
 [![Python](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org)
 [![Java](https://img.shields.io/badge/java-21+-orange.svg)](https://openjdk.org)
  
@@ -62,15 +63,16 @@ york-student-events/
 │   │   │   │           │   ├── ICohort.java
 │   │   │   │           │   ├── ICohortRepository.java
 │   │   │   │           │   ├── Cohort.java
-│   │   │   │           │   └── CohortService.java
+│   │   │   │           │   ├── CohortService.java
+│   │   │   │           │   └── CohortController.java
 │   │   │   │           ├── events/
 │   │   │   │           │   ├── IEvent.java
 │   │   │   │           │   ├── IEventRepository.java
 │   │   │   │           │   ├── Event.java
 │   │   │   │           │   ├── EventCategory.java
 │   │   │   │           │   ├── EventService.java
-│   │   │   │           │   ├── EventController.java
-│   │   │   │           │   └── UserEventService.java
+│   │   │   │           │   ├── UserEventService.java
+│   │   │   │           │   └── EventController.java
 │   │   │   │           ├── exceptions/
 │   │   │   │           │   ├── CapacityExceededException.java
 │   │   │   │           │   ├── CohortNotFoundException.java
@@ -93,6 +95,13 @@ york-student-events/
 │   │   │   │           │   ├── IObserver.java
 │   │   │   │           │   ├── IObservable.java
 │   │   │   │           │   └── EventNotificationService.java
+│   │   │   │           ├── subprocess/
+│   │   │   │           │   ├── RequestType.java
+│   │   │   │           │   ├── IPayload.java
+│   │   │   │           │   ├── UserIdPayload.java
+│   │   │   │           │   ├── AwardBadgePayload.java
+│   │   │   │           │   ├── SubprocessRequestFactory.java   # Java→Python: spawns api-core
+│   │   │   │           │   └── SubprocessResponder.java        # Python→Java: entry point for api-core
 │   │   │   │           └── repository/
 │   │   │   │               ├── IEntity.java
 │   │   │   │               ├── IRepository.java
@@ -114,8 +123,15 @@ york-student-events/
 │   │                   │   └── EventTest.java
 │   │                   ├── users/
 │   │                   │   └── UserServiceTest.java
-│   │                   └── subscriptions/
-│   │                       └── EventNotificationServiceTest.java
+│   │                   ├── subscriptions/
+│   │                   │   └── EventNotificationServiceTest.java
+│   │                   └── subprocess/
+│   │                       ├── RequestTypeTest.java
+│   │                       ├── PayloadTest.java
+│   │                       ├── SubprocessRequestFactoryTest.java
+│   │                       ├── SubprocessRequestFactoryPathTest.java
+│   │                       ├── SubprocessRequestFactoryIntegrationTest.java
+│   │                       └── SubprocessResponderTest.java
 │   └── pom.xml
 │
 ├── api-core/
@@ -124,6 +140,10 @@ york-student-events/
 │   │   │   └── attendance.py
 │   │   ├── badges/
 │   │   │   └── badges.py
+│   │   ├── bridge/                 # subprocess bridge to event-service
+│   │   │   ├── __init__.py
+│   │   │   ├── client.py           # Python→Java: spawns SubprocessResponder
+│   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
 │   │   │   ├── __init__.py
 │   │   │   ├── base.py
@@ -132,24 +152,31 @@ york-student-events/
 │   │   │   └── getFriendCircle.py
 │   │   ├── matching/
 │   │   │   └── matching.py
-│   │   └── repositories/
+│   │   └── repositories/           # in-memory repository pattern (mirrors Java)
 │   │       ├── __init__.py
 │   │       └── base.py
 │   └── tests/
+│       ├── conftest.py
 │       ├── test_attendance.py
 │       ├── test_badges.py
+│       ├── test_bridge_client.py
+│       ├── test_bridge_responder.py
+│       ├── test_bridge_integration.py
 │       ├── test_friends.py
 │       └── test_matching.py
 │
 ├── docs/
 │   ├── api-spec.yaml
-│   └── apidocs/              # generated Javadoc (./mvnw javadoc:javadoc)
+│   ├── apidocs/              # generated Javadoc (mvn package / javadoc:javadoc)
+│   └── docs/
+│       └── subprocess-contract.md   # Python↔Java JSON envelope contract
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   ├── feature.md
 │   │   └── bug.md
 │   ├── workflows/
+│   │   ├── build.yml
 │   │   ├── lint.yml
 │   │   ├── claude.yml
 │   │   ├── move-to-in-review.yml
@@ -157,6 +184,7 @@ york-student-events/
 │   └── pull_request_template.md
 │
 ├── .gitignore
+├── pytest.ini
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── LICENSE
@@ -185,7 +213,7 @@ python -m pytest api-core/tests/
 cd event-service
 ./mvnw spring-boot:run        # run the service
 ./mvnw test                   # run tests
-./mvnw javadoc:javadoc        # generate Javadoc into target/reports/apidocs
+./mvnw javadoc:javadoc        # generate Javadoc into docs/apidocs/
 ```
  
 ---
@@ -199,16 +227,46 @@ This project uses [Semantic Versioning](https://semver.org/). Releases follow th
 - `PATCH` — backwards-compatible bug fixes
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
  
+- **Breaking changes** are flagged with `!` (e.g. `feat!:`, `fix!:`). A breaking change must have a corresponding issue opened first.
+
 ---
- 
+
 ## Contributing
- 
+
 Contributions are welcome from University of York students and staff. Please open an issue before submitting a pull request so the proposed change can be discussed first.
+
+This project uses a milestone-based branching model. Work flows from short-lived
+development branches up through per-milestone stable branches into `main`:
+
+```
+<milestone>/<label>/<name>  ──PR──▶  stable-<milestone>  ──PR──▶  main
+```
+
+### Branching
+
+- **Development branches** — `<milestone>/<label>/<name>`, where `<label>` is a
+  Conventional Commit type (`feat`, `fix`, `refactor`, `docs`, `chore`, …). Version
+  milestones replace dots with hyphens (`v1.0.0` → `v1-0-0`).
+  - `m1/feat/irepository` — defining the `IRepository` interface in milestone M1
+  - `v1-0-0/refactor/consoleview` — refactoring the console view in milestone v1.0.0
+- **Stable branches** — `stable-<milestone>` (e.g. `stable-m1`, `stable-v1-0-0`).
+  Development branches are merged here via pull request once ready.
+- **`main`** — a completed milestone is merged from its stable branch into `main`
+  via a further pull request.
  
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feat/your-feature`)
-3. Commit your changes (`git commit -m 'feat: add your feature'`)
-4. Push to the branch (`git push origin feat/your-feature`)
-5. Open a pull request
+### Pull requests
+
+1. Open an issue describing the change before starting work.
+2. Branch from the relevant stable branch using the naming convention above.
+3. Open a pull request targeting the appropriate branch (development → `stable-<milestone>`;
+   completed milestone → `main`).
+4. Every pull request must pass the automated checks (build, test, lint) before it can be merged.
+
+### Commits & versioning
+
+- **[Conventional Commits](https://www.conventionalcommits.org/)** (`feat:`, `fix:`,
+  `refactor:`, `chore:`, `docs:`, …).
+- **Breaking changes** are flagged with `!` (e.g. `feat!:`, `fix!:`). A breaking change must have a corresponding issue opened first.
+- Releases follow **[Semantic Versioning](https://semver.org/)**.
 
 Commit messages should follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. Breaking changes should be marked using an exclamation mark (`!`) after the type/scope, before the colon — e.g. `fix!:` or `feat!:`.

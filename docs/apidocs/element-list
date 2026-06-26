@@ -4,6 +4,7 @@ york.studentevents.events
 york.studentevents.exceptions
 york.studentevents.repository
 york.studentevents.repository.inmemory
+york.studentevents.subprocess
 york.studentevents.subscriptions
 york.studentevents.users
 york.studentevents.venues

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**york-student-events** is a centralised event discovery and social platform for University of York students. It is in early development — most implementation files are stubs.
+**york-student-events** is a centralised event discovery and social platform for University of York students. It is in early development: the domain interfaces, exception types, and core patterns are defined, but most concrete classes (entities and controllers) are still stubs.
 
 ## Architecture
 
@@ -37,10 +37,17 @@ york-student-events/
 │   │   ├── events/        (Event, EventService, EventController, IEvent, IEventRepository)
 │   │   ├── users/         (User, UserService, UserController, IUser, IUserRepository)
 │   │   ├── venues/        (Venue, VenueService, VenueController, IVenue, IVenueRepository)
+│   │   ├── cohorts/       (ICohort, ICohortRepository)
+│   │   ├── exceptions/    (EventNotFoundException, UserNotFoundException,
+│   │   │                   VenueNotFoundException, CohortNotFoundException,
+│   │   │                   CapacityExceededException)
 │   │   ├── subscriptions/ (EventNotificationService, IObserver, IObservable)
-│   │   └── repository/inmemory/
+│   │   └── repository/    (IRepository, inmemory/InMemoryEventRepository,
+│   │                       inmemory/InMemoryUserRepository)
 │   └── pom.xml
-└── docs/api-spec.yaml
+└── docs/
+    ├── api-spec.yaml      (OpenAPI design spec for event-service)
+    └── event-service/     (generated Javadoc — ./mvnw javadoc:javadoc)
 ```
 
 ## Running the Services
@@ -56,6 +63,8 @@ python -m pytest api-core/tests/
 cd event-service
 ./mvnw spring-boot:run        # run the service
 ./mvnw test                   # run tests
+./mvnw javadoc:javadoc        # generate Javadoc into target/reports/apidocs
+./mvnw verify                 # compile, test, and run Checkstyle (Google Java Style)
 ```
 
 ## Conventions
@@ -74,9 +83,10 @@ cd event-service
 - **Classes**: PascalCase — e.g. `EventNotificationService`, `InMemoryEventRepository`
 - **Methods / variables**: camelCase (standard Java)
 - **In-memory implementations**: named `InMemory{Entity}Repository`, placed under `repository/inmemory/`
-- **Package layout**: one package per domain slice (`events`, `users`, `venues`, `subscriptions`, `repository`)
+- **Package layout**: one package per domain slice (`events`, `users`, `venues`, `cohorts`, `subscriptions`, `repository`); cross-cutting `exceptions` package for custom exception types
 - **MVC layering**: `Controller` → `Service` → `Repository`; keep business logic out of controllers
 - **Tests**: JUnit 5 via Spring Boot Test; one test class per service class (e.g. `EventServiceTest` for `EventService`)
+- **Style enforcement**: code must conform to the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html), enforced by the `maven-checkstyle-plugin` (Checkstyle 10.17.0, `google_checks.xml`) during `mvn verify`
 
 ### Python (`api-core`)
 
@@ -90,9 +100,16 @@ cd event-service
 
 ## Current State
 
-Most source files are empty stubs. The primary implemented patterns are:
+Domain interfaces (`IEvent`, `IUser`, `IVenue`, `ICohort`), the repository
+contracts, and the custom exception types are defined. Concrete entity classes
+(`Event`, `User`, `Venue`) and the controllers are still stubs, so no HTTP
+endpoints are live yet — `docs/api-spec.yaml` documents the *intended* contract
+ahead of implementation. The primary established patterns are:
 - Observer pattern for subscriptions (`IObserver` / `IObservable` / `EventNotificationService`)
 - Repository pattern with in-memory implementations (`InMemoryEventRepository`, `InMemoryUserRepository`)
+- Dependency injection to ensure each layer remains truly seperate
 - Spring Boot MVC structure (Controller → Service → Repository)
 
-No persistence layer, authentication, or inter-service communication exists yet.
+CI runs on every PR (`build.yml` for the Java build/test/Checkstyle, `lint.yml`
+for `ruff` on `api-core`). No persistence layer, authentication, or
+inter-service communication exists yet.

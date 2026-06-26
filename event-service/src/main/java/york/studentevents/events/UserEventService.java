@@ -16,7 +16,7 @@ import york.studentevents.users.IUserRepository;
  * controllers and repositories. Persistence is delegated to the injected repository;
  * the service holds no state of its own.
  *
- * @see IRepository
+ * @see york.studentevents.repository.IRepository
  * @see IUserRepository
  * @see IEventRepository
  * @see IUser

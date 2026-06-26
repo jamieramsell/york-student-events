@@ -18,51 +18,67 @@ public class Event implements IEvent {
   /**
    * Creates an {@code Event} with a maximum attendee capacity.
    *
-   * <p>All other fields are assigned via setters after instantiation.
+   * @param title the event title; must not be {@code null}.
+   * @param capacity the maximum number of attendees must be greater than zero.
+   * @param category the event category; must not be {@code null}.
    *
-   * @param title the event title; must not be {@code null}
-   * @param capacity the maximum number of attendees; must be greater than zero
-   * @param category the event category; must not be {@code null}
-   * @throws IllegalArgumentException if {@code title} or {@code category} is {@code null}, or
-   *     {@code capacity} is less than one
+   * @throws IllegalArgumentException if any of the parameters are {@code null}, or
+   *      if {@code capacity} is less than one.
    */
   public Event(String title, int capacity, EventCategory category) {
-    // Validation //
-    if (title == null || title.isBlank() || title.isEmpty()) {
-      throw new IllegalArgumentException("title cannot be null, empty, or blank");
-    } else if (category == null) {
-      throw new IllegalArgumentException("category cannot be null");
-    } else if (capacity < 1) {
-      throw new IllegalArgumentException("capacity must be greater than 1");
-    }
-
-    this.id = UUID.randomUUID();
-    this.title = title;
-    this.capacity = Integer.valueOf(capacity);
-    this.category = category;
+    this(UUID.randomUUID(), title, capacity, category);
   }
 
   /**
-   * Creates an {@code Event} with no maximum attendee capacity.
+   * Creates an {@code Event} with a maximum attendee capacity.
    *
-   * <p>All other fields are assigned via setters after instantiation.
+   * @param id the event ID; must not be {@code null}.
+   * @param title the event title; must not be {@code null}.
+   * @param capacity the maximum number of attendees must be greater than zero.
+   * @param category the event category; must not be {@code null}.
    *
-   * @param title the event title; must not be {@code null}
-   * @param category the event category; must not be {@code null}
-   * @throws IllegalArgumentException if {@code title} or {@code category} is {@code null}
+   * @throws IllegalArgumentException if any of the parameters are {@code null}, or
+   *      if {@code capacity} is less than one.
    */
-  public Event(String title, EventCategory category) {
-    // Validation //
-    if (title == null || title.isBlank() || title.isEmpty()) {
-      throw new IllegalArgumentException("title cannot be null, empty, or blank");
-    } else if (category == null) {
-      throw new IllegalArgumentException("category cannot be null");
+  protected Event(UUID id, String title, int capacity, EventCategory category) {
+    if (id == null) {
+      throw new IllegalArgumentException("Event ID cannot be null");
     }
+    this.id = id;
+    setTitle(title);
+    setCapacity(capacity);
+    setCategory(category);
+  }
 
-    this.id = UUID.randomUUID();
-    this.title = title;
-    this.capacity = null;
-    this.category = category;
+  /**
+   * Creates an {@code Event} without a maximum attendee capacity.
+   *
+   * @param id the event ID; must not be {@code null}.
+   * @param title the event title; must not be {@code null}.
+   * @param category the event category; must not be {@code null}.
+   *
+   * @throws IllegalArgumentException if any of the parameters are {@code null}
+   * */
+  protected Event(UUID id, String title, EventCategory category) {
+    if (id == null) {
+      throw new IllegalArgumentException("Event ID cannot be null");
+    }
+    this.id = id;
+    setTitle(title);
+    setCategory(category);
+  }
+
+
+  /**
+   * Creates an {@code Event} without a maximum attendee capacity.
+   *
+   * @param title the event title; must not be {@code null}.
+   * @param category the event category; must not be {@code null}.
+   *
+   * @throws IllegalArgumentException if any of the parameters are {@code null}
+   * */
+  public Event(String title, EventCategory category) {
+    this(UUID.randomUUID(), title, category);
   }
 
   // Getters //
@@ -112,7 +128,7 @@ public class Event implements IEvent {
   @Override
   public void setTitle(String title) {
     if (title == null || title.isBlank() || title.isEmpty()) {
-      throw new IllegalArgumentException("title cannot be null, empty, or blank");
+      throw new IllegalArgumentException("title cannot be blank, empty, or null");
     }
     this.title = title;
   }
@@ -149,14 +165,27 @@ public class Event implements IEvent {
     }
     this.location = location;
   } 
-  
+
+  /**
+   * Sets the maximum number of attendees for this event.
+   *
+   * @param capacity the attendee cap, or {@code null} for an unlimited event
+   *
+   * @throws IllegalArgumentException if {@code capacity} is less than one.
+   */
   @Override
   public void setCapacity(Integer capacity) {
+    if (capacity != null && capacity < 1) {
+      throw new IllegalArgumentException("capacity must be greater than zero");
+    }
     this.capacity = capacity;
   }
 
   @Override
-  public void setCategory(EventCategory category) { // todo: implement categories
+  public void setCategory(EventCategory category) { // todo: implement categories and validation
+    if (category == null) {
+      throw new IllegalArgumentException("category cannot be null");
+    }
     this.category = category;
   }
 
