@@ -3,11 +3,15 @@ package york.studentevents.subprocess;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 
 /** Factory class for building requests to the subprocess. */
@@ -27,6 +31,37 @@ class SubprocessRequestFactory {
   static record Request<T extends IPayload>(RequestType requestType, T payload) {}
 
   private static final Gson GSON = new Gson();
+  private static final String BRIDGE_SCRIPT = "api-core/src/subprocess_bridge.py";
+
+  /**
+   * Resolves the absolute path to the Python bridge script, anchored to the project root.
+   *
+   * <p>The project root is taken from the {@code PROJECT_ROOT} environment variable, falling back
+   * to the {@code project.root} system property, and finally to the JVM working directory
+   * ({@code user.dir}). Anchoring to an explicit root lets the script be found regardless of the
+   * directory the JVM was launched from.
+   *
+   * @return the absolute, normalised path to {@code subprocess_bridge.py}.
+   *
+   * @throws UncheckedIOException if the script does not exist at the resolved location.
+   */
+  private static Path resolveScriptPath() {
+    String root = System.getenv("PROJECT_ROOT");
+    if (root == null || root.isBlank()) {
+      root = System.getProperty("project.root");
+    }
+    if (root == null || root.isBlank()) {
+      root = System.getProperty("user.dir");
+    }
+
+    Path scriptPath = Path.of(root, BRIDGE_SCRIPT).toAbsolutePath().normalize();
+    if (!Files.exists(scriptPath)) {
+      throw new UncheckedIOException("Python bridge script not found at: " + scriptPath + ". Set"
+          + " PROJECT_ROOT (or the project.root system property) to the repository root.",
+          new FileNotFoundException());
+    }
+    return scriptPath;
+  }
 
   /**
    * Builds a JSON request for the subprocess to get the user's badges.
@@ -85,9 +120,10 @@ class SubprocessRequestFactory {
 
     try {
 
+      Path scriptPath = resolveScriptPath();
       ProcessBuilder processBuilder = new ProcessBuilder(
           "python",
-          "api-core/src/subprocess_bridge.py"
+          scriptPath.toString()
       );
       Process process = processBuilder.start();
 

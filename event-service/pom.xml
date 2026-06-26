@@ -54,6 +54,11 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+					<project.root>${project.basedir}/..</project.root>
+					</systemPropertyVariables>
+				</configuration>
 			</plugin>
 
 			<!-- Generate Javadoc into the repo-root docs/ folder during `package`. The
@@ -116,6 +121,17 @@
 				</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+					<project.root>${project.basedir}/..</project.root>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 
