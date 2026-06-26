@@ -138,7 +138,10 @@
 				<executions>
 					<execution>
 					<id>write-classpath</id>
-					<phase>process-classes</phase>
+					<phase>compile</phase>
+					<goals>
+						<goal>build-classpath</goal>
+					</goals>
 					<configuration>
 						<outputFile>${project.build.directory}/cp.txt</outputFile>
 					</configuration>
