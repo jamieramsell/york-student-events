@@ -18,7 +18,7 @@ import york.studentevents.users.IUserRepository;
  * {@link CohortController} and the {@code IRepository} later. Persistence is delegated
  * to the injected repositories; the service holds no state of its own.
  *
- * @see IRepository
+ * @see york.studentevents.repository.IRepository
  * @see ICohortRepository
  * @see ICohort
  */
@@ -35,7 +35,7 @@ public class CohortService {
    * @param userRepository the user repository which users are registered to
    * @param eventRepository the event repository which events are registered to
    *
-   * @see IRepository
+   * @see york.studentevents.repository.IRepository
    * @see ICohortRepository
    * @see IUserRepository
    * @see IEventRepository
