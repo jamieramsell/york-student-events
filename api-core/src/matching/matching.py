@@ -1,3 +1,4 @@
+import bridge
 import collections
 import friends
 import uuid
@@ -23,21 +24,21 @@ def get_recommended_events(user_id: uuid.UUID) -> list[uuid.UUID]:
     if len(friends_list) == 0: 
         return []
     
-    # TODO: add events that the user is already registered for to this set so
-    #   they can be excluded from the list of recommendations
-    events_already_registered = set() 
-
+    # Add events that the user is already registered for to this set, so that
+    # they can be excluded from the list of recommendations
+    events_already_registered = set[uuid.UUID](bridge.get_user_events(user_id))
+        
     # Make use of a collections.Counter to sort event recommendations by the
     # number of friends attending
-    recommended_events = collections.Counter()
+    recommended_events = collections.Counter[uuid.UUID]()
 
     # For each friend, add the events that they have signed up for to the
     # Counter. Ignore any events which the user has already signed up to
     # themselves.
     for friend_id in friends_list:
 
-        # TODO: add the event IDs that the friend is signed up for
-        friend_events = set()
+        # Add the event IDs that the friend is signed up for
+        friend_events = set[uuid.UUID](bridge.get_user_events(friend_id))
         
         # Remove events from the set if the user has already signed up to them
         friend_events = set(event for event in friend_events
