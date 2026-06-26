@@ -58,7 +58,7 @@ class SubprocessRequestFactory {
     if (!Files.exists(scriptPath)) {
       throw new UncheckedIOException("Python bridge script not found at: " + scriptPath + ". Set"
           + " PROJECT_ROOT (or the project.root system property) to the repository root.",
-          new FileNotFoundException());
+          new FileNotFoundException(scriptPath.toString()));
     }
     return scriptPath;
   }
