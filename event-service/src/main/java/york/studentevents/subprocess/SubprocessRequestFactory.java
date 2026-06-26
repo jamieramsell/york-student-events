@@ -32,7 +32,7 @@ class SubprocessRequestFactory {
 
   private static final Gson GSON = new Gson();
   private static final String BRIDGE_SCRIPT = "api-core/src/subprocess_bridge.py";
-
+  
   /**
    * Resolves the absolute path to the Python bridge script, anchored to the project root.
    *
@@ -122,6 +122,7 @@ class SubprocessRequestFactory {
 
     try {
 
+      // Launch the Python bridge as a fresh subprocess.
       Path scriptPath = resolveScriptPath();
       ProcessBuilder processBuilder = new ProcessBuilder(
           "python3",
@@ -129,6 +130,7 @@ class SubprocessRequestFactory {
       );
       Process process = processBuilder.start();
 
+      // Write the request to the subprocess's standard input, then close it.
       try (OutputStream os = process.getOutputStream()) {
 
         OutputStreamWriter osw = new OutputStreamWriter(os, StandardCharsets.UTF_8);
@@ -140,6 +142,7 @@ class SubprocessRequestFactory {
 
       }
 
+      // Read the response back from the subprocess's standard output.
       StringBuilder responseBuilder = new StringBuilder();
       try (
           InputStream is = process.getInputStream();
@@ -152,6 +155,7 @@ class SubprocessRequestFactory {
         }
       }
 
+      // A non-zero exit code means the subprocess failed to handle the request.
       int exitCode = process.waitFor();
       if (exitCode != 0) {
         throw new RuntimeException("Python script failed with exit code: " + exitCode);
