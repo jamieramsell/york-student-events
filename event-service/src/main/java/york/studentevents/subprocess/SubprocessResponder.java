@@ -34,9 +34,77 @@ import york.studentevents.events.UserEventService;
  */
 public class SubprocessResponder {
 
-  private static record RequestEnvelope(RequestType requestType, JsonObject payload) {}
-
   private static final Gson GSON = new Gson();
+
+  /** Sentinel user recognised by this canned-stub responder. */
+  private static final UUID KNOWN_USER_ID =
+      UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+  /** Canned event IDs returned for the known user (stands in for a real EventService query). */
+  private static final List<UUID> CANNED_EVENTS = List.of(
+      UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+      UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+
+  /** Request envelope: a request type and its still-raw JSON payload. */
+  private record RequestEnvelope(RequestType requestType, JsonObject payload) {}
+
+  /** Response envelope for a successful request. */
+  private record OkResponse(String status, EventsPayload payload) {}
+
+  /** Payload of a successful {@code GET_USER_EVENTS} response. */
+  private record EventsPayload(List<UUID> events) {}
+
+  /** Response envelope for a failed request. */
+  private record ErrorResponse(String status, String error) {}
+
+  /**
+   * Entry point: answers a single subprocess request read from standard input and writes the
+   * response to standard output.
+   *
+   * <p>Reads one JSON request envelope, deserialises and validates it, dispatches it on its
+   * {@link RequestType}, and writes the resulting {@code ok} response envelope. On success the
+   * process exits normally (zero).
+   *
+   * <p>Any failure (a malformed request, an unknown or unsupported request type, an unknown user,
+   * or an unexpected error such as an I/O failure on standard input) is caught here, written to
+   * standard output as an {@code error} envelope, and terminated with a non-zero exit status. No
+   * exception is allowed to propagate out of this method.
+   *
+   * @param args command-line arguments; unused.
+   */
+  public static void main(String[] args) {
+    try {
+      String requestJson = readRequest();
+      RequestEnvelope envelope = deserialiseEnvelope(requestJson);
+      writeResponse(route(envelope));
+    } catch (IllegalArgumentException e) {
+      // Bad data: malformed request, unknown/unsupported type, or unknown user.
+      writeResponse(GSON.toJson(new ErrorResponse("error", e.getMessage())));
+      System.exit(1);
+    } catch (Exception e) {
+      // Anything unexpected (e.g. an I/O failure reading stdin).
+      writeResponse(GSON.toJson(new ErrorResponse("error", "Unexpected error: " + e.getMessage())));
+      System.exit(1);
+    }
+  }
+
+  /**
+   * Reads the single request envelope line from standard input.
+   *
+   * @return the raw JSON request line.
+   *
+   * @throws IllegalArgumentException if no input is received.
+   * @throws java.io.IOException if standard input cannot be read.
+   */
+  private static String readRequest() throws java.io.IOException {
+    BufferedReader reader =
+        new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+    String line = reader.readLine();
+    if (line == null || line.isBlank()) {
+      throw new IllegalArgumentException("No request received on standard input.");
+    }
+    return line;
+  }
 
   /**
    * Deserialises a raw JSON request envelope into a typed {@link RequestEnvelope}.
@@ -116,73 +184,6 @@ public class SubprocessResponder {
     }
 
     return type;
-  }
-  
-  /** Sentinel user recognised by this canned-stub responder. */
-  private static final UUID KNOWN_USER_ID =
-      UUID.fromString("11111111-1111-1111-1111-111111111111");
-
-  /** Canned event IDs returned for the known user (stands in for a real EventService query). */
-  private static final List<UUID> CANNED_EVENTS = List.of(
-      UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-      UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
-
-  /** Response envelope for a successful request. */
-  private record OkResponse(String status, EventsPayload payload) {}
-
-  /** Payload of a successful {@code GET_USER_EVENTS} response. */
-  private record EventsPayload(List<UUID> events) {}
-
-  /** Response envelope for a failed request. */
-  private record ErrorResponse(String status, String error) {}
-
-  /**
-   * Entry point: answers a single subprocess request read from standard input and writes the
-   * response to standard output.
-   *
-   * <p>Reads one JSON request envelope, deserialises and validates it, dispatches it on its
-   * {@link RequestType}, and writes the resulting {@code ok} response envelope. On success the
-   * process exits normally (zero).
-   *
-   * <p>Any failure (a malformed request, an unknown or unsupported request type, an unknown user,
-   * or an unexpected error such as an I/O failure on standard input) is caught here, written to
-   * standard output as an {@code error} envelope, and terminated with a non-zero exit status. No
-   * exception is allowed to propagate out of this method.
-   *
-   * @param args command-line arguments; unused.
-   */
-  public static void main(String[] args) {
-    try {
-      String requestJson = readRequest();
-      RequestEnvelope envelope = deserialiseEnvelope(requestJson);
-      writeResponse(route(envelope));
-    } catch (IllegalArgumentException e) {
-      // Bad data: malformed request, unknown/unsupported type, or unknown user.
-      writeResponse(GSON.toJson(new ErrorResponse("error", e.getMessage())));
-      System.exit(1);
-    } catch (Exception e) {
-      // Anything unexpected (e.g. an I/O failure reading stdin).
-      writeResponse(GSON.toJson(new ErrorResponse("error", "Unexpected error: " + e.getMessage())));
-      System.exit(1);
-    }
-  }
-
-  /**
-   * Reads the single request envelope line from standard input.
-   *
-   * @return the raw JSON request line.
-   *
-   * @throws IllegalArgumentException if no input is received.
-   * @throws java.io.IOException if standard input cannot be read.
-   */
-  private static String readRequest() throws java.io.IOException {
-    BufferedReader reader =
-        new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-    String line = reader.readLine();
-    if (line == null || line.isBlank()) {
-      throw new IllegalArgumentException("No request received on standard input.");
-    }
-    return line;
   }
 
   /**
@@ -264,4 +265,5 @@ public class SubprocessResponder {
     System.out.println(json);
     System.out.flush();
   }
+
 }
