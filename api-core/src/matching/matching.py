@@ -42,7 +42,7 @@ def get_recommended_events(user_id: uuid.UUID) -> list[uuid.UUID]:
         
         # Remove events from the set if the user has already signed up to them
         friend_events = set(event for event in friend_events
-                            if not (event in events_already_registered))
+                            if event not in events_already_registered)
 
         recommended_events.update(friend_events)
     
