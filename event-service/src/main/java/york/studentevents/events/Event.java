@@ -125,17 +125,10 @@ public class Event implements IEvent {
 
   // Setters //
 
-  /**
-   * Sets the title of this event.
-   *
-   * @param title the new title; must not be {@code null} or blank.
-   *
-   * @throws IllegalArgumentException if the title is invalid.
-   */
   @Override
   public void setTitle(String title) {
-    if (title == null || title.isBlank()) {
-      throw new IllegalArgumentException("title cannot be null, empty, or blank");
+    if (title == null || title.isBlank() || title.isEmpty()) {
+      throw new IllegalArgumentException("title cannot be blank, empty, or null");
     }
     this.title = title;
   }
