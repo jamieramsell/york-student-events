@@ -3,7 +3,7 @@ package york.studentevents.users;
 import java.util.UUID;
 
 /** Represents a user of the platform */
-public class User implements IUser {
+public abstract class User implements IUser {
   
   private final UUID id;
   private String username;
@@ -15,7 +15,7 @@ public class User implements IUser {
    * @param email the user's email; must not be {@code null}, blank, or empty.
    * @throws IllegalArgumentException if the username or email is invalid
    */
-  public User(String username, String email) {
+  protected User(String username, String email) {
     this(UUID.randomUUID(), username, email);
   }
 
