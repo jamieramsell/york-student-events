@@ -15,7 +15,7 @@ public interface IUser extends IEntity {
    */
   void setUsername(String username);
   
-  /** Returns the user's password. */
+  /** Returns the user's email. */
   String getEmail();
 
   /** Sets the user's email.
