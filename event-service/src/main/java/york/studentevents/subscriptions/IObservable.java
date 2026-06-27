@@ -25,8 +25,6 @@ public interface IObservable {
    *
    * @param observer The observer to detatch from this observable object.
    * @return true if the observer was detached; false if the observer wasn't attached to begin with.
-   *
-   * @throws IllegalCallerException
    */
   boolean detach(IObserver observer);
   
