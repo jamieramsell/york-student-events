@@ -11,7 +11,7 @@ public interface IObserver {
 
   /**
    * Method, called from an IObservable, whenever information about the observable event is updated.
-   * 
+   *
    * @param source The object being observed.
    * @param event The updated state of the event in question. 
    */

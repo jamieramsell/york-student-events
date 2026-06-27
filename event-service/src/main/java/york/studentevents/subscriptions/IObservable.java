@@ -5,14 +5,14 @@ import york.studentevents.events.IEvent;
 /**
  * Defines the contract for any class that can be observed.
  *
- * <p> Forms part of the Observer pattern implementation.
+ * <p>Forms part of the Observer pattern implementation.
  */
 public interface IObservable {
 
   /**
    * Attaches, or subscribes, an observer to this observable object, meaning it will receive
    * notifications whenever the target event is updated.
-   * 
+   *
    * @param observer The observer to attach to this observable object.
    * @return true if the observer was attached; false if the observer was already attached to begin
    *     with.
@@ -22,10 +22,10 @@ public interface IObservable {
   /**
    * Dettaches, or unsubscribes, an observer from this observable object, meaning it will no longer
    * receive notifications if the target event gets updated.
-   * 
+   *
    * @param observer The observer to detatch from this observable object.
    * @return true if the observer was detached; false if the observer wasn't attached to begin with.
-   * 
+   *
    * @throws IllegalCallerException
    */
   boolean detach(IObserver observer);
