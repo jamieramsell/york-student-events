@@ -53,9 +53,6 @@ class Friendship(repositories.IEntity):
     request; friend_id represents the user who recieves and must approve/decline
     said request.
 
-    All attributes are read-only, except for friendship_status, which can be
-    updated from PENDING to ACCEPTED by calling the accept() method.
-
     Args:
         user_id: The ID of the user sending the request.
         friend_id: The ID of the user recieving the request.

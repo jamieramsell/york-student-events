@@ -14,20 +14,20 @@ the friend graph (send/accept/remove requests and query friendships).
 from friends.base import Friendship, FriendshipStatus
 from friends.friendship_repository import InMemoryFriendshipRepository
 from friends.friendship_service import (
-    acceptFriendRequest,
-    getFriends,
-    isFriend,
-    removeFriend,
-    sendFriendRequest,
+    accept_friend_request,
+    get_friends,
+    is_friend,
+    remove_friend,
+    send_friend_request,
 )
 
 __all__ = [
     "Friendship",
     "FriendshipStatus",
     "InMemoryFriendshipRepository",
-    "acceptFriendRequest",
-    "getFriends",
-    "isFriend",
-    "removeFriend",
-    "sendFriendRequest",
+    "accept_friend_request",
+    "get_friends",
+    "is_friend",
+    "remove_friend",
+    "send_friend_request",
 ]

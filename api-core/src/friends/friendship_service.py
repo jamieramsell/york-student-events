@@ -11,7 +11,7 @@ import datetime
 import friendship_repository
 import uuid
 
-def sendFriendRequest(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
+def send_friend_request(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
     """Creates a new Friendship record with a PENDING status.
 
     Args:
@@ -41,7 +41,7 @@ def sendFriendRequest(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
 
     friendship_repository._repository.save(friendship)
 
-def acceptFriendRequest(id1: uuid.UUID, id2: uuid.UUID) -> None:
+def accept_friend_request(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """Updates the status of a friendship record to ACCEPTED.
 
     Args:
@@ -75,7 +75,7 @@ def acceptFriendRequest(id1: uuid.UUID, id2: uuid.UUID) -> None:
                                 status)
     friendship_repository._repository.save(friendship)
 
-def removeFriend(id1: uuid.UUID, id2: uuid.UUID) -> None:
+def remove_friend(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """Removes the Frienship record between two users from the repository.
 
     Args:
@@ -96,7 +96,7 @@ def removeFriend(id1: uuid.UUID, id2: uuid.UUID) -> None:
     except KeyError:
         raise ValueError("No friendship exists between the two users.")
 
-def getFriends(user_id: uuid.UUID) -> list[uuid.UUID]:
+def get_friends(user_id: uuid.UUID) -> list[uuid.UUID]:
     """Retrieves a list of user IDs of the user's friends.
 
     Note that this method will not yield the user IDs of pending friend
@@ -132,7 +132,7 @@ def getFriends(user_id: uuid.UUID) -> list[uuid.UUID]:
     
     return friend_list
 
-def isFriend(id1: uuid.UUID, id2: uuid.UUID) -> bool:
+def is_friend(id1: uuid.UUID, id2: uuid.UUID) -> bool:
     """Checks whether two users are friends.
 
     Note that the method will return True only if a friend request between the
