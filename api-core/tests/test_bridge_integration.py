@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import uuid
 from pathlib import Path
 
 import pytest
@@ -16,12 +17,18 @@ import pytest
 from bridge import client
 from bridge.client import SubprocessError, get_user_events
 
+# Spawns the Java responder, so it shares the suite-wide `integration` marker
+# (registered in pytest.ini) and can be deselected with `-m 'not integration'`.
+pytestmark = pytest.mark.integration
+
 _EVENT_SERVICE = Path(__file__).resolve().parents[2] / "event-service"
 
 KNOWN_USER_ID = "11111111-1111-1111-1111-111111111111"
+# get_user_events parses the responder's event IDs into UUIDs, so the expected
+# canned events are UUID objects (not the raw strings the responder emits).
 EXPECTED_EVENTS = [
-    "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+    uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
 ]
 
 

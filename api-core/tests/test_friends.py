@@ -285,19 +285,19 @@ class TestFriendshipService:
     def test_remove_deletes_friendship(self):
         a, b = uuid.uuid4(), uuid.uuid4()
         friendship_service.send_friend_request(a, b)
-        friendship_service.removeFriend(a, b)
+        friendship_service.remove_friend(a, b)
         assert _repo().find_by_id(_generate_id(a, b)) is None
 
     def test_remove_is_direction_independent(self):
         a, b = uuid.uuid4(), uuid.uuid4()
         friendship_service.send_friend_request(a, b)
-        friendship_service.removeFriend(b, a)
+        friendship_service.remove_friend(b, a)
         assert _repo().find_by_id(_generate_id(a, b)) is None
 
     def test_remove_missing_raises_value_error(self):
         a, b = uuid.uuid4(), uuid.uuid4()
         with pytest.raises(ValueError):
-            friendship_service.removeFriend(a, b)
+            friendship_service.remove_friend(a, b)
 
     # -- get_friends ---------------------------------------------------------
     def test_get_friends_empty_when_none(self):
@@ -357,7 +357,7 @@ class TestFriendshipService:
         a, b = uuid.uuid4(), uuid.uuid4()
         friendship_service.send_friend_request(a, b)
         friendship_service.accept_friend_request(a, b)
-        friendship_service.removeFriend(a, b)
+        friendship_service.remove_friend(a, b)
         assert friendship_service.is_friend(a, b) is False
 
     def test_is_friend_same_user_raises_value_error(self):
