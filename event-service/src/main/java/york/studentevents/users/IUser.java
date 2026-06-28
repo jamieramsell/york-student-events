@@ -5,6 +5,25 @@ import york.studentevents.repository.IEntity;
 /** Defines the core contract for user covering their profile data and relationships. */
 public interface IUser extends IEntity {
   
+  /**
+   * Identifies the role of a user, distinguishing the two account types that the platform supports.
+   *
+   * <p>Used as a discriminator so that callers can determine a user's role without relying on
+   * {@code instanceof}.
+   */
+  enum UserType {
+
+    /** A student account: attends events and participates in the social layer. */
+    STUDENT,
+
+    /** 
+     * A host account: an organiser such as a society, the SU, a club, or a company that announces
+     * events. 
+     */
+    HOST
+
+  }
+
   /** Returns the user's username. */
   String getUsername();
 
@@ -24,5 +43,13 @@ public interface IUser extends IEntity {
    * @throws IllegalArgumentException if the email is invalid.
    */
   void setEmail(String email);
+
+  /**
+   * Returns the role of this user.
+   *
+   * @return {@link UserType#STUDENT} for a student account or {@link UserType#HOST} for a host
+   * account; never {@code null}
+   */
+  UserType getType();
 
 }
