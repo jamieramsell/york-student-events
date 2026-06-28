@@ -7,9 +7,9 @@ import java.util.UUID;
 /** Represents a user of the platform */
 public abstract class User implements IUser {
   
-  private final UUID id;
-  private String username;
-  private String email;
+  protected final UUID id;
+  protected String username;
+  protected String email;
   private List<UUID> events = new ArrayList<>(); // storage only, no public accessor
 
   /** Creates a {@code User} with the given details.
