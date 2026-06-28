@@ -58,6 +58,11 @@ public class Student extends User implements IStudent {
     setEvents(events);
   }
 
+  @Override
+  public UserType getType() {
+    return UserType.STUDENT;
+  }
+
   /** Returns a string representation for debugging purposes. */
   @Override
   public String toString() {

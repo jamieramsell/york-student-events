@@ -41,6 +41,11 @@ public class Host extends User implements IHost {
     setEvents(events);
   }
 
+  @Override
+  public UserType getType() {
+    return UserType.HOST;
+  }
+
   /** Returns a string representation for debugging purposes. */
   @Override
   public String toString() {
