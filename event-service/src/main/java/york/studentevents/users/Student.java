@@ -11,7 +11,7 @@ public class Student extends User implements IStudent {
   
   private UUID cohort;
 
-  /** Creates a {@code User} with the given details.
+  /** Creates a {@code Student} with the given details.
    *
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
@@ -23,7 +23,7 @@ public class Student extends User implements IStudent {
     this(UUID.randomUUID(), username, email, cohort, registeredEvents);
   }
 
-  /** Creates a {@code User} with the given details.
+  /** Creates a {@code Student} with the given details.
    *
    * @param id the user's ID; must not be {@code null}.
    * @param username the user's username; must not be {@code null}, blank, or empty.
@@ -53,11 +53,6 @@ public class Student extends User implements IStudent {
     return getEvents();
   }
 
-  /**
-   * Sets the user's registered events.
-   *
-   * @param events the new list of events; currently no validation is performed
-   */
   @Override
   public void setRegisteredEvents(List<UUID> events) {
     setEvents(events);
@@ -67,7 +62,7 @@ public class Student extends User implements IStudent {
   @Override
   public String toString() {
     return String.format(
-        "User[id=%s, username='%s', email='%s', cohort=%s, registeredEvents=%s]",
+        "Student[id=%s, username='%s', email='%s', cohort=%s, registeredEvents=%s]",
         id,
         username,
         email,
