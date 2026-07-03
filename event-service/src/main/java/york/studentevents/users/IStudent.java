@@ -1,6 +1,6 @@
 package york.studentevents.users;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /** Defines the core contract for Student profile, covering their profile data and relationships. */
@@ -15,12 +15,12 @@ public interface IStudent extends IUser {
    */
   void setCohort(UUID cohort);
   
-  /** Returns a copy of the list of events that the user has signed up to as a list of event IDs. */
-  List<UUID> getRegisteredEvents();
+  /** Returns a copy of the set of events that the user has signed up to, as a set of event IDs. */
+  Set<UUID> getRegisteredEvents();
 
   /** Sets the user's registered events.
    *
-   * @param events the new list of events; currently no validation is performed
+   * @param events the new set of events; currently no validation is performed
    */
-  void setRegisteredEvents(List<UUID> events);
+  void setRegisteredEvents(Set<UUID> events);
 }
