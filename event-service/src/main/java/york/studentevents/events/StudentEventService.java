@@ -171,6 +171,19 @@ public class StudentEventService {
     }
     return optionalEvent.get();
   }
+  /** Counts the students currently registered for the given event. */
+  private int countRegisteredStudents(UUID eventId) {
+    Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
+    Predicate<IStudent> isStudentRegisteredForEvent =
+        student -> student.getRegisteredEvents().contains(eventId);
+
+    List<IUser> users = userRepository.findAll();
+    return (int) users.stream()
+        .filter(isUserStudent)
+        .map(user -> (IStudent) user)
+        .filter(isStudentRegisteredForEvent)
+        .count();
+  }
 
   /**
    * Determines whether a given event is full.
@@ -180,36 +193,19 @@ public class StudentEventService {
    * @throws EventNotFoundException if the event does not exist
    */
   private boolean isEventFull(UUID eventId) {
-    IEvent event = getEvent(eventId);
+    Integer capacity = getEvent(eventId).getCapacity();
+    if (capacity == null) { // unlimited events are never full
+      return false;
+    }
 
-    // Create anonymous functions required to find the number of students registered for the event
-    Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
-    Predicate<IStudent> isStudentRegisteredForEvent = student ->
-        student.getRegisteredEvents().contains(eventId);
-
-    // Retrieve all students registered for the event
-    List<IUser> users = userRepository.findAll();
-    Set<IStudent> registeredStudents = new HashSet<>(
-        users.stream()
-        .filter(isUserStudent)
-        .map(user -> (IStudent) user)
-        .filter(isStudentRegisteredForEvent)
-        .toList()
-    );
-
-    // Validate that the number of students attending has not exceeded the max capacity of the event
-    int numStudentsRegistered = registeredStudents.size();
-    int eventCapacity = event.getCapacity();
-
-    if (numStudentsRegistered > eventCapacity) {
+    int numStudentsRegistered = countRegisteredStudents(eventId);
+    if (numStudentsRegistered > capacity) {
       throw new IllegalStateException("The given event has too many students registered."
           + "\n- " + numStudentsRegistered + " students registered to attend"
-          + "\n- Event has a maximum capacity of " + eventCapacity
-      );
+          + "\n- Event has a maximum capacity of " + capacity);
     } 
 
-    // Return whether the event is full
-    return numStudentsRegistered == eventCapacity;
+    return numStudentsRegistered == capacity;
   }
 
 }
