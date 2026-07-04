@@ -13,6 +13,11 @@ def get_user_friends(payload):
 def award_badge(payload):
     raise ValueError("THIS IS A TEST ERROR")
 
+#TODO
+def get_recommended_events(payload):
+    return {"events": ["cd1e0662-beab-4fc0-af84-9dc29c98d561",
+                       "0c51b12f-6bec-4172-bba0-25bba3bef9d9"]}
+
 class MessageHandlerFactory:
     """Routes incoming messages to their corresponding handler functions.
 
@@ -24,7 +29,8 @@ class MessageHandlerFactory:
         self._handlers = {
             "GET_USER_BADGES": get_user_badges,
             "GET_USER_FRIENDS": get_user_friends,
-            "AWARD_BADGE": award_badge
+            "AWARD_BADGE": award_badge,
+            "GET_RECOMMENDED_EVENTS": get_recommended_events
         }
 
     def get_handler(self, message_type):
@@ -35,7 +41,8 @@ class MessageHandlerFactory:
                 passed. Currently supported types are:
                 - `GET_USER_BADGES`,
                 - `GET_USER_FRIENDS`,
-                - `AWARD_BADGE`
+                - `AWARD_BADGE`,
+                - `GET_RECOMMENDED_EVENTS`
 
         Raises:
             ValueError: If the message type is unknown, or doesn't have a
