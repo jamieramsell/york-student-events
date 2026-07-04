@@ -1,7 +1,5 @@
 package york.studentevents.subscriptions;
 
-import york.studentevents.events.IEvent;
-
 /**
  * Defines the contract for any class that wants to receive event notifications.
  *
@@ -13,8 +11,8 @@ public interface IObserver {
    * Method, called from an IObservable, whenever information about the observable event is updated.
    *
    * @param source The object being observed.
-   * @param event The updated state of the event in question. 
+   * @param reason The reason for the notification. 
    */
-  void update(IObservable source, IEvent event);
+  void update(IObservable source, NotificationType reason);
 
 }

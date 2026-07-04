@@ -31,19 +31,21 @@ public interface IObservable {
   /**
    * Notifies every attached observer of a change to the given event.
    *
-   * <p>Called by the observable whenever {@code event} is updated, fanning the change out to each
-   * currently attached {@link IObserver}. Observers attached at the time of the call are notified;
-   * the order in which they are notified is not guaranteed. If no observers are attached, this is a
-   * no-op.
+   * <p>Called by the observable whenever an {@code Event} is updated, fanning the change out to
+   * each {@link IObserver} currently attached.
+   *
+   * <p>The order in which observers are notified is not guaranteed.
+   *
+   * <p>If no observers are attached, this method is a no-op.
    *
    * <p>Forms part of the Observer pattern implementation.
    *
-   * @param event the event whose change is being broadcast to observers.
+   * @param reason the type of change to the event; the reason why the notification is being sent.
    *
    * @see IObserver
    * @see #attach(IObserver)
    * @see #detach(IObserver)
    */
-  void notifyObservers(IEvent event);
+  void notifyObservers(NotificationType reason);
   
 }
