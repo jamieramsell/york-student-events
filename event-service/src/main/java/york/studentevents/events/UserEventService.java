@@ -61,11 +61,16 @@ public class UserEventService {
       throw new CapacityExceededException();
     }
 
-    boolean successfullyAdded = student.getRegisteredEvents().add(eventId);
+    Set<UUID> studentEvents = student.getRegisteredEvents();
+
+    // Ensure that the student was already signed up for the event
+    boolean successfullyAdded = studentEvents.add(eventId);
     if (!successfullyAdded) {
       throw new IllegalArgumentException("The student is already registered for this event");
     }
 
+    // Update the student's record
+    student.setRegisteredEvents(studentEvents);
     userRepository.save(student);
   }
 
@@ -85,12 +90,16 @@ public class UserEventService {
      * remove stale events from a user's event list if this is required later on.
      */
     IStudent student = getStudent(userId);
+    Set<UUID> studentEvents = student.getRegisteredEvents();
 
-    boolean successfullyRemoved = student.getRegisteredEvents().remove(eventId);
+    // Ensure that the student was already signed up for the event
+    boolean successfullyRemoved = studentEvents.remove(eventId);
     if (!successfullyRemoved) {
       throw new IllegalArgumentException("The student is not registered for the given event");
     }
 
+    // Update the student's record
+    student.setRegisteredEvents(studentEvents);
     userRepository.save(student);
   }
 
