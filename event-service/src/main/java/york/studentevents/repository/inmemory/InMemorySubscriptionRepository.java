@@ -25,18 +25,19 @@ public class InMemorySubscriptionRepository extends AbstractInMemoryRepository<I
   
   @Override
   public Optional<ISubscription> findByID(UUID userId, UUID eventId) {
-    Stream<ISubscription> targetSubscriptions = findAll()
+    List<ISubscription> targetSubscriptions = findAll()
         .stream()
         .filter(sub -> sub.getUserId().equals(userId))
-        .filter(sub -> sub.getEventId().equals(eventId));
+        .filter(sub -> sub.getEventId().equals(eventId))
+        .toList();
 
     // Validate that a maximum of one subscription exists
-    if (targetSubscriptions.count() > 1) {
+    if (targetSubscriptions.size() > 1) {
       throw new IllegalStateException("The given user has multiple subscription records"
           + " targetting the specified event.");
     }
-
-    return targetSubscriptions.findFirst();
+    
+    return targetSubscriptions.stream().findFirst();
   }
 
   @Override
