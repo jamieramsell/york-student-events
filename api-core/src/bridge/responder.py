@@ -1,20 +1,29 @@
 import sys
 import json
+import collections.abc
+
+# Type alias of a Payload returned by a handler, formed of str keys, and
+# list[str] elements
+type Payload = dict[str, list[str]]
+
+# Type alias of a callable Handler, which accepts a str as a parameter, and
+# returns a Payload
+type Handler = collections.abc.Callable[[str], Payload]
 
 #TODO
-def get_user_badges(payload):
+def get_user_badges(payload: str):
     return {"badges": ["First Event", "Social5"]}
 
 #TODO
-def get_user_friends(payload):
+def get_user_friends(payload: str):
     return {"friends": ["James", "Jamie"]}
 
 #TODO
-def award_badge(payload):
+def award_badge(payload: str):
     raise ValueError("THIS IS A TEST ERROR")
 
 #TODO
-def get_recommended_events(payload):
+def get_recommended_events(payload: str):
     return {"events": ["cd1e0662-beab-4fc0-af84-9dc29c98d561",
                        "0c51b12f-6bec-4172-bba0-25bba3bef9d9"]}
 
@@ -26,14 +35,14 @@ class MessageHandlerFactory:
             message types and their handler functions.
     """
     def __init__(self):
-        self._handlers = {
+        self._handlers: dict[str, Handler] = {
             "GET_USER_BADGES": get_user_badges,
             "GET_USER_FRIENDS": get_user_friends,
             "AWARD_BADGE": award_badge,
             "GET_RECOMMENDED_EVENTS": get_recommended_events
         }
 
-    def get_handler(self, message_type):
+    def get_handler(self, message_type: str) -> Handler:
         """Fetches the correct message handler from the message type provided.
 
         Args:
@@ -78,7 +87,7 @@ def main():
             handler = factory.get_handler(msg_type)
             result_payload = handler(payload)
 
-            response = {
+            response: dict[str, str | Payload] = {
                 "status": "ok",
                 "payload": result_payload,
             }
