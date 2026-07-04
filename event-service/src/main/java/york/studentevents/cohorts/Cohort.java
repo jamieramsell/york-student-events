@@ -1,7 +1,7 @@
 package york.studentevents.cohorts;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -15,7 +15,7 @@ public class Cohort implements ICohort {
   private String department;
   private int academicYear;
   private int yearGroup;
-  private final List<UUID> members;
+  private final Set<UUID> members;
 
   /**
    * Creates a {@code Cohort} with the given details.
@@ -67,7 +67,7 @@ public class Cohort implements ICohort {
     setAcademicYear(academicYear);
     setYearGroup(yearGroup);
     this.id = id;
-    this.members = new ArrayList<>();
+    this.members = new HashSet<>();
   }
 
   private void setName(String name) {
@@ -126,21 +126,24 @@ public class Cohort implements ICohort {
   }
 
   @Override
-  public List<UUID> getMembers() {
-    return members;
+  public Set<UUID> getMembers() {
+    return new HashSet<>(members);
   }
 
   @Override
   public void addMember(UUID memberId) {
-    members.add(memberId);
+    boolean successfullyAdded = members.add(memberId);
+    if (!successfullyAdded) {
+      throw new IllegalArgumentException("Member is alreadt a member of this cohort.");
+    }
   }
 
   @Override
   public void removeMember(UUID memberId) {
-    if (!members.contains(memberId)) {
+    boolean successfullyRemoved = members.remove(memberId);
+    if (!successfullyRemoved) {
       throw new IllegalArgumentException("Member is not a member of this cohort.");
     }
-    members.remove(memberId);
   }
 
   /** Returns a string representation for debugging purposes. */
