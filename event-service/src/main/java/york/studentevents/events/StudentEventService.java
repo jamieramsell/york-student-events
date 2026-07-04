@@ -29,6 +29,8 @@ import york.studentevents.users.IUserRepository;
  */
 public class StudentEventService {
   
+  private static final double CAPACITY_WARNING_THRESHOLD = 0.8;
+  
   private final IEventRepository eventRepository;
   private final IUserRepository userRepository;
 

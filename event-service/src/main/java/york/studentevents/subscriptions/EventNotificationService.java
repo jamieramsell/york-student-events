@@ -7,7 +7,6 @@ import york.studentevents.events.IEvent;
 /** todo. */
 public class EventNotificationService implements IObservable {
 
-  private static final double CAPACITY_WARNING_THRESHOLD = 0.8;
   private final Set<IObserver> observers;
 
   /** todo. */
