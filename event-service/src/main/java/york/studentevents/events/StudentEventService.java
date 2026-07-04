@@ -10,6 +10,9 @@ import york.studentevents.exceptions.CapacityExceededException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
+import york.studentevents.subscriptions.ISubscription.SubscriptionSource;
+import york.studentevents.subscriptions.NotificationType;
+import york.studentevents.subscriptions.SubscriptionService;
 import york.studentevents.users.IStudent;
 import york.studentevents.users.IUser;
 import york.studentevents.users.IUser.UserType;
@@ -29,18 +32,27 @@ import york.studentevents.users.IUserRepository;
  */
 public class StudentEventService {
   
+  private static final double CAPACITY_WARNING_THRESHOLD = 0.8;
+
   private final IEventRepository eventRepository;
   private final IUserRepository userRepository;
+  private final SubscriptionService subscriptionService;
 
   /**
    * Constructor for StudentEventService.
    *
    * @param eventRepository the event repository which events are registered to
    * @param userRepository the user repository which users are registered to
+   * @param subscriptionService the current subscription service instance
    */
-  public StudentEventService(IEventRepository eventRepository, IUserRepository userRepository) {
+  public StudentEventService(
+      IEventRepository eventRepository,
+      IUserRepository userRepository,
+      SubscriptionService subscriptionService
+  ) {
     this.eventRepository = eventRepository;
     this.userRepository = userRepository;
+    this.subscriptionService = subscriptionService;
   }
 
   /**
@@ -54,7 +66,7 @@ public class StudentEventService {
    * @throws IllegalArgumentException if the student is already registered for the event
    * @throws CapacityExceededException if the event is full
    */
-  void registerForEvent(UUID userId, UUID eventId) {
+  public void registerForEvent(UUID userId, UUID eventId) {
     IStudent student = getStudent(userId);
 
     if (isEventFull(eventId)) {
@@ -72,6 +84,8 @@ public class StudentEventService {
     // Update the student's record
     student.setRegisteredEvents(studentEvents);
     userRepository.save(student);
+    subscriptionService.subscribe(userId, eventId, SubscriptionSource.REGISTRATION);
+    publishCapacityWarningIfReached(eventId);
   }
 
   /**
@@ -84,7 +98,7 @@ public class StudentEventService {
    * @throws EventNotFoundException if the event does not exist.
    * @throws IllegalArgumentException if the student is not registered for the event
    */
-  void deregisterFromEvent(UUID userId, UUID eventId) {
+  public void deregisterFromEvent(UUID userId, UUID eventId) {
     IStudent student = getStudent(userId);
     getEvent(eventId); // Validate that the event actually exists
     Set<UUID> studentEvents = student.getRegisteredEvents();
@@ -98,6 +112,7 @@ public class StudentEventService {
     // Update the student's record
     student.setRegisteredEvents(studentEvents);
     userRepository.save(student);
+    subscriptionService.unsubscribe(userId, eventId, SubscriptionSource.REGISTRATION);
   }
 
   /**
@@ -108,7 +123,7 @@ public class StudentEventService {
    * @throws UserNotFoundException if the user does not exist
    * @throws UserNotAuthorisedException if the given user is not a Student
    */
-  Set<IEvent> getEventsForStudent(UUID userId) {
+  public Set<IEvent> getEventsForStudent(UUID userId) {
     IStudent student = getStudent(userId);
 
     /*
@@ -126,6 +141,40 @@ public class StudentEventService {
     );
     return studentEvents;
   }
+
+  /**
+   * Subscribe a Student to receive an Event's notifications without registering them to attend.
+   *
+   * @param userId the Student's user ID
+   * @param eventId the Event's ID
+   * @throws UserNotFoundException if the user does not exist
+   * @throws UserNotAuthorisedException if the given user is not a Student
+   * @throws EventNotFoundException if the event does not exist.
+   * @throws IllegalArgumentException if the user has already subscribed to the event.
+   */
+  public void subscribeToEvent(UUID userId, UUID eventId) {
+    getStudent(userId);
+    getEvent(eventId);
+    subscriptionService.subscribe(userId, eventId, SubscriptionSource.EXPLICIT);
+  }
+
+  /**
+   * Unsubscribe a Student from an Event's notifications, without deregistering them.
+   *
+   * @param userId the Student's user ID
+   * @param eventId the Event's ID
+   * @throws UserNotFoundException if the user does not exist
+   * @throws UserNotAuthorisedException if the given user is not a Student
+   * @throws EventNotFoundException if the event does not exist.
+   * @throws IllegalArgumentException if the user is not subscribed to the event.
+   */
+  public void unsubscribeFromEvent(UUID userId, UUID eventId) {
+    getStudent(userId);
+    getEvent(eventId);
+    subscriptionService.unsubscribe(userId, eventId, SubscriptionSource.EXPLICIT);
+  }
+
+  // Utility Methods //
 
   /**
    * Retrieves a student from the injected user repository.
@@ -169,6 +218,43 @@ public class StudentEventService {
   }
 
   /**
+   * Publishes a {@link NotificationType#CAPACITY_WARNING} when a registration brings the number of
+   * registered students up to the warning threshold.
+   *
+   * <p>This is edge-triggered on the upward crossing, not latched. This means that an event whose
+   * registered count oscillates around the threshold (through repeated deregister/register) emits
+   * the warning on every crossing.
+   *
+   * <p>This method is a no-op for events with no capacity limit.
+   *
+   * @param eventId the ID of the event to target
+   */
+  private void publishCapacityWarningIfReached(UUID eventId) {
+    Integer capacity = getEvent(eventId).getCapacity();
+    if (capacity == null) {
+      return;
+    }
+    int thresholdCount = (int) Math.ceil(capacity * CAPACITY_WARNING_THRESHOLD);
+    if (countRegisteredStudents(eventId) == thresholdCount) {
+      subscriptionService.publish(eventId, NotificationType.CAPACITY_WARNING);
+    }
+  }
+
+  /** Counts the students currently registered for the given event. */
+  private int countRegisteredStudents(UUID eventId) {
+    Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
+    Predicate<IStudent> isStudentRegisteredForEvent =
+        student -> student.getRegisteredEvents().contains(eventId);
+
+    List<IUser> users = userRepository.findAll();
+    return (int) users.stream()
+        .filter(isUserStudent)
+        .map(user -> (IStudent) user)
+        .filter(isStudentRegisteredForEvent)
+        .count();
+  }
+
+  /**
    * Determines whether a given event is full.
    *
    * @param eventId the event's ID
@@ -176,36 +262,19 @@ public class StudentEventService {
    * @throws EventNotFoundException if the event does not exist
    */
   private boolean isEventFull(UUID eventId) {
-    IEvent event = getEvent(eventId);
+    Integer capacity = getEvent(eventId).getCapacity();
+    if (capacity == null) { // unlimited events are never full
+      return false;
+    }
 
-    // Create anonymous functions required to find the number of students registered for the event
-    Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
-    Predicate<IStudent> isStudentRegisteredForEvent = student ->
-        student.getRegisteredEvents().contains(eventId);
-
-    // Retrieve all students registered for the event
-    List<IUser> users = userRepository.findAll();
-    Set<IStudent> registeredStudents = new HashSet<>(
-        users.stream()
-        .filter(isUserStudent)
-        .map(user -> (IStudent) user)
-        .filter(isStudentRegisteredForEvent)
-        .toList()
-    );
-
-    // Validate that the number of students attending has not exceeded the max capacity of the event
-    int numStudentsRegistered = registeredStudents.size();
-    int eventCapacity = event.getCapacity();
-
-    if (numStudentsRegistered > eventCapacity) {
+    int numStudentsRegistered = countRegisteredStudents(eventId);
+    if (numStudentsRegistered > capacity) {
       throw new IllegalStateException("The given event has too many students registered."
           + "\n- " + numStudentsRegistered + " students registered to attend"
-          + "\n- Event has a maximum capacity of " + eventCapacity
-      );
-    } 
+          + "\n- Event has a maximum capacity of " + capacity);
+    }
 
-    // Return whether the event is full
-    return numStudentsRegistered == eventCapacity;
+    return numStudentsRegistered == capacity;
   }
 
 }

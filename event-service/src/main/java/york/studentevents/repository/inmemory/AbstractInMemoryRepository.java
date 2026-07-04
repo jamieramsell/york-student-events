@@ -20,9 +20,7 @@ import york.studentevents.repository.IRepository;
  * <p>Used for integration testing before implementing database-backed repositories.
  *
  * @see york.studentevents.repository.IRepository
- *
  * @see IEntity
- *
  * @see UUID
  */
 abstract class AbstractInMemoryRepository<T extends IEntity> implements IRepository<T> {
