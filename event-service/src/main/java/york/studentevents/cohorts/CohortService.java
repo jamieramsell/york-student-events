@@ -1,14 +1,18 @@
 package york.studentevents.cohorts;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import york.studentevents.events.IEvent;
 import york.studentevents.events.IEventRepository;
 import york.studentevents.exceptions.CohortNotFoundException;
-import york.studentevents.exceptions.EventNotFoundException;
+import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
+import york.studentevents.users.IStudent;
 import york.studentevents.users.IUser;
+import york.studentevents.users.IUser.UserType;
 import york.studentevents.users.IUserRepository;
 
 /**
@@ -48,89 +52,130 @@ public class CohortService {
   }
 
   /**
-   * Assigns a user to a cohort.
+   * Assigns a Student to a Cohort.
    *
-   * @param userId the user's ID
+   * @param userId the student's user ID
    * @param cohortId the cohort's ID
-   *
    * @throws UserNotFoundException if the user is not found
+   * @throws UserNotAuthorisedException if the given user is not a Student
    * @throws CohortNotFoundException if the cohort is not found
    * @throws IllegalArgumentException if the user is already in the cohort
-   * */
-  void assignUserToCohort(UUID userId, UUID cohortId) {
+   *
+   * @see IStudent
+   */
+  void assignStudentToCohort(UUID userId, UUID cohortId) {
     Optional<IUser> optionalUser = userRepository.findByID(userId);
     Optional<ICohort> optionalCohort = cohortRepository.findByID(cohortId);
 
     // Validation
     if (optionalUser.isEmpty()) {
       throw new UserNotFoundException("User not found");
+    } else if (optionalUser.get().getType() != UserType.STUDENT) {
+      throw new UserNotAuthorisedException("The given user is not a student");
     } else if (optionalCohort.isEmpty()) {
       throw new CohortNotFoundException("Cohort not found");
     }
     
     ICohort cohort = optionalCohort.get();
-
-    // Check member is not already in the cohort before assigning
-    if (cohort.getMembers().contains(userId)) {
-      throw new IllegalArgumentException("User is already in the cohort");
-    }
-    cohort.getMembers().add(userId);
+    cohort.addMember(userId);
+    cohortRepository.save(cohort);
   }
 
   /**
-   * Gets a list of users in a cohort.
+   * Removes a Student from a Cohort.
+   *
+   * @param userId the student's user ID
+   * @param cohortId the cohort's ID
+   * @throws UserNotFoundException if the user is not found
+   * @throws UserNotAuthorisedException if the given user is not a Student
+   * @throws CohortNotFoundException if the Cohort is not found
+   * @throws IllegalArgumentException if the Student is not in the cohort
+   *
+   * @see IStudent
+   */
+  void removeStudentFromCohort(UUID userId, UUID cohortId) {
+    Optional<IUser> optionalUser = userRepository.findByID(userId);
+    Optional<ICohort> optionalCohort = cohortRepository.findByID(cohortId);
+
+    // Validation
+    if (optionalUser.isEmpty()) {
+      throw new UserNotFoundException("User not found");
+    } else if (optionalUser.get().getType() != UserType.STUDENT) {
+      throw new UserNotAuthorisedException("The given user is not a student");
+    } else if (optionalCohort.isEmpty()) {
+      throw new CohortNotFoundException("Cohort not found");
+    }
+    
+    ICohort cohort = optionalCohort.get();
+    cohort.removeMember(userId);
+    cohortRepository.save(cohort);
+  }
+
+  /**
+   * Gets the set of Students within a Cohort.
    *
    * @param cohortId the cohort's ID
-   *
-   * @return a list of users in the cohort
-   *
+   * @return a set of Students in the Cohort
    * @throws CohortNotFoundException if the cohort is not found
-   * @throws UserNotFoundException if a user in the cohort is not found
    *
-   * @see IUser
+   * @see IStudent
    */
-  List<IUser> getUsersForCohort(UUID cohortId) {
+  Set<IStudent> getStudentsOfCohort(UUID cohortId) {
     Optional<ICohort> optionalCohort = cohortRepository.findByID(cohortId);
     if (optionalCohort.isEmpty()) {
       throw new CohortNotFoundException("Cohort not found");
     }
 
-    /* 
-     * Map cohort members to a list and return. If a user exists within the cohort
-     * who does not exist, throw an error.
-     */
+    // Define anonymous function to cast a user to a student
+    Function<IUser, IStudent> castToStudent = user -> {
+      if (user.getType() != UserType.STUDENT) { // Validate that the given user is a student
+        throw new IllegalStateException("User " + user.getId() + " was found within the cohort, but"
+            + " is not a Student.");
+      }
+      return (IStudent) user;
+    };
+
     ICohort cohort = optionalCohort.get();
-    List<IUser> cohortMembers = cohort.getMembers().stream()
+    Set<IStudent> cohortMembers;
+
+    // Map cohort members to a set and return
+    cohortMembers = new HashSet<>(
+        cohort.getMembers().stream()
         .map(userId -> userRepository.findByID(userId)
-            .orElseThrow(() -> new UserNotFoundException("User not found")))
-        .toList();
+            .orElseThrow(() -> new IllegalStateException("User " + userId + " exists within the"
+                + " cohort, but was not found within the user repository")))
+        .map(castToStudent)
+        .toList()
+    );
+
     return cohortMembers;
   }
 
   /**
-   * Gets a list of events for a cohort.
+   * Retrieves the set of Events for a given Cohort.
    *
    * @param cohortId the cohort's ID
-   *
-   * @return a list of events for the cohort
-   *
+   * @return a set of events for the cohort
    * @throws CohortNotFoundException if the cohort is not found
-   * @throws EventNotFoundException if an event in the cohort is not found
    */
-  List<IEvent> getEventsForCohort(UUID cohortId) {
+  Set<IEvent> getEventsForCohort(UUID cohortId) {
     /* 
-     * Map cohort events to a list with no repeats and return. If an ID exists within
-     * the cohort which does not point to an actual event, throw an error.
+     * Map cohort events to a set and return. If an ID exists within the cohort which does not point
+     * to an actual event, throw an error.
      */
-    List<IUser> members = getUsersForCohort(cohortId);
-    List<IEvent> cohortEvents = members.stream()
-        .map(IUser::getRegisteredEvents)
-        .distinct()
-        .flatMap(List::stream)
+    Set<IStudent> members = getStudentsOfCohort(cohortId);
+    Set<IEvent> events = new HashSet<>(
+        members.stream()
+        .map(student -> student.getRegisteredEvents())
+        .flatMap(set -> set.stream())
         .map(eventId -> eventRepository.findByID(eventId)
-            .orElseThrow(() -> new EventNotFoundException("Event not found")))
-        .toList();
-    return cohortEvents;
+            .orElseThrow(() -> new IllegalStateException("A student within the cohort is registered"
+                + " to event " + eventId + ", which could not be found within the event"
+                + " repository.")))
+        .toList()
+    );
+    
+    return events;
   }
 
 }

@@ -23,8 +23,9 @@ york-student-events/
 │   ├── src/
 │   │   ├── attendance/attendance.py
 │   │   ├── badges/badges.py
-│   │   ├── friends/getFriendCircle.py
-│   │   └── matching/matching.py
+│   │   ├── friends/        (base, friendship_service, friendship_repository, getFriendCircle)
+│   │   ├── matching/matching.py
+│   │   └── repositories/   (base — IEntity, IRepository)
 │   └── tests/
 │       ├── test_attendance.py
 │       ├── test_badges.py
@@ -34,15 +35,17 @@ york-student-events/
 │   ├── src/main/java/york/studentevents/
 │   │   ├── Application.java
 │   │   ├── events/        (Event, EventService, EventController, IEvent, IEventRepository)
-│   │   ├── users/         (User, UserService, UserController, IUser, IUserRepository)
+│   │   ├── users/         (User, Student, Host, UserService, UserController, IUser, IStudent, IHost, IUserRepository)
 │   │   ├── venues/        (Venue, VenueService, VenueController, IVenue, IVenueRepository)
-│   │   ├── cohorts/       (ICohort, ICohortRepository)
+│   │   ├── cohorts/       (Cohort, CohortService, CohortController, ICohort, ICohortRepository)
 │   │   ├── exceptions/    (EventNotFoundException, UserNotFoundException,
 │   │   │                   VenueNotFoundException, CohortNotFoundException,
-│   │   │                   CapacityExceededException)
-│   │   ├── subscriptions/ (EventNotificationService, IObserver, IObservable)
-│   │   └── repository/    (IRepository, inmemory/InMemoryEventRepository,
-│   │                       inmemory/InMemoryUserRepository)
+│   │   │                   CapacityExceededException, UserNotAuthorisedException)
+│   │   ├── subscriptions/ (Subscription, NotificationType, UserEventObserver,
+│   │   │                   EventNotificationService, SubscriptionService, 
+│   │   │                   IObservable, IObserver,
+│   │   │                   ISubscription, ISubscriptionRepository)
+│   │   └── repository/    (IEntity, IRepository, inmemory/)
 │   └── pom.xml
 └── docs/
     ├── api-spec.yaml      (OpenAPI design spec for event-service)
@@ -91,6 +94,8 @@ cd event-service
 
 - **Files**: snake_case (e.g. `attendance.py`, `matching.py`)
 - **Functions / variables**: snake_case
+- **Interfaces**: prefix with `I` — e.g. `IRepository`, `IEntity` (mirrors the Java convention; defined as `abc.ABC` abstract base classes under `repositories/`)
+- **Packages**: each domain slice is a package whose `__init__.py` re-exports its public surface via `__all__` (e.g. `friends/`, `repositories/`)
 - **Test files**: prefixed `test_` and co-located in `api-core/tests/` (e.g. `test_attendance.py`)
 - **Test runner**: pytest — run from repo root with `python -m pytest api-core/tests/`
 - No third-party dependencies yet; avoid adding any without a `requirements.txt`
@@ -102,7 +107,7 @@ contracts, and the custom exception types are defined. Concrete entity classes
 (`Event`, `User`, `Venue`) and the controllers are still stubs, so no HTTP
 endpoints are live yet — `docs/api-spec.yaml` documents the *intended* contract
 ahead of implementation. The primary established patterns are:
-- Observer pattern for subscriptions (`IObserver` / `IObservable` / `EventNotificationService`)
+- Observer pattern for subscriptions (`IObserver` / `IObservable` / `SubscriptionService`)
 - Repository pattern with in-memory implementations (`InMemoryEventRepository`, `InMemoryUserRepository`)
 - Dependency injection to ensure each layer remains truly seperate
 - Spring Boot MVC structure (Controller → Service → Repository)

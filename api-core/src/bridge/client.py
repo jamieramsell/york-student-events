@@ -14,6 +14,7 @@ import json
 import os
 import pathlib
 import subprocess
+import uuid
 
 RESPONDER_MAIN_CLASS = "york.studentevents.subprocess.SubprocessResponder"
 _TIMEOUT_SECONDS = 30
@@ -28,23 +29,31 @@ class SubprocessError(RuntimeError):
     """Raised when the Java responder returns an error envelope or exits
     non-zero."""
 
-def get_user_events(user_id: str) -> list[str]:
+def get_user_events(user_id: uuid.UUID) -> list[uuid.UUID]:
     """Fetch the IDs of events a user is registered for from event-service.
 
     Args:
-        user_id (str): UUID of the user whose events to fetch.
+        user_id (uuid.UUID): UUID of the user whose events to fetch.
 
     Returns:
-        list[str]: Event IDs the user is registered for (empty if none).
+        list[uuid.UUID]: Event IDs the user is registered for (empty if none).
 
     Raises:
         SubprocessError: If event-service is not built, or the responder returns
             an error envelope, exits non-zero, times out, or returns an
             unparseable response.
     """
+    user_id: str = str(user_id)
     classpath = _resolve_classpath()
     request = {"requestType": "GET_USER_EVENTS", "payload": {"userId": user_id}}
-    return _call_responder(request, classpath)["events"]
+
+    # Get list of event IDs as strings, and return them as UUIDs
+    list_of_events: list[str] = _call_responder(request, classpath)["events"]
+    event_uuids: list[uuid.UUID] = []
+    for event in list_of_events:
+        event_uuids.append(uuid.UUID(event))
+
+    return event_uuids
 
 def _resolve_classpath() -> str:
     """Builds the classpath from the event-service build output.

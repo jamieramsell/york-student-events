@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import uuid
 from unittest import mock
 
 import pytest
@@ -123,10 +124,15 @@ class TestResolveClasspath:
 class TestGetUserEvents:
     def test_builds_request_and_returns_events(self, monkeypatch):
         monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
-        proc = _fake_process(stdout=OK_LINE)
+        # get_user_events parses the responder's event IDs into UUIDs, so the
+        # canned events must be valid UUID strings.
+        e1 = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        e2 = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+        line = json.dumps({"status": "ok", "payload": {"events": [e1, e2]}}) + "\n"
+        proc = _fake_process(stdout=line)
         with _patch_popen(proc) as popen:
             result = get_user_events("user-123")
-        assert result == ["e1", "e2"]
+        assert result == [uuid.UUID(e1), uuid.UUID(e2)]
         # The request carries the user id under the GET_USER_EVENTS envelope...
         sent = json.loads(proc.communicate.call_args.args[0])
         assert sent == {"requestType": "GET_USER_EVENTS", "payload": {"userId": "user-123"}}

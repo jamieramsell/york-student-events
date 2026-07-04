@@ -71,18 +71,16 @@ york-student-events/
 │   │   │   │           │   ├── Event.java
 │   │   │   │           │   ├── EventCategory.java
 │   │   │   │           │   ├── EventService.java
-│   │   │   │           │   ├── UserEventService.java
+│   │   │   │           │   ├── StudentEventService.java
 │   │   │   │           │   └── EventController.java
-│   │   │   │           ├── exceptions/
-│   │   │   │           │   ├── CapacityExceededException.java
-│   │   │   │           │   ├── CohortNotFoundException.java
-│   │   │   │           │   ├── EventNotFoundException.java
-│   │   │   │           │   ├── UserNotFoundException.java
-│   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           ├── users/
 │   │   │   │           │   ├── IUser.java
+│   │   │   │           │   ├── IHost.java
+│   │   │   │           │   ├── IStudent.java
 │   │   │   │           │   ├── IUserRepository.java
 │   │   │   │           │   ├── User.java
+│   │   │   │           │   ├── Host.java
+│   │   │   │           │   ├── Student.java
 │   │   │   │           │   ├── UserService.java
 │   │   │   │           │   └── UserController.java
 │   │   │   │           ├── venues/
@@ -94,7 +92,12 @@ york-student-events/
 │   │   │   │           ├── subscriptions/
 │   │   │   │           │   ├── IObserver.java
 │   │   │   │           │   ├── IObservable.java
-│   │   │   │           │   └── EventNotificationService.java
+│   │   │   │           │   ├── ISubscription.java
+│   │   │   │           │   ├── ISubscriptionRepository.java
+│   │   │   │           │   ├── NotificationType.java
+│   │   │   │           │   ├── UserEventObserver.java
+│   │   │   │           │   ├── EventNotificationService.java
+│   │   │   │           │   └── SubscriptionService.java
 │   │   │   │           ├── subprocess/
 │   │   │   │           │   ├── RequestType.java
 │   │   │   │           │   ├── IPayload.java
@@ -102,6 +105,13 @@ york-student-events/
 │   │   │   │           │   ├── AwardBadgePayload.java
 │   │   │   │           │   ├── SubprocessRequestFactory.java   # Java→Python: spawns api-core
 │   │   │   │           │   └── SubprocessResponder.java        # Python→Java: entry point for api-core
+│   │   │   │           ├── exceptions/
+│   │   │   │           │   ├── CapacityExceededException.java
+│   │   │   │           │   ├── CohortNotFoundException.java
+│   │   │   │           │   ├── EventNotFoundException.java
+│   │   │   │           │   ├── UserNotAuthorisedException.java
+│   │   │   │           │   ├── UserNotFoundException.java
+│   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           └── repository/
 │   │   │   │               ├── IEntity.java
 │   │   │   │               ├── IRepository.java
@@ -109,6 +119,7 @@ york-student-events/
 │   │   │   │                   ├── AbstractInMemoryRepository.java
 │   │   │   │                   ├── InMemoryCohortRepository.java
 │   │   │   │                   ├── InMemoryEventRepository.java
+│   │   │   │                   ├── InMemorySubscriptionRepository.java
 │   │   │   │                   ├── InMemoryUserRepository.java
 │   │   │   │                   └── InMemoryVenueRepository.java
 │   │   │   └── resources/
@@ -118,20 +129,12 @@ york-student-events/
 │   │           └── york/
 │   │               └── studentevents/
 │   │                   ├── ApplicationTests.java
+│   │                   ├── cohorts/
 │   │                   ├── events/
-│   │                   │   ├── EventServiceTest.java
-│   │                   │   └── EventTest.java
-│   │                   ├── users/
-│   │                   │   └── UserServiceTest.java
+│   │                   ├── repository/
+│   │                   ├── subprocess/
 │   │                   ├── subscriptions/
-│   │                   │   └── EventNotificationServiceTest.java
-│   │                   └── subprocess/
-│   │                       ├── RequestTypeTest.java
-│   │                       ├── PayloadTest.java
-│   │                       ├── SubprocessRequestFactoryTest.java
-│   │                       ├── SubprocessRequestFactoryPathTest.java
-│   │                       ├── SubprocessRequestFactoryIntegrationTest.java
-│   │                       └── SubprocessResponderTest.java
+│   │                   └── users/
 │   └── pom.xml
 │
 ├── api-core/
@@ -145,6 +148,10 @@ york-student-events/
 │   │   │   ├── client.py           # Python→Java: spawns SubprocessResponder
 │   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   ├── friendship_repository.py
+│   │   │   ├── friendship_service.py
 │   │   │   └── getFriendCircle.py
 │   │   ├── matching/
 │   │   │   └── matching.py
