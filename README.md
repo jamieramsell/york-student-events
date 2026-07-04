@@ -145,6 +145,10 @@ york-student-events/
 │   │   │   ├── client.py           # Python→Java: spawns SubprocessResponder
 │   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   ├── friendship_repository.py
+│   │   │   ├── friendship_service.py
 │   │   │   └── getFriendCircle.py
 │   │   ├── matching/
 │   │   │   └── matching.py
