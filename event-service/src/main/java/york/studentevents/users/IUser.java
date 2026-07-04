@@ -48,7 +48,7 @@ public interface IUser extends IEntity {
    * Returns the role of this user.
    *
    * @return {@link UserType#STUDENT} for a student account or {@link UserType#HOST} for a host
-   * account; never {@code null}
+   *     account; never {@code null}
    */
   UserType getType();
 

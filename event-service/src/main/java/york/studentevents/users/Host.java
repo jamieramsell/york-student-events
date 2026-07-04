@@ -10,7 +10,6 @@ public class Host extends User implements IHost {
    *
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
-   * @param cohort the user's cohort; no validation is performed
    * @param hostedEvents the events hosted by the user; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
    */
