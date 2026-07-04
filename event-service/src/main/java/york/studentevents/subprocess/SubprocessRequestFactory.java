@@ -129,6 +129,21 @@ class SubprocessRequestFactory {
   }
 
   /**
+   * Builds a JSON request for the subprocess to get a user's event recommendations.
+   *
+   * @param userId the user's ID
+   * @return the JSON request envelope.
+   */
+  public static String buildGetRecommendedEvents(UUID userId) {
+    Request<UserIdPayload> request = new Request<>(
+        RequestType.GET_RECOMMENDED_EVENTS,
+        new UserIdPayload(userId)
+    );
+
+    return GSON.toJson(request);
+  }
+
+  /**
    * Sends a JSON request to the subprocess and returns its JSON response.
    *
    * @param requestJson the JSON request to send to the subprocess; must be a
