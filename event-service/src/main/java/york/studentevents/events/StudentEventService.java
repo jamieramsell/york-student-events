@@ -142,6 +142,38 @@ public class StudentEventService {
     return studentEvents;
   }
 
+  /**
+   * Subscribe a Student to recieve an Event's notifications without registering them to attend.
+   *
+   * @param userId the Student's user ID
+   * @param eventId the Event's ID
+   * @throws UserNotFoundException if the user does not exist
+   * @throws UserNotAuthorisedException if the given user is not a Student
+   * @throws EventNotFoundException if the event does not exist.
+   * @throws IllegalArgumentException if the user has already subscribed to the event.
+   */
+  public void subscribeToEvent(UUID userId, UUID eventId) {
+    getStudent(userId);
+    getEvent(eventId);
+    subscriptionService.subscribe(userId, eventId, SubscriptionSource.EXPLICIT);
+  }
+
+  /**
+   * Unsubscribe a Student from an Event's notifications, without deregistering them.
+   *
+   * @param userId the Student's user ID
+   * @param eventId the Event's ID
+   * @throws UserNotFoundException if the user does not exist
+   * @throws UserNotAuthorisedException if the given user is not a Student
+   * @throws EventNotFoundException if the event does not exist.
+   * @throws IllegalArgumentException if the user is not subscribed to the event.
+   */
+  public void unsubscribeFromEvent(UUID userId, UUID eventId) {
+    getStudent(userId);
+    getEvent(eventId);
+    subscriptionService.unsubscribe(userId, eventId, SubscriptionSource.EXPLICIT);
+  }
+
   // Utility Methods //
 
   /**
