@@ -7,8 +7,8 @@ import java.util.UUID;
 public interface IHost extends IUser {
   
   /**
-   * Returns a copy of the set of events that the user has announced that they will be hosting
-   * 
+   * Returns a copy of the set of events that the user has announced that they will be hosting.
+   *
    * @return a set of event IDs.
    */
   Set<UUID> getHostedEvents();
