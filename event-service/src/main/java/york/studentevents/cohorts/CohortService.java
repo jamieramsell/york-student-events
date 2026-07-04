@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import york.studentevents.events.IEvent;
 import york.studentevents.events.IEventRepository;
 import york.studentevents.exceptions.CohortNotFoundException;
@@ -53,7 +54,7 @@ public class CohortService {
   /**
    * Assigns a Student to a Cohort.
    *
-   * @param userId the students's user ID
+   * @param userId the student's user ID
    * @param cohortId the cohort's ID
    * @throws UserNotFoundException if the user is not found
    * @throws UserNotAuthorisedException if the given user is not a Student
@@ -83,7 +84,7 @@ public class CohortService {
   /**
    * Removes a Student from a Cohort.
    *
-   * @param userId the students's user ID
+   * @param userId the student's user ID
    * @param cohortId the cohort's ID
    * @throws UserNotFoundException if the user is not found
    * @throws UserNotAuthorisedException if the given user is not a Student
@@ -125,25 +126,27 @@ public class CohortService {
       throw new CohortNotFoundException("Cohort not found");
     }
 
-    /* 
-     * Map cohort members to a set and return. If a user exists within the cohort who does not
-     * exist, throw an error.
-     */
+    // Define anonymous function to cast a user to a student
+    Function<IUser, IStudent> castToStudent = user -> {
+      if (user.getType() != UserType.STUDENT) { // Validate that the given user is a student
+        throw new IllegalStateException("User " + user.getId() + " was found within the cohort, but"
+            + " is not a Student.");
+      }
+      return (IStudent) user;
+    };
+
     ICohort cohort = optionalCohort.get();
     Set<IStudent> cohortMembers;
 
-    try {
-      cohortMembers = new HashSet<>(
-          cohort.getMembers().stream()
-          .map(userId -> userRepository.findByID(userId)
-              .orElseThrow(() -> new IllegalStateException("User " + userId + " exists within the"
-                  + " cohort, but was not found within the user repository")))
-          .map(user -> (IStudent) user)
-          .toList()
-      );
-    } catch (ClassCastException e) {
-      throw new IllegalStateException("A user was found within the cohort who is not a Student.");
-    }
+    // Map cohort members to a set and return
+    cohortMembers = new HashSet<>(
+        cohort.getMembers().stream()
+        .map(userId -> userRepository.findByID(userId)
+            .orElseThrow(() -> new IllegalStateException("User " + userId + " exists within the"
+                + " cohort, but was not found within the user repository")))
+        .map(castToStudent)
+        .toList()
+    );
 
     return cohortMembers;
   }

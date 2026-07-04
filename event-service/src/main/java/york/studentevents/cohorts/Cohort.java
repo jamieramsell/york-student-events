@@ -134,7 +134,7 @@ public class Cohort implements ICohort {
   public void addMember(UUID memberId) {
     boolean successfullyAdded = members.add(memberId);
     if (!successfullyAdded) {
-      throw new IllegalArgumentException("Member is alreadt a member of this cohort.");
+      throw new IllegalArgumentException("Member is already a member of this cohort.");
     }
   }
 

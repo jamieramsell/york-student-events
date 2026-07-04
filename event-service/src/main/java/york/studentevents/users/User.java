@@ -106,7 +106,7 @@ public abstract class User implements IUser {
     if (events == null) {
       throw new IllegalArgumentException("events cannot be null.");
     }
-    this.events = events;
+    this.events = new HashSet<>(events);
   }
 
 }

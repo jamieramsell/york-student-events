@@ -33,7 +33,7 @@ public class StudentEventService {
   private final IUserRepository userRepository;
 
   /**
-   * Constructor for UserEventService.
+   * Constructor for StudentEventService.
    *
    * @param eventRepository the event repository which events are registered to
    * @param userRepository the user repository which users are registered to
@@ -58,12 +58,12 @@ public class StudentEventService {
     IStudent student = getStudent(userId);
 
     if (isEventFull(eventId)) {
-      throw new CapacityExceededException();
+      throw new CapacityExceededException("The given event is full to capacity.");
     }
 
     Set<UUID> studentEvents = student.getRegisteredEvents();
 
-    // Ensure that the student was already signed up for the event
+    // Ensure that the student was not already registered for the event
     boolean successfullyAdded = studentEvents.add(eventId);
     if (!successfullyAdded) {
       throw new IllegalArgumentException("The student is already registered for this event");
