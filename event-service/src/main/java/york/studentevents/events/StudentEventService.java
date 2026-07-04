@@ -10,6 +10,9 @@ import york.studentevents.exceptions.CapacityExceededException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
+import york.studentevents.subscriptions.ISubscription.SubscriptionSource;
+import york.studentevents.subscriptions.NotificationType;
+import york.studentevents.subscriptions.SubscriptionService;
 import york.studentevents.users.IStudent;
 import york.studentevents.users.IUser;
 import york.studentevents.users.IUser.UserType;
@@ -30,19 +33,26 @@ import york.studentevents.users.IUserRepository;
 public class StudentEventService {
   
   private static final double CAPACITY_WARNING_THRESHOLD = 0.8;
-  
+
   private final IEventRepository eventRepository;
   private final IUserRepository userRepository;
+  private final SubscriptionService subscriptionService;
 
   /**
    * Constructor for StudentEventService.
    *
    * @param eventRepository the event repository which events are registered to
    * @param userRepository the user repository which users are registered to
+   * @param subscriptionService the current subscription service instance
    */
-  public StudentEventService(IEventRepository eventRepository, IUserRepository userRepository) {
+  public StudentEventService(
+      IEventRepository eventRepository,
+      IUserRepository userRepository,
+      SubscriptionService subscriptionService
+  ) {
     this.eventRepository = eventRepository;
     this.userRepository = userRepository;
+    this.subscriptionService = subscriptionService;
   }
 
   /**
@@ -74,6 +84,8 @@ public class StudentEventService {
     // Update the student's record
     student.setRegisteredEvents(studentEvents);
     userRepository.save(student);
+    subscriptionService.subscribe(userId, eventId, SubscriptionSource.REGISTRATION);
+    publishCapacityWarningIfReached(eventId);
   }
 
   /**
@@ -100,6 +112,7 @@ public class StudentEventService {
     // Update the student's record
     student.setRegisteredEvents(studentEvents);
     userRepository.save(student);
+    subscriptionService.unsubscribe(userId, eventId, SubscriptionSource.REGISTRATION);
   }
 
   /**
@@ -171,6 +184,30 @@ public class StudentEventService {
     }
     return optionalEvent.get();
   }
+
+  /**
+   * Publishes a {@link NotificationType#CAPACITY_WARNING} when a registration brings the number of
+   * registered students up to the warning threshold.
+   *
+   * <p>This is edge-triggered on the upward crossing, not latched. This means that an event whose
+   * registered count oscillates around the threshold (through repeated deregister/register) emits
+   * the warning on every crossing.
+   *
+   * <p>This method is a no-op for events with no capacity limit.
+   *
+   * @param eventId the ID of the event to target
+   */
+  private void publishCapacityWarningIfReached(UUID eventId) {
+    Integer capacity = getEvent(eventId).getCapacity();
+    if (capacity == null) {
+      return;
+    }
+    int thresholdCount = (int) Math.ceil(capacity * CAPACITY_WARNING_THRESHOLD);
+    if (countRegisteredStudents(eventId) == thresholdCount) {
+      subscriptionService.publish(eventId, NotificationType.CAPACITY_WARNING);
+    }
+  }
+
   /** Counts the students currently registered for the given event. */
   private int countRegisteredStudents(UUID eventId) {
     Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
@@ -203,7 +240,7 @@ public class StudentEventService {
       throw new IllegalStateException("The given event has too many students registered."
           + "\n- " + numStudentsRegistered + " students registered to attend"
           + "\n- Event has a maximum capacity of " + capacity);
-    } 
+    }
 
     return numStudentsRegistered == capacity;
   }
