@@ -1,6 +1,6 @@
 package york.studentevents.users;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /** Represents a Host user of the platform, including their profile details, and hosted events. */
@@ -14,7 +14,7 @@ public class Host extends User implements IHost {
    * @param hostedEvents the events hosted by the user; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
    */
-  public Host(String username, String email, List<UUID> hostedEvents) {
+  public Host(String username, String email, Set<UUID> hostedEvents) {
     this(UUID.randomUUID(), username, email, hostedEvents);
   }
 
@@ -26,18 +26,18 @@ public class Host extends User implements IHost {
    * @param hostedEvents the events hosted by the user; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
    */
-  protected Host(UUID id, String username, String email, List<UUID> hostedEvents) {
+  protected Host(UUID id, String username, String email, Set<UUID> hostedEvents) {
     super(id, username, email);
     setHostedEvents(hostedEvents);
   }
 
   @Override
-  public List<UUID> getHostedEvents() {
+  public Set<UUID> getHostedEvents() {
     return getEvents();
   }
 
   @Override
-  public void setHostedEvents(List<UUID> events) {
+  public void setHostedEvents(Set<UUID> events) {
     setEvents(events);
   }
 

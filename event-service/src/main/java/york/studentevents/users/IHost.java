@@ -1,21 +1,21 @@
 package york.studentevents.users;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /** Defines the contract for Host profiles, covering their profile data and hosting capability. */
 public interface IHost extends IUser {
   
   /**
-   * Returns a copy of the list of events that the user has announced that they will be hosting
+   * Returns a copy of the set of events that the user has announced that they will be hosting
    * 
-   * @return a list of event IDs.
+   * @return a set of event IDs.
    */
-  List<UUID> getHostedEvents();
+  Set<UUID> getHostedEvents();
 
   /** Sets the user's hosted events.
    *
-   * @param events the new list of events; currently no validation is performed
+   * @param events the new set of events; currently no validation is performed
    */
-  void setHostedEvents(List<UUID> events);
+  void setHostedEvents(Set<UUID> events);
 }

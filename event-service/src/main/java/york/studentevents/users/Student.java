@@ -1,6 +1,6 @@
 package york.studentevents.users;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -19,7 +19,7 @@ public class Student extends User implements IStudent {
    * @param registeredEvents the user's registered events; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
    */
-  public Student(String username, String email, UUID cohort, List<UUID> registeredEvents) {
+  public Student(String username, String email, UUID cohort, Set<UUID> registeredEvents) {
     this(UUID.randomUUID(), username, email, cohort, registeredEvents);
   }
 
@@ -32,7 +32,12 @@ public class Student extends User implements IStudent {
    * @param registeredEvents the user's registered events; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
    */
-  protected Student(UUID id, String username, String email, UUID cohort, List<UUID> registeredEvents) {
+  protected Student(UUID id, 
+      String username, 
+      String email, 
+      UUID cohort, 
+      Set<UUID> registeredEvents
+  ) {
     super(id, username, email);
     setCohort(cohort);
     setRegisteredEvents(registeredEvents);
@@ -49,12 +54,12 @@ public class Student extends User implements IStudent {
   }
 
   @Override
-  public List<UUID> getRegisteredEvents() {
+  public Set<UUID> getRegisteredEvents() {
     return getEvents();
   }
 
   @Override
-  public void setRegisteredEvents(List<UUID> events) {
+  public void setRegisteredEvents(Set<UUID> events) {
     setEvents(events);
   }
 
