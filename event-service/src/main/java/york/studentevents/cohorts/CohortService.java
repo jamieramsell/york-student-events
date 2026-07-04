@@ -81,6 +81,36 @@ public class CohortService {
   }
 
   /**
+   * Removes a Student from a Cohort.
+   *
+   * @param userId the students's user ID
+   * @param cohortId the cohort's ID
+   * @throws UserNotFoundException if the user is not found
+   * @throws UnauthorisedOperationException if the given user is not a Student
+   * @throws CohortNotFoundException if the Cohort is not found
+   * @throws IllegalArgumentException if the Student is not in the cohort
+   *
+   * @see IStudent
+   */
+  void removeStudentFromCohort(UUID userId, UUID cohortId) {
+    Optional<IUser> optionalUser = userRepository.findByID(userId);
+    Optional<ICohort> optionalCohort = cohortRepository.findByID(cohortId);
+
+    // Validation
+    if (optionalUser.isEmpty()) {
+      throw new UserNotFoundException("User not found");
+    } else if (optionalUser.get().getType() != UserType.STUDENT) {
+      throw new UnauthorisedOperationException("The given user is not a student");
+    } else if (optionalCohort.isEmpty()) {
+      throw new CohortNotFoundException("Cohort not found");
+    }
+    
+    ICohort cohort = optionalCohort.get();
+    cohort.removeMember(userId);
+    cohortRepository.save(cohort);
+  }
+
+  /**
    * Gets the set of Students within a Cohort.
    *
    * @param cohortId the cohort's ID
