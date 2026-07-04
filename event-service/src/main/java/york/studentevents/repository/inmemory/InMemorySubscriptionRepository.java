@@ -3,7 +3,6 @@ package york.studentevents.repository.inmemory;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 import york.studentevents.subscriptions.ISubscription;
 import york.studentevents.subscriptions.ISubscriptionRepository;
 
@@ -33,8 +32,8 @@ public class InMemorySubscriptionRepository extends AbstractInMemoryRepository<I
 
     // Validate that a maximum of one subscription exists
     if (targetSubscriptions.size() > 1) {
-      throw new IllegalStateException("The given user has multiple subscription records"
-          + " targetting the specified event.");
+      throw new IllegalStateException("The given user has multiple subscription records targeting"
+      + " the specified event.");
     }
     
     return targetSubscriptions.stream().findFirst();

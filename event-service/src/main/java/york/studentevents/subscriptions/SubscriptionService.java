@@ -70,14 +70,14 @@ public class SubscriptionService {
     // Registration never disturbs an existing subscription, but explicit subscriptions are sticky
     switch (reason) {
       
-      case SubscriptionSource.REGISTRATION -> {
+      case REGISTRATION -> {
         if (existingSubscription.isEmpty()) {
           subscriptionRepository.save(new Subscription(userId, eventId, reason));
         }
         return;
       }
       
-      case SubscriptionSource.EXPLICIT -> {
+      case EXPLICIT -> {
         if (existingSubscription.isPresent()) {
           // If the existing subscription is already EXPLICIT, throw
           if (existingSubscription.get().getSource() == SubscriptionSource.EXPLICIT) {
@@ -87,7 +87,7 @@ public class SubscriptionService {
           }
         }
 
-        // Save a new subsciption to the repository, overriding the existing one if such it exists.
+        // Save a new subscription to the repository, overriding the existing one if it exists.
         if (existingSubscription.isPresent()) {
           UUID subscriptionId = existingSubscription.get().getId();
           subscriptionRepository.save(new Subscription(subscriptionId, userId, eventId, reason));
@@ -128,7 +128,7 @@ public class SubscriptionService {
     Optional<ISubscription> existingSubscription = subscriptionRepository.findByID(userId, eventId);
 
     switch (reason) {
-      case SubscriptionSource.REGISTRATION -> {
+      case REGISTRATION -> {
         // Deregistration removes only a registration-based sub; explicit subs are untouched, and a
         // missing subscription is fine: state is unaffected.
         existingSubscription
@@ -137,7 +137,7 @@ public class SubscriptionService {
         return;
       }
 
-      case SubscriptionSource.EXPLICIT -> {
+      case EXPLICIT -> {
         // EXPLICIT: removes the subscription regardless of how it was created.
         ISubscription subscription = existingSubscription.orElseThrow(() ->
             new IllegalArgumentException(

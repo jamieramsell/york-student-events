@@ -143,7 +143,7 @@ public class StudentEventService {
   }
 
   /**
-   * Subscribe a Student to recieve an Event's notifications without registering them to attend.
+   * Subscribe a Student to receive an Event's notifications without registering them to attend.
    *
    * @param userId the Student's user ID
    * @param eventId the Event's ID
