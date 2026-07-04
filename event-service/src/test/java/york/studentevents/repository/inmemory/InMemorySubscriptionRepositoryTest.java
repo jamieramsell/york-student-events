@@ -30,7 +30,7 @@ class InMemorySubscriptionRepositoryTest {
   }
 
   @Test
-  void findByID_whenSubscriptionExists_returnsIt() {
+  void findById_whenSubscriptionExists_returnsIt() {
     Subscription subscription = new Subscription(userA, eventX, REGISTRATION);
     repository.save(subscription);
 
@@ -39,12 +39,12 @@ class InMemorySubscriptionRepositoryTest {
   }
 
   @Test
-  void findByID_whenNoSubscriptionExists_returnsEmpty() {
+  void findById_whenNoSubscriptionExists_returnsEmpty() {
     assertTrue(repository.findByID(userA, eventX).isEmpty());
   }
 
   @Test
-  void findByID_whenMultipleRecordsForSameUserAndEvent_throws() {
+  void findById_whenMultipleRecordsForSameUserAndEvent_throws() {
     repository.save(new Subscription(userA, eventX, REGISTRATION));
     repository.save(new Subscription(userA, eventX, REGISTRATION));
 

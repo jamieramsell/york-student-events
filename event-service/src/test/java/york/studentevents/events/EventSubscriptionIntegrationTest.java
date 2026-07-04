@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -69,7 +70,7 @@ class EventSubscriptionIntegrationTest {
   // --- Scenario 1: register -> subscribe -> persists ---
 
   @Test
-  void registering_persistsARealRegistrationSubscription() {
+  void registering_persistsRealRegistrationSubscription() {
     Student student = newStudent();
     Event event = newEvent(5);
 
@@ -98,7 +99,14 @@ class EventSubscriptionIntegrationTest {
     assertTrue(messages.stream().allMatch(m -> m.contains(target.getId().toString())));
     assertTrue(messages.stream().allMatch(m -> m.contains("CAPACITY_WARNING")));
     subscribers.forEach(
-        student -> assertTrue(messages.stream().anyMatch(m -> m.contains(student.getId().toString()))));
+        student -> assertTrue(
+            messages.stream()
+            .anyMatch(m -> m.contains(
+                student.getId()
+                .toString()
+            ))
+        )
+    );
     assertFalse(messages.stream().anyMatch(m -> m.contains(bystander.getId().toString())));
   }
 
@@ -121,7 +129,7 @@ class EventSubscriptionIntegrationTest {
     assertFalse(subscriptionService.isSubscribed(leaving.getId(), event.getId()));
 
     Student replacement = newStudent();
-    service.registerForEvent(replacement.getId(), event.getId()); // re-crosses the threshold: 3 -> 4
+    service.registerForEvent(replacement.getId(), event.getId()); // re-crosses the threshold 3 -> 4
 
     List<String> messages = loggedMessages();
     assertEquals(4, messages.size());
@@ -152,7 +160,7 @@ class EventSubscriptionIntegrationTest {
   // --- Scenario 5: capacity exceeded -> rejected before any subscription is created ---
 
   @Test
-  void registrationRejectedAtCapacity_neverCreatesASubscription() {
+  void registrationRejectedAtCapacity_neverCreatesSubscription() {
     Event event = newEvent(3);
     List.of(newStudent(), newStudent(), newStudent())
         .forEach(student -> service.registerForEvent(student.getId(), event.getId()));
