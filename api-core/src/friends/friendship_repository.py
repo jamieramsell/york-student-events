@@ -6,6 +6,7 @@ plus the package-internal ``_repository`` singleton injected into the service
 layer. This stands in for a database-backed repository during early development.
 """
 
+from __future__ import annotations
 import base
 import repositories
 

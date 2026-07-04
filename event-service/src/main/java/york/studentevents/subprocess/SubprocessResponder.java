@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
-import york.studentevents.events.UserEventService;
+import york.studentevents.events.StudentEventService;
 
 /**
  * Standalone entry point that answers subprocess requests issued by the Python {@code api-core}
@@ -246,7 +246,7 @@ public class SubprocessResponder {
    *
    * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
    *     purposes. Logic must be ripped out and swapped for code which contacts
-   *     {@link UserEventService} when persistence is configured.
+   *     {@link StudentEventService} when persistence is configured.
    *
    * @param userId the user whose events to return.
    * @return the JSON {@code ok} response envelope.
