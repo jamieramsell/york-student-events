@@ -56,7 +56,7 @@ public class StudentEventService {
    * @throws IllegalArgumentException if the student is already registered for the event
    * @throws CapacityExceededException if the event is full
    */
-  void registerForEvent(UUID userId, UUID eventId) {
+  public void registerForEvent(UUID userId, UUID eventId) {
     IStudent student = getStudent(userId);
 
     if (isEventFull(eventId)) {
@@ -86,7 +86,7 @@ public class StudentEventService {
    * @throws EventNotFoundException if the event does not exist.
    * @throws IllegalArgumentException if the student is not registered for the event
    */
-  void deregisterFromEvent(UUID userId, UUID eventId) {
+  public void deregisterFromEvent(UUID userId, UUID eventId) {
     IStudent student = getStudent(userId);
     getEvent(eventId); // Validate that the event actually exists
     Set<UUID> studentEvents = student.getRegisteredEvents();
@@ -110,7 +110,7 @@ public class StudentEventService {
    * @throws UserNotFoundException if the user does not exist
    * @throws UserNotAuthorisedException if the given user is not a Student
    */
-  Set<IEvent> getEventsForStudent(UUID userId) {
+  public Set<IEvent> getEventsForStudent(UUID userId) {
     IStudent student = getStudent(userId);
 
     /*
@@ -128,6 +128,8 @@ public class StudentEventService {
     );
     return studentEvents;
   }
+
+  // Utility Methods //
 
   /**
    * Retrieves a student from the injected user repository.
