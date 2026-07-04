@@ -130,14 +130,21 @@ public class CohortService {
      * exist, throw an error.
      */
     ICohort cohort = optionalCohort.get();
-    Set<IStudent> cohortMembers = new HashSet<>(
-        cohort.getMembers().stream()
-        .map(userId -> userRepository.findByID(userId)
-            .orElseThrow(() -> new IllegalStateException("User " + userId + " exists within the"
-                + " cohort, but was not found within the user repository")))
-        .map(user -> (IStudent) user)
-        .toList()
-    );
+    Set<IStudent> cohortMembers;
+
+    try {
+      cohortMembers = new HashSet<>(
+          cohort.getMembers().stream()
+          .map(userId -> userRepository.findByID(userId)
+              .orElseThrow(() -> new IllegalStateException("User " + userId + " exists within the"
+                  + " cohort, but was not found within the user repository")))
+          .map(user -> (IStudent) user)
+          .toList()
+      );
+    } catch (ClassCastException e) {
+      throw new IllegalStateException("A user was found within the cohort who is not a Student.");
+    }
+
     return cohortMembers;
   }
 
