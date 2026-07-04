@@ -7,7 +7,7 @@ import java.util.UUID;
 import york.studentevents.events.IEvent;
 import york.studentevents.events.IEventRepository;
 import york.studentevents.exceptions.CohortNotFoundException;
-import york.studentevents.exceptions.UnauthorisedOperationException;
+import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.users.IStudent;
 import york.studentevents.users.IUser;
@@ -56,7 +56,7 @@ public class CohortService {
    * @param userId the students's user ID
    * @param cohortId the cohort's ID
    * @throws UserNotFoundException if the user is not found
-   * @throws UnauthorisedOperationException if the given user is not a Student
+   * @throws UserNotAuthorisedException if the given user is not a Student
    * @throws CohortNotFoundException if the cohort is not found
    * @throws IllegalArgumentException if the user is already in the cohort
    *
@@ -70,7 +70,7 @@ public class CohortService {
     if (optionalUser.isEmpty()) {
       throw new UserNotFoundException("User not found");
     } else if (optionalUser.get().getType() != UserType.STUDENT) {
-      throw new UnauthorisedOperationException("The given user is not a student");
+      throw new UserNotAuthorisedException("The given user is not a student");
     } else if (optionalCohort.isEmpty()) {
       throw new CohortNotFoundException("Cohort not found");
     }
@@ -86,7 +86,7 @@ public class CohortService {
    * @param userId the students's user ID
    * @param cohortId the cohort's ID
    * @throws UserNotFoundException if the user is not found
-   * @throws UnauthorisedOperationException if the given user is not a Student
+   * @throws UserNotAuthorisedException if the given user is not a Student
    * @throws CohortNotFoundException if the Cohort is not found
    * @throws IllegalArgumentException if the Student is not in the cohort
    *
@@ -100,7 +100,7 @@ public class CohortService {
     if (optionalUser.isEmpty()) {
       throw new UserNotFoundException("User not found");
     } else if (optionalUser.get().getType() != UserType.STUDENT) {
-      throw new UnauthorisedOperationException("The given user is not a student");
+      throw new UserNotAuthorisedException("The given user is not a student");
     } else if (optionalCohort.isEmpty()) {
       throw new CohortNotFoundException("Cohort not found");
     }

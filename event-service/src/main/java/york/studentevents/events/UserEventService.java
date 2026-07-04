@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 import york.studentevents.exceptions.CapacityExceededException;
 import york.studentevents.exceptions.EventNotFoundException;
-import york.studentevents.exceptions.UnauthorisedOperationException;
+import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.users.IStudent;
 import york.studentevents.users.IUser;
@@ -49,7 +49,7 @@ public class UserEventService {
    * @param userId the student's user ID
    * @param eventId the event's ID
    * @throws UserNotFoundException if the user does not exist
-   * @throws UnauthorisedOperationException if the given user is not a Student
+   * @throws UserNotAuthorisedException if the given user is not a Student
    * @throws EventNotFoundException if the event does not exist
    * @throws IllegalArgumentException if the student is already registered for the event
    * @throws CapacityExceededException if the event is full
@@ -80,7 +80,7 @@ public class UserEventService {
    * @param userId the student's user ID
    * @param eventId the event's ID
    * @throws UserNotFoundException if the user does not exist
-   * @throws UnauthorisedOperationException if the given user is not a Student
+   * @throws UserNotAuthorisedException if the given user is not a Student
    * @throws EventNotFoundException if the event does not exist.
    * @throws IllegalArgumentException if the student is not registered for the event
    */
@@ -106,7 +106,7 @@ public class UserEventService {
    * @param userId the student's user ID
    * @return the set of events that the user is registered for; may be empty, never null
    * @throws UserNotFoundException if the user does not exist
-   * @throws UnauthorisedOperationException if the given user is not a Student
+   * @throws UserNotAuthorisedException if the given user is not a Student
    */
   Set<IEvent> getEventsForStudent(UUID userId) {
     IStudent student = getStudent(userId);
@@ -133,7 +133,7 @@ public class UserEventService {
    * @param userId the student's user ID
    * @return the {@code IStudent} entity; never null
    * @throws UserNotFoundException if the user does not exist
-   * @throws UnauthorisedOperationException if the given user is not a Student
+   * @throws UserNotAuthorisedException if the given user is not a Student
    */
   private IStudent getStudent(UUID userId) {
     // Verify that the user exists within the repository
@@ -145,7 +145,7 @@ public class UserEventService {
     // Verify that the user is a Student
     IUser user = optionalUser.get();
     if (user.getType() != UserType.STUDENT) {
-      throw new UnauthorisedOperationException("The given user is not a student");
+      throw new UserNotAuthorisedException("The given user is not a student");
     }
 
     // Cast to a Student entity & return
