@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.3.0] - 2026-07-04
+
+M3 - Social & Notification Layer: the friend graph, friend-based event recommendations, a polymorphic user model (students vs. hosts), and event subscriptions with Observer-pattern notification delivery. Still pure business logic — no HTTP layer or real persistence.
+
+### Added
+- **Friends (`api-core`):** `friends` package with the `Friendship` frozen dataclass (extends `IEntity`) and `FriendshipStatus` enum in `base.py`, `FriendshipService` (send / accept / delete friend requests) injected with a repository, and `InMemoryFriendshipRepository` (dict-backed, keyed by the `frozenset` of the two user UUIDs); package `__init__.py` re-exports the public surface via `__all__`
+- **Interest matching (`api-core`):** `get_recommended_events()` in `matching.py`, surfacing events from a user's friends (calls into the Java service across the subprocess bridge)
+- **Polymorphic user model (`event-service`):** abstract `User` base with concrete `Student` and `Host` classes, `IStudent` / `IHost` interfaces, and an `IUser.UserType` enum exposed via `getType()`
+- **Subscriptions & Observer (`event-service`):** `IObserver` / `IObservable` contracts, `Subscription` entity (`ISubscription`), `ISubscriptionRepository` + `InMemorySubscriptionRepository`, `NotificationType` enum, `UserEventObserver`, `EventNotificationService` (implements `IObservable`), and `SubscriptionService` coordinating records and notification broadcast
+- `StudentEventService` now auto-subscribes/unsubscribes users on register/deregister and broadcasts a notification when an event reaches its 80% capacity threshold; `subscribeToEvent()` / `unsubscribeFromEvent()` methods
+- `UserNotAuthorisedException` (unchecked) — thrown when a user attempts an operation not permitted for their role
+- `CohortService.removeStudentFromCohort()`
+- Subprocess bridge: `GET_RECOMMENDED_EVENTS` request type, `SubprocessRequestFactory.buildGetRecommendedEvents()`, and the matching Python responder handler
+- Comprehensive unit and integration tests: Python (`test_friends.py`, `test_matching.py`, `test_matching_integration.py`); Java (`StudentEventServiceTest`, `EventSubscriptionIntegrationTest`, `InMemorySubscriptionRepositoryTest`, `SubscriptionServiceTest`, `SubscriptionTest`, `UserEventObserverTest`, expanded `EventNotificationServiceTest`)
+
+### Changed
+- **Breaking:** `Friendship` moved from `getFriendCircle.py` into `friends/base.py`; friendships are now keyed by user `UUID`s rather than `int`s
+- **Breaking:** `IUser` stripped of student-specific fields and methods; `User` is now abstract, with student behaviour living in `Student` and the `UserType` enum distinguishing roles
+- **Breaking:** a user's registered events are stored as a `Set` rather than a `List`; `CohortService` and `StudentEventService` operate on `Student` rather than `User`
+- **Breaking:** renamed `UserEventService` to `StudentEventService`
+- **Breaking:** Python bridge `get_user_events()` now takes a `UUID` and returns a list of `UUID`s (previously `str` → `list[str]`)
+- Bumped `pom.xml` project version to `0.3.0`; updated `README.md` and `CLAUDE.md`
+
+### Docs
+- Moved `subprocess-contract.md` out of the nested `docs/docs/` folder up to `docs/`, and documented the `GET_RECOMMENDED_EVENTS` request in it
+- Regenerated the Javadoc site under `docs/apidocs/`
+
+[v0.3.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.3.0
+
 ## [0.2.0] - 2026-06-26
 
 M2 - Core Domain Logic: concrete domain models, the in-memory repository layer, the first service-layer methods, and a bidirectional Python↔Java subprocess bridge. Pure business logic: no HTTP layer or real persistence yet.
@@ -33,6 +62,8 @@ M2 - Core Domain Logic: concrete domain models, the in-memory repository layer, 
 
 ### Docs
 - Javadoc site now generated under `docs/apidocs/` (previously `docs/event-service/`)
+
+[v0.2.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.2.0
 
 ## [0.1.0] - 2026-06-17
 
