@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 import york.studentevents.exceptions.CapacityExceededException;
 import york.studentevents.exceptions.EventNotFoundException;
-import york.studentevents.exceptions.UnauthorizedOperationException;
+import york.studentevents.exceptions.UnauthorisedOperationException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.users.IStudent;
 import york.studentevents.users.IUser;
@@ -137,7 +137,7 @@ public class UserEventService {
     // Verify that the user is a Student
     IUser user = optionalUser.get();
     if (user.getType() != UserType.STUDENT) {
-      throw new UnauthorizedOperationException("The given user is not a student");
+      throw new UnauthorisedOperationException("The given user is not a student");
     }
 
     // Cast to a Student entity & return
