@@ -1,6 +1,6 @@
 package york.studentevents.cohorts;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import york.studentevents.repository.IEntity;
 
@@ -51,19 +51,20 @@ public interface ICohort extends IEntity {
   int getYearGroup();
 
   /**
-   * Returns the IDs of all members belonging to this cohort.
+   * Returns the IDs of all Students belonging to this cohort.
    *
-   * @return a list of member user IDs; never {@code null}
+   * @return a set of member user IDs; never {@code null}
    */
-  List<UUID> getMembers();
+  Set<UUID> getMembers();
 
-  /** Adds a member by UUID to this cohort.
+  /** Adds a Student by UUID to this cohort.
    *
    * @param memberId the user ID of the member to add
+   * @throws IllegalArgumentException if the member is already a member of this cohort
    */
   void addMember(UUID memberId);
 
-  /** Removes a member by UUID from this cohort.
+  /** Removes a Student by UUID from this cohort.
    *
    * @param memberId the user ID of the member to remove; must be a member of this cohort.
    * @throws IllegalArgumentException if the member is not a member of this cohort

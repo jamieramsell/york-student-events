@@ -1,7 +1,7 @@
 package york.studentevents.cohorts;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -15,7 +15,7 @@ public class Cohort implements ICohort {
   private String department;
   private int academicYear;
   private int yearGroup;
-  private final List<UUID> members;
+  private final Set<UUID> members;
 
   /**
    * Creates a {@code Cohort} with the given details.
@@ -67,16 +67,9 @@ public class Cohort implements ICohort {
     setAcademicYear(academicYear);
     setYearGroup(yearGroup);
     this.id = id;
-    this.members = new ArrayList<>();
+    this.members = new HashSet<>();
   }
 
-  /**
-   * Sets the name of this cohort.
-   *
-   * @param name the new name; must not be {@code null} or blank.
-   *
-   * @throws IllegalArgumentException if the name is invalid.
-   */
   private void setName(String name) {
     if (name == null || name.isBlank()) {
       throw new IllegalArgumentException("Cohort name cannot be null, blank, or empty.");
@@ -84,13 +77,6 @@ public class Cohort implements ICohort {
     this.name = name;
   }
 
-  /**
-   * Sets the department of this cohort.
-   *
-   * @param department the new department; must not be {@code null} or blank.
-   *
-   * @throws IllegalArgumentException if the department is invalid.
-   */
   private void setDepartment(String department) {
     if (department == null || department.isBlank()) {
       throw new IllegalArgumentException("Cohort department cannot be null, blank, or empty.");
@@ -98,13 +84,6 @@ public class Cohort implements ICohort {
     this.department = department;
   }
 
-  /**
-   * Sets the academic year of this cohort.
-   *
-   * @param academicYear the new academic year; must be greater than 0.
-   *
-   * @throws IllegalArgumentException if the academic year is invalid.
-   */
   private void setAcademicYear(int academicYear) {
     if (academicYear < 0) {
       throw new IllegalArgumentException("Academic year must be >= 0");
@@ -112,21 +91,6 @@ public class Cohort implements ICohort {
     this.academicYear = academicYear;
   }
 
-  /**
-   * Sets the year group of this cohort.
-   *
-   * @param yearGroup the year group of the cohort; must be within the range of 0 to 5.
-   *     <ul>
-   *     <li>Foundation year cohorts are represented as 'year 0'.</li>
-   *     <li>First year students are year 1; second year represented by 2.</li>
-   *     <li>Placement years are represented by a year of 3; third years are represented by 4. Note
-   *         that this means that any students who are not following a placement year route
-   *         seemingly jump straight from year 2 into year 4.</li>
-   *     <li>The masters stage is represented by 5.</li>
-   *     </ul>
-   *
-   * @throws IllegalArgumentException if the year group is invalid.
-   */
   private void setYearGroup(int yearGroup) {
     if (yearGroup < 0) {
       throw new IllegalArgumentException("Year group must be >= 0");
@@ -136,96 +100,50 @@ public class Cohort implements ICohort {
     this.yearGroup = yearGroup;
   }
 
-
-  /** Returns the unique identifier for this cohort. */
   @Override
   public UUID getId() {
     return id;
   }
 
-  /**
-   * Returns the display name of this cohort.
-   *
-   * @return the cohort name; never {@code null}
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * Returns the name of the department which this cohort belongs to (e.g. Computer Science)
-   *
-   * @return the display name of the department; never {@code null}
-   */
   @Override
   public String getDepartment() {
     return department;
   }
 
-  /**
-   * Returns the academic year associated with this cohort.
-   *
-   * @return the academic year (e.g. {@code 2025} for the 2025/26 cohort)
-   */
   @Override
   public int getAcademicYear() {
     return academicYear;
   }
 
-  /**
-   * Returns the year group / stage of the cohort.
-   *
-   * <p>First year students are year 1; second year represented by 2.
-   *
-   * <p>Foundation year cohorts are represented as 'year 0'.
-   *
-   * <p>Placement years are represented by a year of 3; third years are represented by 4. Note that
-   * this means that any students who are not following a placement year route seemingly jump
-   * straight from year 2 into year 4.
-   *
-   * <p>The masters stage is represented by 5.
-   *
-   * @return the stage to which the cohort belongs
-   */
   @Override
   public int getYearGroup() {
     return yearGroup;
   }
 
-  /**
-   * Returns the IDs of all members belonging to this cohort.
-   *
-   * @return a list of member user IDs; never {@code null}
-   */
   @Override
-  public List<UUID> getMembers() {
-    return members;
+  public Set<UUID> getMembers() {
+    return new HashSet<>(members);
   }
 
-  /**
-   * Adds a member by UUID to this cohort.
-   *
-   * @param memberId the user ID of the member to add
-   */
   @Override
   public void addMember(UUID memberId) {
-    members.add(memberId);
+    boolean successfullyAdded = members.add(memberId);
+    if (!successfullyAdded) {
+      throw new IllegalArgumentException("Member is already a member of this cohort.");
+    }
   }
 
-  /**
-   * Removes a member by UUID from this cohort.
-   *
-   * @param memberId the user ID of the member to remove; must be a member of this cohort.
-   *
-   * @throws IllegalArgumentException if the member is not a member of this cohort
-   */
   @Override
   public void removeMember(UUID memberId) {
-    if (!members.contains(memberId)) {
+    boolean successfullyRemoved = members.remove(memberId);
+    if (!successfullyRemoved) {
       throw new IllegalArgumentException("Member is not a member of this cohort.");
     }
-    members.remove(memberId);
   }
 
   /** Returns a string representation for debugging purposes. */

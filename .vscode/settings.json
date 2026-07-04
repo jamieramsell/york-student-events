@@ -4,5 +4,9 @@
         "src/main/java"
     ],
     "java.configuration.updateBuildConfiguration": "interactive",
-    "python.analysis.extraPaths": ["api-core/src"]
+    "python.analysis.extraPaths": [
+        "api-core/src"
+    ],
+    "python-envs.defaultEnvManager": "ms-python.python:pyenv",
+    "python-envs.pythonProjects": []
 }
