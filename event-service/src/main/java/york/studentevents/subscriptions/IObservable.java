@@ -1,6 +1,6 @@
 package york.studentevents.subscriptions;
 
-import york.studentevents.events.IEvent;
+import java.util.UUID;
 
 /**
  * Defines the contract for any class that can be observed.
@@ -47,5 +47,8 @@ public interface IObservable {
    * @see #detach(IObserver)
    */
   void notifyObservers(NotificationType reason);
+
+  /** Retrieves the ID of the Event which sent the notification. */
+  UUID getEventId();
   
 }
