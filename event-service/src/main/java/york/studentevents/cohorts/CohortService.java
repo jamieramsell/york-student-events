@@ -76,11 +76,8 @@ public class CohortService {
     }
     
     ICohort cohort = optionalCohort.get();
-
-    boolean successfullyAdded = cohort.getMembers().add(userId);
-    if (!successfullyAdded) {
-      throw new IllegalArgumentException("Student is already in the cohort");
-    }
+    cohort.addMember(userId);
+    cohortRepository.save(cohort);
   }
 
   /**
