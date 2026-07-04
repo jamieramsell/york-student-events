@@ -122,7 +122,9 @@ public class UserEventService {
     Set<IEvent> studentEvents = new HashSet<>(
         events.stream()
         .map(eventId -> eventRepository.findByID(eventId)
-            .orElseThrow(() -> new EventNotFoundException("")))
+            .orElseThrow(() -> new IllegalStateException("The given student is registered for an"
+                + " event with ID " + eventId + ", which could not be found within the event"
+                + " repository.")))
         .toList()
     );
     return studentEvents;
