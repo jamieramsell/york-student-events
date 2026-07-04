@@ -20,7 +20,10 @@ public enum RequestType {
   AWARD_BADGE("AWARD_BADGE"),
 
   /** Request a list of IDs of the events which a user has signed up for. */
-  GET_USER_EVENTS("GET_USER_EVENTS");
+  GET_USER_EVENTS("GET_USER_EVENTS"),
+
+  /** Request the event recommendations for a user. */
+  GET_RECOMMENDED_EVENTS("GET_RECOMMENDED_EVENTS");
 
   private final String request;
 
