@@ -27,7 +27,7 @@ import york.studentevents.users.IUserRepository;
  * @see IEventRepository
  * @see IStudent
  */
-public class UserEventService {
+public class StudentEventService {
   
   private final IEventRepository eventRepository;
   private final IUserRepository userRepository;
@@ -38,7 +38,7 @@ public class UserEventService {
    * @param eventRepository the event repository which events are registered to
    * @param userRepository the user repository which users are registered to
    */
-  public UserEventService(IEventRepository eventRepository, IUserRepository userRepository) {
+  public StudentEventService(IEventRepository eventRepository, IUserRepository userRepository) {
     this.eventRepository = eventRepository;
     this.userRepository = userRepository;
   }
