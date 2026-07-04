@@ -87,11 +87,13 @@ public class SubscriptionService {
           }
         }
 
-        /*
-         * Save a new subsciption to the repository; this will override an existing one if such a
-         * subscription exists.
-         */
-        subscriptionRepository.save(new Subscription(userId, eventId, reason));
+        // Save a new subsciption to the repository, overriding the existing one if such it exists.
+        if (existingSubscription.isPresent()) {
+          UUID subscriptionId = existingSubscription.get().getId();
+          subscriptionRepository.save(new Subscription(subscriptionId, userId, eventId, reason));
+        } else {
+          subscriptionRepository.save(new Subscription(userId, eventId, reason));
+        }
       }
 
       default -> throw new IllegalStateException("Unhandled subscription source: " + reason);
