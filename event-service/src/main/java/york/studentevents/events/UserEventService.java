@@ -183,16 +183,16 @@ public class UserEventService {
 
     // Create anonymous functions required to find the number of students registered for the event
     Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
-    Predicate<IUser> isStudentRegisteredForEvent = student -> 
-        getEventsForStudent(student.getId()).contains(event);
+    Predicate<IStudent> isStudentRegisteredForEvent = student ->
+        student.getRegisteredEvents().contains(eventId);
 
     // Retrieve all students registered for the event
     List<IUser> users = userRepository.findAll();
     Set<IStudent> registeredStudents = new HashSet<>(
         users.stream()
         .filter(isUserStudent)
-        .filter(isStudentRegisteredForEvent)
         .map(user -> (IStudent) user)
+        .filter(isStudentRegisteredForEvent)
         .toList()
     );
 
