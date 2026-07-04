@@ -49,7 +49,7 @@ public class UserEventService {
    * @param userId the student's user ID
    * @param eventId the event's ID
    * @throws UserNotFoundException if the user does not exist
-   * @throws UnauthorizedOperationException if the given user is not a Student
+   * @throws UnauthorisedOperationException if the given user is not a Student
    * @throws EventNotFoundException if the event does not exist
    * @throws IllegalArgumentException if the student is already registered for the event
    * @throws CapacityExceededException if the event is full
@@ -80,16 +80,13 @@ public class UserEventService {
    * @param userId the student's user ID
    * @param eventId the event's ID
    * @throws UserNotFoundException if the user does not exist
-   * @throws UnauthorizedOperationException if the given user is not a Student
+   * @throws UnauthorisedOperationException if the given user is not a Student
+   * @throws EventNotFoundException if the event does not exist.
    * @throws IllegalArgumentException if the student is not registered for the event
    */
   void deregisterFromEvent(UUID userId, UUID eventId) {
-    /* 
-     * No need to check if the event actually exists or not, as if it doesn't,
-     * IllegalArgumentException will be thrown. This decision also allows for other services to
-     * remove stale events from a user's event list if this is required later on.
-     */
     IStudent student = getStudent(userId);
+    getEvent(eventId); // Validate that the event actually exists
     Set<UUID> studentEvents = student.getRegisteredEvents();
 
     // Ensure that the student was already signed up for the event
@@ -109,7 +106,7 @@ public class UserEventService {
    * @param userId the student's user ID
    * @return the set of events that the user is registered for; may be empty, never null
    * @throws UserNotFoundException if the user does not exist
-   * @throws UnauthorizedOperationException if the given user is not a Student
+   * @throws UnauthorisedOperationException if the given user is not a Student
    */
   Set<IEvent> getEventsForStudent(UUID userId) {
     IStudent student = getStudent(userId);
@@ -136,7 +133,7 @@ public class UserEventService {
    * @param userId the student's user ID
    * @return the {@code IStudent} entity; never null
    * @throws UserNotFoundException if the user does not exist
-   * @throws UnauthorizedOperationException if the given user is not a Student
+   * @throws UnauthorisedOperationException if the given user is not a Student
    */
   private IStudent getStudent(UUID userId) {
     // Verify that the user exists within the repository
