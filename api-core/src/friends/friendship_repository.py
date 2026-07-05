@@ -10,12 +10,12 @@ from __future__ import annotations
 import base
 import repositories
 
-class InMemoryFriendshipRepository(repositories.IRepository[frozenset]):
+class InMemoryFriendshipRepository(repositories.IRepository[base.FriendshipId]):
     """Dictionary backed repository for storing and retrieving Friendship
     entities.
     
-    Extends repositories.IRepository with frozenset as the managed type,
-    providing standard CRUD operations scoped to the frozenset keys of
+    Extends repositories.IRepository with frozenset[uuid.UUID] as the managed
+    type, providing standard CRUD operations scoped to the frozenset keys of
     Friendship objects. Used for integration testing before implementing
     database-backed repositories.
     
@@ -24,16 +24,16 @@ class InMemoryFriendshipRepository(repositories.IRepository[frozenset]):
     """
 
     def __init__(self):
-        self.__dict = {}
+        self.__dict: dict[base.FriendshipId, base.Friendship] = {}
 
     def save(self, entity: base.Friendship) -> None:
         self.__dict[entity.get_id()] = entity
 
-    def delete(self, entity_id: frozenset) -> None:
+    def delete(self, entity_id: base.FriendshipId) -> None:
         self.__dict.pop(entity_id)
 
     def find_by_id(
-        self, entity_id: frozenset
+        self, entity_id: base.FriendshipId
     ) -> base.Friendship | None:
         return self.__dict.get(entity_id)
 
