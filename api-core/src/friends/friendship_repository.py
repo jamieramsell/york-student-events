@@ -10,7 +10,10 @@ from __future__ import annotations
 import base
 import repositories
 
-class InMemoryFriendshipRepository(repositories.IRepository[base.FriendshipId]):
+class InMemoryFriendshipRepository(repositories.IRepository[
+                                                    base.FriendshipId,
+                                                    base.Friendship
+                                                ]):
     """Dictionary backed repository for storing and retrieving Friendship
     entities.
     

@@ -11,7 +11,7 @@ import base
 import repositories
 import uuid
 
-class InMemoryBadgeRepository(repositories.IRepository[uuid.UUID]):
+class InMemoryBadgeRepository(repositories.IRepository[uuid.UUID, base.Badge]):
     """Dictionary backed repository for storing and retrieving Bagde
     entities.
     
