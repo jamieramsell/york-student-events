@@ -23,6 +23,9 @@ def _generate_id(id1: uuid.UUID, id2: uuid.UUID) -> FriendshipId:
         id1: the UUID of one friend.
         id2: the UUID of the other friend.
 
+    Returns:
+        A frozenset of the two friends' IDs
+
     Raises:
         ValueError: if the two IDs are equal.
     
