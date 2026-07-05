@@ -7,7 +7,7 @@ layer. This stands in for a database-backed repository during early development.
 """
 
 from __future__ import annotations
-import base
+import badges.base as base
 import repositories
 import uuid
 
