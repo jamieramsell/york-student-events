@@ -13,7 +13,10 @@ import enum
 import repositories
 import uuid
 
-def _generate_id(id1: uuid.UUID, id2: uuid.UUID) -> frozenset:
+# Type alias for FriendshipId, a key formed by a frozenset of uuid.UUIDs
+type FriendshipId = frozenset[uuid.UUID]
+
+def _generate_id(id1: uuid.UUID, id2: uuid.UUID) -> FriendshipId:
     """Utility function to generate the key of a Friendship between two users.
     
     Args:
@@ -44,7 +47,7 @@ class FriendshipStatus(enum.Enum):
     ACCEPTED = "accepted"
 
 @dataclasses.dataclass(frozen = True)
-class Friendship(repositories.IEntity):
+class Friendship(repositories.IEntity[FriendshipId]):
     """
     Defines the core structure for friendship service relationship in the 
     api-core service.
@@ -65,5 +68,5 @@ class Friendship(repositories.IEntity):
     created_at: datetime.datetime
     friendship_status: FriendshipStatus
 
-    def get_id(self) -> frozenset:
+    def get_id(self) -> FriendshipId:
         return _generate_id(self.user_id, self.friend_id)
