@@ -10,7 +10,9 @@ service-level operations callers use to drive badge operations.
 """
 
 from badges.base import Badge
+from badges.badge_repository import InMemoryBadgeRepository
 
 __all__ = [
-    "Badge"
+    "Badge",
+    "InMemoryBadgeRepository"
 ]
