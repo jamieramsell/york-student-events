@@ -16,7 +16,7 @@ import uuid
 # and returning a boolean value
 type Predicate = collections.abc.Callable[[dict[typing.Any, typing.Any]], bool]
 
-@dataclasses.dataclass(frozen = True)
+@dataclasses.dataclass(frozen = True, eq = False)
 class Badge(repositories.IEntity[uuid.UUID]):
     """
     Defines the core structure of a Badge in the ``api-core`` service.
@@ -39,10 +39,10 @@ class Badge(repositories.IEntity[uuid.UUID]):
     
 
     def __eq__(self, other: object) -> bool:
-        if other is not Badge:
+        if not isinstance(other, Badge):
             return False
         
-        return other.get_id == self.id
+        return other.id == self.id
 
     def __hash__(self) -> int:
         return self.id.__hash__()
