@@ -33,5 +33,16 @@ class Badge(repositories.IEntity[uuid.UUID]):
     description: str | None
     award_condition: Predicate
 
+
     def get_id(self) -> uuid.UUID:
         return self.id
+    
+
+    def __eq__(self, other: object) -> bool:
+        if other is not Badge:
+            return False
+        
+        return other.get_id == self.id
+
+    def __hash__(self) -> int:
+        return self.id.__hash__()
