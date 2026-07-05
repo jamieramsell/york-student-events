@@ -12,7 +12,7 @@ import repositories
 import uuid
 
 class InMemoryBadgeRepository(repositories.IRepository[uuid.UUID, base.Badge]):
-    """Dictionary backed repository for storing and retrieving Bagde
+    """Dictionary backed repository for storing and retrieving Badge
     entities.
     
     Extends repositories.IRepository with ``uuid.UUID`` as the managed type,
@@ -43,6 +43,6 @@ class InMemoryBadgeRepository(repositories.IRepository[uuid.UUID, base.Badge]):
 
 # Variable used to inject an instance of a repository into badge_service.
 # Package-internal (single leading underscore): consumed by other modules in the
-# friends package, but not part of the package's public API. Do not remove
+# badges package, but not part of the package's public API. Do not remove
 # unless changing the dependency!
 _repository = InMemoryBadgeRepository()
