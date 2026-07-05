@@ -1,3 +1,11 @@
+"""Core domain model for the Badge slice.
+
+Defines the ``Badge`` entity, and the Predicate type, which outlines the award
+condition of a given badge. This is the lowest layer of the badge package: it 
+depends only on the generic ``repositories`` abstraction, and is consumed by
+both the repository and service layers.
+"""
+
 import dataclasses
 import collections.abc
 import repositories
@@ -17,8 +25,8 @@ class Badge(repositories.IEntity[uuid.UUID]):
         id: The ID of the badge; must not be None.
         name: The display name of the Badge; must not be None.
         description: An optional extra description of the Badge.
-        award_condition: A predicate which represents the condition(s) which
-            must be fulfilled in order to award the badge to a user
+        award_condition: A predicate, representing the condition(s) which must 
+            be fulfilled in order to award the badge to a user.
     """
     id: uuid.UUID
     name: str
