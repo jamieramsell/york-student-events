@@ -375,6 +375,33 @@ class IPredicate(abc.ABC):
         return NotPredicate(self)
 
 
+def predicate_from_dict(data: dict[str, typing.Any]) -> IPredicate:
+    """Rebuilds a predicate tree from its serialised, type-tagged dict.
+
+    Looks up the ``"type"`` tag in the module registry and delegates to that
+    class's ``from_dict``. Because dispatch is table-driven, new predicate types
+    become deserialisable simply by being registered- there is no ``if``/``elif``
+    chain to extend. This is the inverse of ``IPredicate.to_dict``, and the two
+    round-trip: ``predicate_from_dict(p.to_dict()) == p``.
+
+    Args:
+        data: A tagged dict previously produced by ``to_dict``.
+
+    Returns:
+        The reconstructed predicate.
+
+    Raises:
+        ValueError: if the ``"type"`` tag is missing or is not registered.
+    """
+    tag = data.get("type")
+    cls = _PREDICATE_REGISTRY.get(tag) if isinstance(tag, str) else None
+
+    if cls is None:
+        raise ValueError(f"Unknown predicate type tag: {tag!r}")
+
+    return cls.from_dict(data)
+
+
 @_register("and")
 @dataclasses.dataclass(frozen = True)
 class AndPredicate(IPredicate):
