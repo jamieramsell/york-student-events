@@ -298,6 +298,25 @@ class IPredicate(abc.ABC):
 
         return data
 
+    @classmethod
+    @abc.abstractmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> IPredicate:
+        """Rebuilds a predicate of this type from its serialised dict.
+
+        The inverse of ``to_dict``: each concrete class reads its own parameters
+        back off ``data``, converting them to their real types (and recursing
+        via ``predicate_from_dict`` for operands). Callers typically use the
+        module-level ``predicate_from_dict`` router rather than dispatching here
+        directly.
+
+        Args:
+            data: A tagged dict previously produced by ``to_dict``.
+
+        Returns:
+            The reconstructed predicate.
+        """
+        ...
+
     def __and__(self, other: object) -> AndPredicate:
         """Combines this predicate with another via logical ``AND``.
 
@@ -374,6 +393,11 @@ class AndPredicate(IPredicate):
         return (self.left.is_satisfied_by(context)
                 and self.right.is_satisfied_by(context))
 
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> AndPredicate:
+        return cls(left = predicate_from_dict(data["left"]),
+                   right = predicate_from_dict(data["right"]))
+
 
 @_register("or")
 @dataclasses.dataclass(frozen = True)
@@ -393,6 +417,11 @@ class OrPredicate(IPredicate):
         return (self.left.is_satisfied_by(context)
                 or self.right.is_satisfied_by(context))
 
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> OrPredicate:
+        return cls(left = predicate_from_dict(data["left"]),
+                   right = predicate_from_dict(data["right"]))
+
 
 @_register("not")
 @dataclasses.dataclass(frozen = True)
@@ -408,6 +437,10 @@ class NotPredicate(IPredicate):
 
     def is_satisfied_by(self, context: AwardContext) -> bool:
         return not self.operand.is_satisfied_by(context)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> NotPredicate:
+        return cls(operand = predicate_from_dict(data["operand"]))
     
 
 @_register("min_events_attended")
@@ -475,7 +508,17 @@ class MinEventsAttended(IPredicate):
         # If we finish looping and the program hasn't yet returned, then the
         # predicate has not been satisfied by the given award context.
         return False
-        
+
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> MinEventsAttended:
+        host_id = data["host_id"]
+        return cls(
+            threshold = data["threshold"],
+            host_id = uuid.UUID(host_id) if host_id is not None else None,
+            category = data["category"],
+            between = _build_between_from_dict(data["between"]),
+        )
+
 
 @_register("min_events_in_rolling_window")
 @dataclasses.dataclass(frozen = True)
@@ -579,7 +622,17 @@ class MinEventsInRollingWindow(IPredicate):
         # If we finish looping and the program hasn't yet returned, then the
         # predicate has not been satisfied by the given award context.
         return False
-    
+
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> MinEventsInRollingWindow:
+        host_id = data["host_id"]
+        return cls(
+            threshold = data["threshold"],
+            window = datetime.timedelta(seconds = data["window"]),
+            host_id = uuid.UUID(host_id) if host_id is not None else None,
+            category = data["category"],
+        )
+
 
 @_register("min_friends")
 @dataclasses.dataclass(frozen = True)
@@ -607,6 +660,10 @@ class MinFriends(IPredicate):
             ``True`` if the user's ``friend_count`` meets ``threshold``.
         """
         return context.friend_count >= self.threshold
+
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> MinFriends:
+        return cls(threshold = data["threshold"])
     
 
 @_register("min_messages_sent")
@@ -645,7 +702,14 @@ class MinMessagesSent(IPredicate):
                 context = context.until(end)
 
         return len(context.messages_sent) >= self.threshold
-    
+
+    @classmethod
+    def from_dict(cls, data: dict[str, typing.Any]) -> MinMessagesSent:
+        return cls(
+            threshold = data["threshold"],
+            between = _build_between_from_dict(data["between"]),
+        )
+
 
 @_register("min_messages_sent_in_rolling_window")
 @dataclasses.dataclass(frozen = True)
@@ -698,5 +762,14 @@ class MinMessagesSentInRollingWindow(IPredicate):
 
             if len(current_window_of_context.messages_sent) >= self.threshold:
                 return True
-            
+
         return False
+
+    @classmethod
+    def from_dict(
+        cls, data: dict[str, typing.Any]
+    ) -> MinMessagesSentInRollingWindow:
+        return cls(
+            threshold = data["threshold"],
+            window = datetime.timedelta(seconds = data["window"]),
+        )
