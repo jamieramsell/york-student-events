@@ -188,15 +188,21 @@ class AwardContext():
 # of predicate property which can be expressed as json serialisable types
 # respectively.
 type JsonSerialisable = (dict[str, JsonSerialisable]
-                         | str 
+                         | list[JsonSerialisable]
+                         | str
+                         | int
                          | float
-                         | list[JsonSerialisable])
+                         | bool
+                         | None)
 
 type PredicateProperty = (IPredicate
                           | uuid.UUID
                           | datetime.datetime
                           | datetime.timedelta
-                          | tuple[PredicateProperty])
+                          | tuple[PredicateProperty, ...]
+                          | int
+                          | str
+                          | None)
 
 def _to_jsonable(value: PredicateProperty) -> JsonSerialisable:
     """Helper function used to return the jsonable format of a given property of
@@ -212,6 +218,10 @@ def _to_jsonable(value: PredicateProperty) -> JsonSerialisable:
             return value.total_seconds()
         case tuple():
             return [_to_jsonable(v) for v in value]
+        case int() | str() | None:
+            # Scalars that are already JSON-native (``threshold``, ``category``,
+            # and the ``None`` of an unset optional) pass straight through.
+            return value
         case _: # Default case should never be reached
             raise TypeError(f"Illegal `value` argument of type {type(value)}.")
         
