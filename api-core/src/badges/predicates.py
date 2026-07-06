@@ -63,3 +63,99 @@ class AttendedEvent():
     host_id: uuid.UUID
     categories: frozenset[str]
     start_time: datetime.datetime
+
+
+@dataclasses.dataclass(frozen = True)
+class AwardContext():
+    """An immutable snapshot of one user's raw activity facts.
+
+    - Holds everything that the award predicates evaluate against for a single
+    user.
+    - Stores *raw* facts (individual attendances, message timestamps) rather
+    than pre-computed aggregates, leaving each leaf predicate to derive the
+    aggregate that it cares about.
+    - New fact sources should be added as new fields with defaults, keeping the
+    change non-breaking.
+
+    Note that ``attended_events`` and ``messages_sent`` are time-stamped facts
+    that ``since`` and ``until`` filter, whereas ``friend_count`` is a scalar
+    state fact that both methods pass through unchanged.
+
+    Args:
+        user_id: The ID of the user this context describes.
+        attended_events: The events the user attended.
+        friend_count: The user's current number of friends. This is a
+            point-in-time state value, not a timeline of changes.
+        messages_sent: Timestamps of messages that the user has sent. A stub
+            until messaging exists. Modelled as timestamps, not a count, so that
+            award windows can filter it by time.
+    """
+    user_id: uuid.UUID
+    attended_events: tuple[AttendedEvent, ...] = ()
+    friend_count: int = 0
+    messages_sent: tuple[datetime.datetime, ...] = ()
+
+    def since(self, cutoff: datetime.datetime) -> AwardContext:
+        """Returns a copy of this context keeping only facts at or after a
+        cutoff.
+
+        - Filters the time-stamped facts (``attended_events`` (by
+        ``start_time``) and ``messages_sent``) to those occurring at or after
+        ``cutoff``.
+        - State-style facts, such as ``friend_count``, are copied through
+        unchanged, since a scalar snapshot has no timestamp to filter on.
+
+        Args:
+            cutoff: The inclusive lower bound; facts strictly before it are
+                dropped.
+
+        Returns:
+            A new ``AwardContext`` containing only the retained facts; the
+            original is left unmodified.
+        """
+        attended_events = tuple(event
+                                for event in self.attended_events
+                                if event.start_time >= cutoff
+                                )
+        messages_sent = tuple(message_datetime
+                              for message_datetime in self.messages_sent
+                              if message_datetime >= cutoff
+                              )
+        
+        return AwardContext(self.user_id,
+                            attended_events,
+                            self.friend_count,
+                            messages_sent
+                            )
+    
+    def until(self, cutoff: datetime.datetime) -> AwardContext:
+        """Returns a copy of this context keeping only facts before a cutoff.
+
+        - Filters the time-stamped facts (``attended_events`` (by
+        ``start_time``) and ``messages_sent``) to those occurring strictly
+        before ``cutoff``.
+        - State-style facts such as ``friend_count`` are copied through
+        unchanged, since a scalar snapshot has no timestamp to filter on.
+
+        Args:
+            cutoff: The exclusive upper bound; facts at or after it are dropped.
+
+        Returns:
+            A new ``AwardContext`` containing only the retained facts; the
+            original is left unmodified.
+        """
+        attended_events = tuple(event
+                                for event in self.attended_events
+                                if event.start_time < cutoff
+                                )
+        messages_sent = tuple(message_datetime
+                              for message_datetime in self.messages_sent
+                              if message_datetime < cutoff
+                              )
+        
+        return AwardContext(self.user_id,
+                            attended_events,
+                            self.friend_count,
+                            messages_sent
+                            )
+
