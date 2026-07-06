@@ -159,3 +159,134 @@ class AwardContext():
                             messages_sent
                             )
 
+
+class IPredicate(abc.ABC):
+    """Interface for a composable badge-award rule.
+
+    A predicate answers a single question about an ``AwardContext``: has this
+    condition been met? Concrete leaves implement ``is_satisfied_by()``; the
+    ``&``, ``|`` and ``~`` operators combine predicates into boolean trees,
+    meaning that a complex award rule is expressed as a nested ``IPredicate``,
+    rather than as bespoke logic.
+    """
+
+    @abc.abstractmethod
+    def is_satisfied_by(self, context: AwardContext) -> bool:
+        """Evaluates this predicate against an award context.
+
+        Args:
+            context: The snapshot of user activity facts to test.
+
+        Returns:
+            Whether the context satisfies this predicate.
+        """
+        pass
+
+    def __and__(self, other: object) -> AndPredicate:
+        """Combines this predicate with another via logical ``AND``.
+
+        Implements the ``&`` operator, e.g. ``a & b``.
+
+        Args:
+            other: The predicate to ``AND`` with this one.
+
+        Returns:
+            An ``AndPredicate`` satisfied only when both operands are satisfied.
+
+        Raises:
+            TypeError: if ``other`` is not an ``IPredicate``.
+
+        See Also:
+            AndPredicate
+        """
+        if not isinstance(other, IPredicate):
+            raise TypeError("Predicates can only be compared to eachother")
+
+        return AndPredicate(self, other)
+
+    def __or__(self, other: object) -> OrPredicate:
+        """Combines this predicate with another via logical ``OR``.
+
+        Implements the ``|`` operator, e.g. ``a | b``.
+
+        Args:
+            other: The predicate to ``OR`` with this one.
+
+        Returns:
+            An ``OrPredicate`` satisfied when either operand is satisfied.
+
+        Raises:
+            TypeError: if ``other`` is not an ``IPredicate``.
+
+        See Also:
+            OrPredicate
+        """
+        if not isinstance(other, IPredicate):
+            raise TypeError("Predicates can only be compared to eachother")
+
+        return OrPredicate(self, other)
+
+    def __invert__(self) -> NotPredicate:
+        """Negates this predicate via logical ``NOT``.
+
+        Implements the ``~`` operator, e.g. ``~a``.
+
+        Returns:
+            A ``NotPredicate`` satisfied only when this predicate is not.
+
+        See Also:
+            NotPredicate
+        """
+        return NotPredicate(self)
+
+
+@dataclasses.dataclass(frozen = True)
+class AndPredicate(IPredicate):
+    """The logical ``AND`` of two predicates.
+
+    Typically constructed via the ``&`` operator rather than directly.
+
+    Args:
+        left: The first operand.
+        right: The second operand.
+    """
+    left: IPredicate
+    right: IPredicate
+
+    def is_satisfied_by(self, context: AwardContext) -> bool:
+        return (self.left.is_satisfied_by(context)
+                and self.right.is_satisfied_by(context))
+
+
+@dataclasses.dataclass(frozen = True)
+class OrPredicate(IPredicate):
+    """The logical ``OR`` of two predicates.
+
+    Typically constructed via the ``|`` operator rather than directly.
+
+    Args:
+        left: The first operand.
+        right: The second operand.
+    """
+    left: IPredicate
+    right: IPredicate
+
+    def is_satisfied_by(self, context: AwardContext) -> bool:
+        return (self.left.is_satisfied_by(context)
+                or self.right.is_satisfied_by(context))
+
+
+@dataclasses.dataclass(frozen = True)
+class NotPredicate(IPredicate):
+    """The logical negation of a predicate.
+
+    Typically constructed via the ``~`` operator rather than directly.
+
+    Args:
+        operand: The predicate to negate.
+    """
+    operand: IPredicate
+
+    def is_satisfied_by(self, context: AwardContext) -> bool:
+        return not self.operand.is_satisfied_by(context)
+    
