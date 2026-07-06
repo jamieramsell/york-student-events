@@ -224,7 +224,35 @@ def _to_jsonable(value: PredicateProperty) -> JsonSerialisable:
             return value
         case _: # Default case should never be reached
             raise TypeError(f"Illegal `value` argument of type {type(value)}.")
-        
+
+
+def _build_between_from_dict(
+    raw: list[str | None] | None,
+) -> tuple[datetime.datetime | None, datetime.datetime | None] | None:
+    """Rebuilds a ``between`` bound-pair from its serialised form.
+
+    The inverse of serialising a ``between`` tuple via ``_to_jsonable``: an
+    absent window stays ``None``, and each ISO-8601 bound is parsed back to a
+    ``datetime`` (a ``None`` bound is left open). The result is rebuilt as a
+    ``tuple`` so that a round-tripped predicate compares equal to the original.
+
+    Args:
+        raw: ``None`` for no window, otherwise a ``[start, end]`` list whose
+            entries are ISO-8601 strings or ``None``.
+
+    Returns:
+        The reconstructed ``(start, end)`` tuple, or ``None``.
+    """
+    if raw is None:
+        return None
+
+    start, end = raw
+    return (
+        datetime.datetime.fromisoformat(start) if start is not None else None,
+        datetime.datetime.fromisoformat(end) if end is not None else None,
+    )
+
+
 class IPredicate(abc.ABC):
     """Interface for a composable badge-award rule.
 
