@@ -247,7 +247,28 @@ class IPredicate(abc.ABC):
         Returns:
             Whether the context satisfies this predicate.
         """
-        pass
+        ...
+
+    def to_dict(self) -> dict[str, JsonSerialisable]:
+        """Serialises this predicate to a JSON-ready, type-tagged dict.
+
+        Emits the class's ``type_tag`` under the ``"type"`` key, then each
+        dataclass field converted to a JSON-native value by ``_to_jsonable``
+        (combinators thereby nest their operands recursively). The result is the
+        exact input that ``predicate_from_dict`` consumes to rebuild the tree.
+
+        Returns:
+            A dict of the ``"type"`` tag plus this predicate's parameters.
+        """
+        # Every concrete predicate is a frozen dataclass; the base itself is not,
+        # so assert the invariant to read its fields (and satisfy the checker).
+        assert dataclasses.is_dataclass(self)
+
+        data: dict[str, JsonSerialisable] = {"type": self.type_tag}
+        for field in dataclasses.fields(self):
+            data[field.name] = _to_jsonable(getattr(self, field.name))
+
+        return data
 
     def __and__(self, other: object) -> AndPredicate:
         """Combines this predicate with another via logical ``AND``.
