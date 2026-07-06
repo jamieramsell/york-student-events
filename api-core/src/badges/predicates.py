@@ -42,3 +42,24 @@ import abc
 import dataclasses
 import datetime
 import uuid
+
+@dataclasses.dataclass(frozen = True)
+class AttendedEvent():
+    """An immutable record of a single event that a user attended.
+
+    Captures just the facts that the award predicates need to reason about an
+    attendance, rather than the full event entity. Used as the element type of
+    ``AwardContext.attended_events``.
+
+    Args:
+        event_id: The ID of the attended event.
+        host_id: The ID of the user or organisation that hosted the event.
+        categories: The (possibly empty) set of category tags describing the
+            event.
+        start_time: The datetime at which the event started, used as the
+            attendance's position on the timeline for windowing.
+    """
+    event_id: uuid.UUID
+    host_id: uuid.UUID
+    categories: frozenset[str]
+    start_time: datetime.datetime
