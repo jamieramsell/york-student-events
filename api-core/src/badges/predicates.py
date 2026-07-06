@@ -41,7 +41,31 @@ from __future__ import annotations
 import abc
 import dataclasses
 import datetime
+import typing
 import uuid
+
+# Stores a dictionary, keyed by serialisation tags, which stores each
+# implementation of IPredicate. Automatically populated by the use of the
+# @_register tag.
+_PREDICATE_REGISTRY: dict[str, type[IPredicate]] = {}
+
+# Use of generic type P, extends IPredicate, to ensure that @_register doesn't
+# narrow a child class of IPredicate back down
+_P = typing.TypeVar("_P", bound = type["IPredicate"])
+
+def _register(tag: str) -> typing.Callable[[_P], _P]:
+    """Class decorator binding a predicate class to its serialisation tag.
+
+    Records the class in the module registry and stores the tag on the class so
+    that ``to_dict`` can emit it, keeping the tag defined in exactly one place.
+    """
+    def decorator(cls: _P) -> _P:
+        cls.type_tag = tag
+        _PREDICATE_REGISTRY[tag] = cls
+        return cls
+    
+    return decorator
+
 
 @dataclasses.dataclass(frozen = True)
 class AttendedEvent():
@@ -170,6 +194,8 @@ class IPredicate(abc.ABC):
     rather than as bespoke logic.
     """
 
+    type_tag: typing.ClassVar[str] # set by @_register on each concrete subclass
+
     @abc.abstractmethod
     def is_satisfied_by(self, context: AwardContext) -> bool:
         """Evaluates this predicate against an award context.
@@ -240,6 +266,7 @@ class IPredicate(abc.ABC):
         return NotPredicate(self)
 
 
+@_register("and")
 @dataclasses.dataclass(frozen = True)
 class AndPredicate(IPredicate):
     """The logical ``AND`` of two predicates.
@@ -258,6 +285,7 @@ class AndPredicate(IPredicate):
                 and self.right.is_satisfied_by(context))
 
 
+@_register("or")
 @dataclasses.dataclass(frozen = True)
 class OrPredicate(IPredicate):
     """The logical ``OR`` of two predicates.
@@ -276,6 +304,7 @@ class OrPredicate(IPredicate):
                 or self.right.is_satisfied_by(context))
 
 
+@_register("not")
 @dataclasses.dataclass(frozen = True)
 class NotPredicate(IPredicate):
     """The logical negation of a predicate.
@@ -291,6 +320,7 @@ class NotPredicate(IPredicate):
         return not self.operand.is_satisfied_by(context)
     
 
+@_register("min_events_attended")
 @dataclasses.dataclass(frozen = True)
 class MinEventsAttended(IPredicate):
     """Satisfied once the user has attended at least ``threshold`` events.
@@ -357,6 +387,7 @@ class MinEventsAttended(IPredicate):
         return False
         
 
+@_register("min_events_in_rolling_window")
 @dataclasses.dataclass(frozen = True)
 class MinEventsInRollingWindow(IPredicate):
     """Satisfied if any ``window``-long span contains ``threshold`` events.
@@ -460,6 +491,7 @@ class MinEventsInRollingWindow(IPredicate):
         return False
     
 
+@_register("min_friends")
 @dataclasses.dataclass(frozen = True)
 class MinFriends(IPredicate):
     """Satisfied once the user has at least ``threshold`` friends.
@@ -487,6 +519,7 @@ class MinFriends(IPredicate):
         return context.friend_count >= self.threshold
     
 
+@_register("min_messages_sent")
 @dataclasses.dataclass(frozen = True)
 class MinMessagesSent(IPredicate):
     """Satisfied once the user has sent at least ``threshold`` messages.
@@ -524,6 +557,7 @@ class MinMessagesSent(IPredicate):
         return len(context.messages_sent) >= self.threshold
     
 
+@_register("min_messages_sent_in_rolling_window")
 @dataclasses.dataclass(frozen = True)
 class MinMessagesSentInRollingWindow(IPredicate):
     """Satisfied if any ``window``-long span contains ``threshold`` messages.
