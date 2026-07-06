@@ -290,3 +290,289 @@ class NotPredicate(IPredicate):
     def is_satisfied_by(self, context: AwardContext) -> bool:
         return not self.operand.is_satisfied_by(context)
     
+
+@dataclasses.dataclass(frozen = True)
+class MinEventsAttended(IPredicate):
+    """Satisfied once the user has attended at least ``threshold`` events.
+
+    Counts attendances in the context, optionally narrowed to a single host, a
+    single category, and/or a time window, and passes once the count reaches the
+    threshold.
+
+    Args:
+        threshold: The minimum number of matching attendances required.
+        host_id: If set, only events hosted by this host are counted.
+        category: If set, only events tagged with this category are counted.
+        between: If set, a ``(start, end)`` pair bounding the window to
+            consider; either bound may be ``None`` to leave that side open.
+            ``start`` is applied via ``AwardContext.since`` (inclusive), and
+            ``end`` via ``AwardContext.until`` (exclusive).
+    """
+    threshold: int
+    host_id: uuid.UUID | None = None
+    category: str | None = None
+    between: tuple[datetime.datetime | None,
+                   datetime.datetime | None] | None = None
+
+    def is_satisfied_by(self, context: AwardContext) -> bool:
+
+        # If cutoff datetimes are specified, apply them to the award context
+        if self.between is not None:
+            start = self.between[0]
+            end = self.between[1]
+
+            if start is not None:
+                context = context.since(start)
+            
+            if end is not None:
+                context = context.until(end)
+
+        # Counter to keep track of the number of events attended within the
+        # award context which align with the restrictions applied by this
+        # instance of predicate
+        valid_events_attended = 0
+
+        for event in context.attended_events:
+            
+            if self.host_id is not None and self.host_id != event.host_id:
+                continue
+
+            if (
+                self.category is not None
+                and self.category not in event.categories
+            ):
+                continue
+
+            # If this point is reached, then the current event meets all
+            # restrictions; increment the counter!
+            valid_events_attended += 1
+            
+            # Check whether the loop can be terminated early- there's no point
+            # in looping further if the threshold has already been reached
+            if valid_events_attended >= self.threshold:
+                return True
+        
+        # If we finish looping and the program hasn't yet returned, then the
+        # predicate has not been satisfied by the given award context.
+        return False
+        
+
+@dataclasses.dataclass(frozen = True)
+class MinEventsInRollingWindow(IPredicate):
+    """Satisfied if any ``window``-long span contains ``threshold`` events.
+
+    Unlike ``MinEventsAttended``, which counts over a fixed window, this slides
+    a window of fixed *duration* across the timeline of attendances and passes
+    if the window ever holds enough matching events at once, capturing bursts
+    of activity regardless of when they occur.
+
+    Args:
+        threshold: The minimum number of matching attendances required within a
+            single window.
+        window: The duration of the sliding window.
+        host_id: If set, only events hosted by this host are counted.
+        category: If set, only events tagged with this category are counted.
+    """
+    threshold: int
+    window: datetime.timedelta
+    host_id: uuid.UUID | None = None
+    category: str | None = None
+
+    def __single_event_satisfies_predicate(self, event: AttendedEvent) -> bool:
+        """Helper method which determines whether a single ``AttendedEvent``
+        satisfies this predicate instance.
+        
+        Note that the method assumes that the event has already been checked
+        to see whether it does indeed fall within the current rolling window.
+        
+        Args:
+            event: The ``AttendedEvent`` to verify against the requirements of
+                the predicate.
+        
+        Returns:
+            ``True`` if the event meets the requirements of the predicate;
+            otherwise ``False``.
+        """
+        if self.host_id is not None and self.host_id != event.host_id:
+            return False
+
+        if self.category is not None and self.category not in event.categories:
+            return False
+
+        # If this point is reached, then the current event meets all
+        # restrictions
+        return True
+
+    def is_satisfied_by(self, context: AwardContext) -> bool:
+
+        # Counter to keep track of the number of events attended within the
+        # award context which align with the restrictions applied by this
+        # instance of predicate
+        valid_events_attended = 0
+
+        # Two variables to follow the rolling window:
+        # - index points to the event at the beginning of the rolling window
+        # - rolling_window_start represents the start datetime of that event
+        index_of_event_at_rolling_window_start = 0
+        rolling_window_start: datetime.datetime | None = None
+
+        # Sort the events within the award context chronologically to
+        # facilitate the rolling window
+        chronological_events = list(context.attended_events)
+        chronological_events.sort(key = lambda event: event.start_time)
+
+        for event in chronological_events:
+            
+            # Begin with the first event attended within the award context
+            if rolling_window_start is None:
+                rolling_window_start = event.start_time
+                
+            # If the current event exceeds the time frame of the rolling window,
+            # then slide the rolling window to begin at the time of the next
+            # event in the given award context. Keep sliding until the current
+            # event does indeed fall within the rolling window.
+            while rolling_window_start + self.window < event.start_time:
+                
+                # If the event at the beginning of the window (which is about to
+                # be excluded from it) is valid, then it must be discounted from
+                # the counter
+                if self.__single_event_satisfies_predicate(
+                    chronological_events[index_of_event_at_rolling_window_start]
+                ):
+                    valid_events_attended -= 1
+                    
+                # Slide the rolling window by incrementing the index pointer
+                index_of_event_at_rolling_window_start += 1
+
+            # By this point, we have determined that the current event does
+            # indeed fall within the rolling window.
+
+            if self.__single_event_satisfies_predicate(event):
+                valid_events_attended += 1
+            
+            # Check whether the loop can be terminated early- there's no point
+            # in looping further if the threshold has already been reached
+            if valid_events_attended >= self.threshold:
+                return True
+        
+        # If we finish looping and the program hasn't yet returned, then the
+        # predicate has not been satisfied by the given award context.
+        return False
+    
+
+@dataclasses.dataclass(frozen = True)
+class MinFriends(IPredicate):
+    """Satisfied once the user has at least ``threshold`` friends.
+
+    Note that ``friend_count`` is a state-style fact that ``since`` and
+    ``until`` pass through unchanged, so this leaf's result is independent of any
+    award window. It should therefore not be the sole condition of a *repeatable*
+    badge -- every evaluation would re-satisfy it and re-award the badge. Pair it
+    with a time-bounded condition, or use it only for one-shot badges.
+
+    Args:
+        threshold: The minimum number of friends required.
+    """
+    threshold: int
+
+    def is_satisfied_by(self, context: AwardContext) -> bool:
+        """Evaluates the friend-count rule against an award context.
+
+        Args:
+            context: The snapshot of user activity facts to test.
+
+        Returns:
+            ``True`` if the user's ``friend_count`` meets ``threshold``.
+        """
+        return context.friend_count >= self.threshold
+    
+
+@dataclasses.dataclass(frozen = True)
+class MinMessagesSent(IPredicate):
+    """Satisfied once the user has sent at least ``threshold`` messages.
+
+    Counts message timestamps in the context, optionally narrowed to a time
+    window.
+    
+    Relies on ``AwardContext.messages_sent``, which is a stub until messaging
+    exists, so this predicate is inert until that feature lands.
+
+    Args:
+        threshold: The minimum number of messages required.
+        between: If set, a ``(start, end)`` pair bounding the window to
+            consider; either bound may be ``None`` to leave that side open.
+            ``start`` is applied via ``AwardContext.since`` (inclusive), and
+            ``end`` via ``AwardContext.until`` (exclusive).
+    """
+    threshold: int
+    between: tuple[datetime.datetime | None,
+                   datetime.datetime | None] | None = None
+
+    def is_satisfied_by(self, context: AwardContext) -> bool:
+
+        # If cutoff datetimes are specified, apply them to the award context
+        if self.between is not None:
+            start = self.between[0]
+            end = self.between[1]
+
+            if start is not None:
+                context = context.since(start)
+            
+            if end is not None:
+                context = context.until(end)
+
+        return len(context.messages_sent) >= self.threshold
+    
+
+@dataclasses.dataclass(frozen = True)
+class MinMessagesSentInRollingWindow(IPredicate):
+    """Satisfied if any ``window``-long span contains ``threshold`` messages.
+
+    Unlike ``MinMessagesSent``, which counts over a fixed window, this slides
+    a window of fixed *duration* across the timeline of messages and passes
+    if the window ever holds enough messages at once, capturing bursts of
+    activity regardless of when they occur.
+    
+    Relies on ``AwardContext.messages_sent``, which is a stub until messaging
+    exists, so this predicate is inert until that feature lands.
+
+    Args:
+        threshold: The minimum number of messages required within a single
+            window.
+        window: The duration of the sliding window.
+    """
+    threshold: int
+    window: datetime.timedelta
+
+    def is_satisfied_by(self, context: AwardContext) -> bool:
+
+        # If less messages than the threshold have been sent within the given
+        # context, or none have been sent at all, then return False
+        if (
+            len(context.messages_sent) < self.threshold
+            or len(context.messages_sent) == 0
+        ):
+            return False
+        
+        # Sort messages within the given award context chronologically to
+        # facilitate the rolling window
+        chronological_messages: list[datetime.datetime] = list(
+            context.messages_sent
+        )
+        chronological_messages.sort()
+
+        # Beginning with the first message sent within the given award context,
+        # slide the rolling window to begin at the time that each message was
+        # sent. Keep sliding until a rolling window is found with a sufficient
+        # number of messages sent to satisfy the predicate.
+        for message_timestamp in chronological_messages:
+
+            start: datetime.datetime = message_timestamp
+
+            current_window_of_context = context.since(start)
+            current_window_of_context = context.until(start + self.window)
+
+            if len(current_window_of_context.messages_sent) >= self.threshold:
+                return True
+            
+        return False
