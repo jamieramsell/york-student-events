@@ -184,6 +184,37 @@ class AwardContext():
                             )
 
 
+# Type aliases, representing the union of json serialisable types, and the union
+# of predicate property which can be expressed as json serialisable types
+# respectively.
+type JsonSerialisable = (dict[str, JsonSerialisable]
+                         | str 
+                         | float
+                         | list[JsonSerialisable])
+
+type PredicateProperty = (IPredicate
+                          | uuid.UUID
+                          | datetime.datetime
+                          | datetime.timedelta
+                          | tuple[PredicateProperty])
+
+def _to_jsonable(value: PredicateProperty) -> JsonSerialisable:
+    """Helper function used to return the jsonable format of a given property of
+    an IPredicate."""
+    match value:
+        case IPredicate():
+            return value.to_dict()
+        case uuid.UUID():
+            return str(value)
+        case datetime.datetime():
+            return value.isoformat()
+        case datetime.timedelta():
+            return value.total_seconds()
+        case tuple():
+            return [_to_jsonable(v) for v in value]
+        case _: # Default case should never be reached
+            raise TypeError(f"Illegal `value` argument of type {type(value)}.")
+        
 class IPredicate(abc.ABC):
     """Interface for a composable badge-award rule.
 
