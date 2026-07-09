@@ -631,9 +631,17 @@ class MinEventsInRollingWindow(IPredicate):
                     chronological_events[index_of_event_at_rolling_window_start]
                 ):
                     valid_events_attended -= 1
-                    
-                # Slide the rolling window by incrementing the index pointer
+
+                # Slide the rolling window by incrementing the index pointer,
+                # then advance its start to the new left-edge event so the loop
+                # condition re-evaluates (and terminates). The pointer can never
+                # overtake the current event: once it reaches it,
+                # ``rolling_window_start`` equals ``event.start_time`` and the
+                # condition becomes false.
                 index_of_event_at_rolling_window_start += 1
+                rolling_window_start = chronological_events[
+                    index_of_event_at_rolling_window_start
+                ].start_time
 
             # By this point, we have determined that the current event does
             # indeed fall within the rolling window.
