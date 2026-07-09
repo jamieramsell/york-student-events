@@ -7,6 +7,6 @@
     "python.analysis.extraPaths": [
         "api-core/src"
     ],
-    "python-envs.defaultEnvManager": "ms-python.python:pyenv",
+    "python-envs.defaultEnvManager": "ms-python.python:system",
     "python-envs.pythonProjects": []
 }
