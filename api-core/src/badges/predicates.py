@@ -793,7 +793,9 @@ class MinMessagesSentInRollingWindow(IPredicate):
             start: datetime.datetime = message_timestamp
 
             current_window_of_context = context.since(start)
-            current_window_of_context = context.until(start + self.window)
+            current_window_of_context = current_window_of_context.until(
+                start + self.window
+            )
 
             if len(current_window_of_context.messages_sent) >= self.threshold:
                 return True
