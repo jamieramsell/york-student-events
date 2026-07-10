@@ -7,14 +7,11 @@ both the repository and service layers.
 """
 
 import dataclasses
-import collections.abc
+import datetime
+import predicates
 import repositories
-import typing
 import uuid
 
-# Define Predicate type alias, representing a callable, taking kwargs input,
-# and returning a boolean value
-type Predicate = collections.abc.Callable[[dict[typing.Any, typing.Any]], bool]
 
 @dataclasses.dataclass(frozen = True, eq = False)
 class Badge(repositories.IEntity[uuid.UUID]):
@@ -27,22 +24,26 @@ class Badge(repositories.IEntity[uuid.UUID]):
         description: An optional extra description of the Badge.
         award_condition: A predicate, representing the condition(s) which must 
             be fulfilled in order to award the badge to a user.
+        repeatable: Represents whether the badge can be earned more than once by
+            any given user.
     """
     id: uuid.UUID
     name: str
     description: str | None
-    award_condition: Predicate
+    award_condition: predicates.IPredicate
+    repeatable: bool = False
 
 
     def get_id(self) -> uuid.UUID:
         return self.id
-    
+
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Badge):
             return False
         
         return other.id == self.id
+
 
     def __hash__(self) -> int:
         return self.id.__hash__()
