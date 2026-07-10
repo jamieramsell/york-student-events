@@ -72,7 +72,7 @@ def has_attended(attendee_id: uuid.UUID, event_id: uuid.UUID) -> bool:
         Whether an Attendance record exists for the pair.
     """
     record_id = base._generate_id(attendee_id, event_id)
-    return attendance_repository._repository.find_by_id(record_id) != None
+    return attendance_repository._repository.find_by_id(record_id) is not None
 
 
 def get_attendances(attendee_id: uuid.UUID) -> list[base.Attendance]:
