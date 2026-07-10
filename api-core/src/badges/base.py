@@ -7,14 +7,11 @@ both the repository and service layers.
 """
 
 import dataclasses
-import collections.abc
+import datetime
+import predicates
 import repositories
-import typing
 import uuid
 
-# Define Predicate type alias, representing a callable, taking kwargs input,
-# and returning a boolean value
-type Predicate = collections.abc.Callable[[dict[typing.Any, typing.Any]], bool]
 
 @dataclasses.dataclass(frozen = True, eq = False)
 class Badge(repositories.IEntity[uuid.UUID]):
@@ -27,16 +24,19 @@ class Badge(repositories.IEntity[uuid.UUID]):
         description: An optional extra description of the Badge.
         award_condition: A predicate, representing the condition(s) which must 
             be fulfilled in order to award the badge to a user.
+        repeatable: Represents whether the badge can be earned more than once by
+            any given user.
     """
     id: uuid.UUID
     name: str
     description: str | None
-    award_condition: Predicate
+    award_condition: predicates.IPredicate
+    repeatable: bool = False
 
 
     def get_id(self) -> uuid.UUID:
         return self.id
-    
+
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Badge):
@@ -44,5 +44,43 @@ class Badge(repositories.IEntity[uuid.UUID]):
         
         return other.id == self.id
 
+
     def __hash__(self) -> int:
         return self.id.__hash__()
+    
+
+# Ordered tuple, representing the ID of an AwardedBadge record, which stores
+# the Student's user ID, followed by the ID of the badge they've earned.
+type AwardId = tuple[uuid.UUID, uuid.UUID]
+
+
+def _generate_award_id(user_id: uuid.UUID, badge_id: uuid.UUID) -> AwardId:
+    """Convenience function used to generate the ID of a given AwardedBadge
+    record.
+    """
+    return (user_id, badge_id)
+
+
+@dataclasses.dataclass(frozen = True)
+class AwardedBadge(repositories.IEntity[AwardId]):
+    """Defines the structure of the record of a Badge that has been awarded to
+    a user.
+    
+    Re-awards keep one record per (user, badge): a new frozen instance with
+    times_awarded + 1 replaces the old one.
+
+    Args:
+        user_id: The ID of the user who earned the badge.
+        badge_id: The ID of the badge in question.
+        awarded_at: The datetime of the most recent badge award.
+        times_awarded: Represents how many times the user has earned this badge.
+            Defaults to 1.
+    """
+    user_id: uuid.UUID
+    badge_id: uuid.UUID
+    awarded_at: datetime.datetime
+    times_awarded: int = 1
+    
+
+    def get_id(self) -> AwardId:
+        return _generate_award_id(self.user_id, self.badge_id)
