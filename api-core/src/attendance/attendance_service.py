@@ -36,6 +36,8 @@ def record_attendance(attendee_id: uuid.UUID, event_id: uuid.UUID) -> None:
     )
     attendance_repository._repository.save(attendance_record)
 
+    # Add activity.publish(attendee_id) here
+
 
 def withdraw_attendance(attendee_id: uuid.UUID, event_id: uuid.UUID) -> None:
     """Removes the Attendance record for a student/event pair.
