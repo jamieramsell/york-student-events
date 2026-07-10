@@ -15,7 +15,8 @@ from attendance.attendance_service import (
     record_attendance,
     withdraw_attendance,
     has_attended,
-    get_attendances
+    get_attendances,
+    get_event_attendees
 )
 
 __all__ = [
@@ -24,5 +25,6 @@ __all__ = [
     "record_attendance",
     "withdraw_attendance",
     "has_attended",
-    "get_attendances"
+    "get_attendances",
+    "get_event_attendees"
 ]
