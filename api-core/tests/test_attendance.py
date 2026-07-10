@@ -12,7 +12,9 @@ Coverage mirrors the service contract: recording (field + ``recorded_at``
 timestamp storage, duplicate rejection without overwrite, re-record after
 withdraw, two events for one user both persisting), withdrawal (targeted
 removal, absent-record error), ``has_attended`` (true / false / after-withdraw /
-event discrimination) and ``get_attendances`` (per-user scoping).
+event discrimination), ``get_attendances`` (per-user scoping, returning
+``Attendance`` records) and ``get_event_attendees`` (per-event scoping,
+returning attendee ids).
 
 Run from the repo root:  ``python -m pytest api-core/tests/``
 """
@@ -190,3 +192,59 @@ class TestGetAttendances:
         _record()  # unrelated record for a different user
 
         assert attendance_service.get_attendances(uuid.uuid4()) == []
+
+
+# ---------------------------------------------------------------------------
+# get_event_attendees  (returns a list of attendee ids, not records)
+# ---------------------------------------------------------------------------
+class TestGetEventAttendees:
+
+    def test_get_event_attendees_returns_only_the_target_events_attendees(self):
+        target_event = uuid.uuid4()
+        other_event = uuid.uuid4()
+
+        attendee_a = uuid.uuid4()
+        attendee_b = uuid.uuid4()
+        outsider = uuid.uuid4()
+        _record(attendee_id=attendee_a, event_id=target_event)
+        _record(attendee_id=attendee_b, event_id=target_event)
+        _record(attendee_id=outsider, event_id=other_event)
+
+        results = attendance_service.get_event_attendees(target_event)
+
+        assert set(results) == {attendee_a, attendee_b}
+        assert outsider not in results
+
+    def test_get_event_attendees_returns_attendee_ids_not_records(self):
+        attendee_id, event_id = _record()
+
+        results = attendance_service.get_event_attendees(event_id)
+
+        assert results == [attendee_id]
+        assert all(isinstance(item, uuid.UUID) for item in results)
+
+    def test_get_event_attendees_empty_for_unknown_event(self):
+        _record()  # unrelated record for a different event
+
+        assert attendance_service.get_event_attendees(uuid.uuid4()) == []
+
+    def test_get_event_attendees_reflects_a_withdrawal(self):
+        event_id = uuid.uuid4()
+        staying = uuid.uuid4()
+        leaving = uuid.uuid4()
+        _record(attendee_id=staying, event_id=event_id)
+        _record(attendee_id=leaving, event_id=event_id)
+
+        attendance_service.withdraw_attendance(leaving, event_id)
+
+        assert attendance_service.get_event_attendees(event_id) == [staying]
+
+    def test_get_event_attendees_separates_a_users_two_events(self):
+        attendee_id = uuid.uuid4()
+        event_a = uuid.uuid4()
+        event_b = uuid.uuid4()
+        _record(attendee_id=attendee_id, event_id=event_a)
+        _record(attendee_id=attendee_id, event_id=event_b)
+
+        assert attendance_service.get_event_attendees(event_a) == [attendee_id]
+        assert attendance_service.get_event_attendees(event_b) == [attendee_id]
