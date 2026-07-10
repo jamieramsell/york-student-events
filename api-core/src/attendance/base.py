@@ -13,7 +13,7 @@ def _generate_id(attendee_id: uuid.UUID, event_id: uuid.UUID) -> AttendanceId:
     return (attendee_id, event_id)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen = True)
 class Attendance(repositories.IEntity[AttendanceId]):
     """
     Defines the core structure of a record of Attendance.
