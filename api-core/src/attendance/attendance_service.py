@@ -88,3 +88,20 @@ def get_attendances(attendee_id: uuid.UUID) -> list[base.Attendance]:
     user_attendances = [record for record in all_attendance_records
                         if record.attendee_id == attendee_id]
     return user_attendances
+
+
+def get_event_attendees(event_id: uuid.UUID) -> list[uuid.UUID]:
+    """Retrieves the IDs of all Students who attended a given Event.
+
+    Args:
+        event_id: The ID of the Event whose attendances are to be retrieved.
+
+    Returns:
+        A list of the user IDs of the Students who attended the Event; never
+        None, may be empty.
+    """
+    all_attendance_records = attendance_repository._repository.find_all()
+    students_who_attended = [record.attendee_id
+                             for record in all_attendance_records
+                             if record.event_id == event_id]
+    return students_who_attended
