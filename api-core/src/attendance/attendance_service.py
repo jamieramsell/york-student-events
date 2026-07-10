@@ -28,7 +28,7 @@ def record_attendance(attendee_id: uuid.UUID, event_id: uuid.UUID) -> None:
     """
     record_id = base._generate_id(attendee_id, event_id)
     existing_record = attendance_repository._repository.find_by_id(record_id)
-    if existing_record is None:
+    if existing_record is not None:
         raise ValueError("The user's attendance has already been recorded.")
 
     attendance_record = base.Attendance(
