@@ -19,6 +19,7 @@ from friends.friendship_service import (
     is_friend,
     remove_friend,
     send_friend_request,
+    get_friend_circle
 )
 
 __all__ = [
@@ -30,4 +31,5 @@ __all__ = [
     "is_friend",
     "remove_friend",
     "send_friend_request",
+    "get_friend_circle"
 ]

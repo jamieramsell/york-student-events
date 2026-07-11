@@ -154,3 +154,34 @@ def is_friend(id1: uuid.UUID, id2: uuid.UUID) -> bool:
     # and is accepted; returns false otherwise.
     return ((friendship is not None)
         and (friendship.friendship_status == base.FriendshipStatus.ACCEPTED))
+
+
+def get_friend_circle(
+    user_id: uuid.UUID,
+    max_layers: int
+    ) -> dict[int, list[uuid.UUID]]:
+    """Algorithm used to discover and generate the layers of the interactive
+    maps of friend networks.
+
+    Results are generated as a dictionary, with integer keys which represent the
+    number of friends between two users, and list[UUID] values, which store the
+    IDs of the users at that given level.
+
+    The users in layer 0 are those who are directly friends with the target
+    user, users in layer 1 share a common friend with the user, users in layer 2
+    have a connection with the given user through two other friends, and so on.
+
+    Args:
+        user_id: The target user's ID.
+        max_layers: The maximum number of layers (depth) to generate.
+    
+    Returns:
+        A dictionary, with integer keys representing the number of friends
+        between two users, and list values, which store the IDs of the users at
+        that given level. Never ``None``, but may be empty.
+
+    Raises:
+        ValueError: if the given user could not be found.
+        ValueError: if ``max_layers < 0``.
+    """
+    ...
