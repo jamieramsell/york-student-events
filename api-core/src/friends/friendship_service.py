@@ -158,7 +158,7 @@ def is_friend(id1: uuid.UUID, id2: uuid.UUID) -> bool:
 
 def get_friend_circle(
     user_id: uuid.UUID,
-    max_layers: int
+    max_layers: int | None = None
     ) -> dict[int, list[uuid.UUID]]:
     """Algorithm used to discover and generate the layers of the interactive
     maps of friend networks.
