@@ -19,7 +19,7 @@ import pytest
 
 import bridge
 import friends
-from matching.matching import get_recommended_events
+from recommendations.base import get_recommended_events
 
 
 @pytest.fixture
