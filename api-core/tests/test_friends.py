@@ -19,11 +19,11 @@ import uuid
 
 import pytest
 
-import friendship_repository
-import friendship_service
+import friends.friendship_repository as friendship_repository
+import friends.friendship_service as friendship_service
 import repositories
-from base import Friendship, FriendshipStatus, _generate_id
-from friendship_repository import InMemoryFriendshipRepository
+from friends.base import Friendship, FriendshipStatus, _generate_id
+from friends.friendship_repository import InMemoryFriendshipRepository
 
 _FIXED_TIME = datetime.datetime(2026, 6, 20, 12, 0, 0)
 
