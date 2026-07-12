@@ -19,11 +19,11 @@ import uuid
 
 import pytest
 
-import friendship_repository
-import friendship_service
+import friends.friendship_repository as friendship_repository
+import friends.friendship_service as friendship_service
 import repositories
-from base import Friendship, FriendshipStatus, _generate_id
-from friendship_repository import InMemoryFriendshipRepository
+from friends.base import Friendship, FriendshipStatus, _generate_id
+from friends.friendship_repository import InMemoryFriendshipRepository
 
 _FIXED_TIME = datetime.datetime(2026, 6, 20, 12, 0, 0)
 
@@ -364,3 +364,142 @@ class TestFriendshipService:
         same = uuid.uuid4()
         with pytest.raises(ValueError):
             friendship_service.is_friend(same, same)
+
+    # -- get_friend_circle ---------------------------------------------------
+    @staticmethod
+    def _befriend(a, b):
+        """Sends and immediately accepts a request, yielding an accepted
+        friendship between ``a`` and ``b``."""
+
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
+
+    def test_circle_unknown_user_raises_value_error(self):
+        # A user absent from every friendship record cannot be found.
+        with pytest.raises(ValueError):
+            friendship_service.get_friend_circle(uuid.uuid4())
+
+    def test_circle_negative_max_layers_raises_value_error(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        self._befriend(a, b)
+        with pytest.raises(ValueError):
+            friendship_service.get_friend_circle(a, max_layers=-1)
+
+    def test_circle_known_user_with_no_accepted_friends_is_empty(self):
+        # A pending-only user is "known" (appears in a record) but reaches
+        # no-one, so the circle is empty rather than an error.
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(a, b)  # left PENDING
+        assert friendship_service.get_friend_circle(a) == {}
+
+    def test_circle_layer_zero_holds_direct_friends(self):
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        self._befriend(a, b)
+        self._befriend(a, c)
+        circle = friendship_service.get_friend_circle(a)
+        assert set(circle) == {0}
+        assert set(circle[0]) == {b, c}
+
+    def test_circle_excludes_the_target_user(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        self._befriend(a, b)
+        circle = friendship_service.get_friend_circle(a)
+        assert all(a not in members for members in circle.values())
+
+    def test_circle_layer_one_holds_friends_of_friends(self):
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        self._befriend(a, b)
+        self._befriend(b, c)  # c is a's friend-of-friend, not a direct friend
+        circle = friendship_service.get_friend_circle(a)
+        assert circle[0] == {b}
+        assert circle[1] == {c}
+
+    def test_circle_places_each_user_in_nearest_layer_only(self):
+        # c is both a direct friend of a and a friend of b; it must appear only
+        # in layer 0, never again in layer 1.
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        self._befriend(a, b)
+        self._befriend(a, c)
+        self._befriend(b, c)
+        circle = friendship_service.get_friend_circle(a)
+        assert set(circle[0]) == {b, c}
+        assert circle.get(1, set()) == set()
+
+    def test_circle_excludes_pending_friends_of_friends(self):
+        # b -> c is only pending, so c is never reached from a.
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        self._befriend(a, b)
+        friendship_service.send_friend_request(b, c)  # stays PENDING
+        circle = friendship_service.get_friend_circle(a)
+        assert circle == {0: {b}}
+
+    def test_circle_max_layers_zero_yields_only_layer_zero(self):
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        self._befriend(a, b)
+        self._befriend(b, c)
+        circle = friendship_service.get_friend_circle(a, max_layers=0)
+        assert circle == {0: {b}}
+
+    def test_circle_max_layers_one_yields_layers_zero_and_one(self):
+        a, b, c, d = (uuid.uuid4() for _ in range(4))
+        self._befriend(a, b)
+        self._befriend(b, c)
+        self._befriend(c, d)  # d sits at layer 2 and must be excluded
+        circle = friendship_service.get_friend_circle(a, max_layers=1)
+        assert set(circle) == {0, 1}
+        assert circle[0] == {b}
+        assert circle[1] == {c}
+
+    def test_circle_none_max_layers_traverses_whole_chain(self):
+        a, b, c, d = (uuid.uuid4() for _ in range(4))
+        self._befriend(a, b)
+        self._befriend(b, c)
+        self._befriend(c, d)
+        circle = friendship_service.get_friend_circle(a)
+        assert circle == {0: {b}, 1: {c}, 2: {d}}
+
+    def test_circle_is_direction_independent(self):
+        # Friendships are stored symmetrically, so the circle is the same
+        # regardless of who sent each request.
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(b, a)  # b -> a
+        friendship_service.accept_friend_request(b, a)
+        friendship_service.send_friend_request(c, b)  # c -> b
+        friendship_service.accept_friend_request(c, b)
+        circle = friendship_service.get_friend_circle(a)
+        assert circle == {0: {b}, 1: {c}}
+
+    # -- get_friend_circle (grouping disabled) -------------------------------
+    def test_ungrouped_returns_flat_reachable_set(self):
+        a, b, c, d = (uuid.uuid4() for _ in range(4))
+        self._befriend(a, b)
+        self._befriend(b, c)
+        self._befriend(c, d)
+        circle = friendship_service.get_friend_circle(a, grouping=False)
+        assert circle == {b, c, d}
+
+    def test_ungrouped_excludes_the_target_user(self):
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        self._befriend(a, b)
+        self._befriend(b, c)
+        assert a not in friendship_service.get_friend_circle(a, grouping=False)
+
+    def test_ungrouped_ignores_max_layers(self):
+        # The depth bound applies only to the grouped (BFS) form; the flat form
+        # returns the whole reachable circle regardless of max_layers.
+        a, b, c, d = (uuid.uuid4() for _ in range(4))
+        self._befriend(a, b)
+        self._befriend(b, c)
+        self._befriend(c, d)  # three hops from a
+        circle = friendship_service.get_friend_circle(a, max_layers=1,
+                                                      grouping=False)
+        assert circle == {b, c, d}
+
+    def test_ungrouped_pending_only_user_is_empty(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(a, b)  # left PENDING
+        assert friendship_service.get_friend_circle(a, grouping=False) == set()
+
+    def test_ungrouped_unknown_user_raises_value_error(self):
+        with pytest.raises(ValueError):
+            friendship_service.get_friend_circle(uuid.uuid4(), grouping=False)
