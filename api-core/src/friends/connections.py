@@ -8,7 +8,7 @@ def dfs_recursion(start_node: uuid.UUID,
                   visited: set[uuid.UUID]) -> set[uuid.UUID]:
     """Utility function which traverses a friendship graph depth-first, starting
     from a given node (user), and finding their connected friends.
-    
+
     Args:
         start_node: the node (user) to begin the search from.
         visited: the set of nodes (users) that have already been explored.
@@ -28,4 +28,61 @@ def dfs_recursion(start_node: uuid.UUID,
             visited = visited.union(dfs_recursion(friend, visited))
 
     return visited
-            
+
+
+def bfs_friend_layers(
+    start_node: uuid.UUID,
+    max_layers: int | None = None
+) -> dict[int, list[uuid.UUID]]:
+    """Traverses a friendship graph breadth-first, grouping reachable users by
+    their distance from the start node.
+
+    Layer 0 holds the direct friends of ``start_node``, layer 1 holds users who
+    are friends of those friends (but not already direct friends), and so on.
+    ``start_node`` itself never appears in any layer, and each user appears only
+    in the earliest (closest) layer that reaches them.
+
+    Args:
+        start_node: the node (user) to begin the search from.
+        max_layers: the highest layer index to generate; ``None`` traverses
+            until the graph is exhausted. A value of ``1`` yields layers 0 and 1.
+
+    Returns:
+        A dictionary mapping each layer index to the list of user IDs at that
+        distance. Never ``None``, but may be empty (e.g. a user with no friends).
+    """
+
+    layers: dict[int, list[uuid.UUID]] = {}
+
+    # The start node is marked visited up front so it can never reappear as one
+    # of its own (possibly transitive) friends.
+    visited: set[uuid.UUID] = {start_node}
+    frontier: list[uuid.UUID] = [start_node]
+    current_layer = 0
+
+    while frontier:
+
+        # Collect the not-yet-seen friends of everyone in the current frontier;
+        # these form the next layer out from the start node.
+        next_frontier: list[uuid.UUID] = []
+        for node in frontier:
+            for friend in friends.friendship_service.get_friends(node):
+                if friend not in visited:
+                    visited.add(friend)
+                    next_frontier.append(friend)
+
+        # No new users were reached, so the graph is exhausted.
+        if not next_frontier:
+            break
+
+        layers[current_layer] = next_frontier
+
+        # Stop once the requested depth has been produced.
+        if max_layers is not None and current_layer >= max_layers:
+            break
+
+        frontier = next_frontier
+        current_layer += 1
+
+    return layers
+
