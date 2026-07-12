@@ -6,9 +6,10 @@ friends. Orchestrates the ``Friendship`` domain model from ``base`` with the
 in-memory repository, keeping persistence details out of callers.
 """
 
-import base
+import friends.base as base
 import datetime
-import friendship_repository
+import friends.friendship_repository as friendship_repository
+import friends.connections as connections
 import uuid
 
 def send_friend_request(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
@@ -113,7 +114,7 @@ def get_friends(user_id: uuid.UUID) -> list[uuid.UUID]:
     # Retrieve all friendships from the repository and initialise the user's
     # friend list.
     all_friendships = friendship_repository._repository.find_all()
-    friend_list = []
+    friend_list: list[uuid.UUID] = []
 
     for friendship in all_friendships:
 
