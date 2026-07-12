@@ -14,33 +14,37 @@ if _SRC not in sys.path:
 
 import attendance  # noqa: E402  (imported after the sys.path bootstrap above)
 
+# Type alias of a Payload passed to a handler, formed of str keys, and str
+# elements
+type IncomingPayload = dict[str, str]
+
 # Type alias of a Payload returned by a handler, formed of str keys, and
 # list[str] elements
-type Payload = dict[str, list[str]]
+type OutgoingPayload = dict[str, list[str]]
 
 # Type alias of a callable Handler, which accepts a str as a parameter, and
 # returns a Payload
-type Handler = collections.abc.Callable[[str], Payload]
+type Handler = collections.abc.Callable[[IncomingPayload], OutgoingPayload]
 
 #TODO
-def get_user_badges(payload: str):
+def get_user_badges(payload: IncomingPayload) -> OutgoingPayload:
     return {"badges": ["First Event", "Social5"]}
 
 #TODO
-def get_user_friends(payload: str):
+def get_user_friends(payload: IncomingPayload) -> OutgoingPayload:
     return {"friends": ["James", "Jamie"]}
 
 #TODO
-def award_badge(payload: str):
+def award_badge(payload: IncomingPayload) -> OutgoingPayload:
     raise ValueError("THIS IS A TEST ERROR")
 
 #TODO
-def get_recommended_events(payload: str):
+def get_recommended_events(payload: IncomingPayload) -> OutgoingPayload:
     return {"events": ["cd1e0662-beab-4fc0-af84-9dc29c98d561",
                        "0c51b12f-6bec-4172-bba0-25bba3bef9d9"]}
 
 
-def record_attendance(payload: dict) -> Payload:
+def record_attendance(payload: IncomingPayload) -> OutgoingPayload:
     attendee_id = uuid.UUID(payload["userId"])
     event_id = uuid.UUID(payload["eventId"])
     attendance.record_attendance(attendee_id, event_id)
@@ -109,7 +113,7 @@ def main():
             handler = factory.get_handler(msg_type)
             result_payload = handler(payload)
 
-            response: dict[str, str | Payload] = {
+            response: dict[str, str | OutgoingPayload] = {
                 "status": "ok",
                 "payload": result_payload,
             }
