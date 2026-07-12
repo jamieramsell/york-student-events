@@ -159,28 +159,40 @@ def is_friend(id1: uuid.UUID, id2: uuid.UUID) -> bool:
 
 def get_friend_circle(
     user_id: uuid.UUID,
-    max_layers: int | None = None
-    ) -> dict[int, list[uuid.UUID]]:
+    max_layers: int | None = None,
+    grouping: bool = True
+    ) -> dict[int, set[uuid.UUID]] | set[uuid.UUID]:
     """Algorithm used to discover and generate the layers of the interactive
     maps of friend networks.
 
-    Results are generated as a dictionary, with integer keys which represent the
-    number of friends between two users, and list[UUID] values, which store the
-    IDs of the users at that given level.
+    If grouping is enabled (which is the default option), results are generated
+    as a dictionary, with integer keys which represent the number of friends
+    between two users, and list[UUID] values, which store the IDs of the users
+    at that given level.
 
     The users in layer 0 are those who are directly friends with the target
     user, users in layer 1 share a common friend with the user, users in layer 2
     have a connection with the given user through two other friends, and so on.
 
+    If grouping is disabled, the program uses a more efficient depth-first
+    searching algorithm (as opposed to breadth-first), and returns user IDs in
+    a plain set.
+
     Args:
         user_id: The target user's ID.
         max_layers: The maximum depth to generate. A value of 1 means that
             layers 0 and 1 will be generated.
+        grouping: whether or not to group the circle into layers.
     
     Returns:
-        A dictionary, with integer keys representing the number of friends
-        between two users, and list values, which store the IDs of the users at
-        that given level. Never ``None``, but may be empty.
+        If grouping is enabled, returns a ``dict[int, set[uuid.UUID]]``, where
+        integer keys represent the layers (the number of friends that exist
+        on the path between two users), and set values, which store
+        the IDs of the users at that given level.
+
+        If grouping is disabled, returns a simple set of connected users' IDs.
+
+        Return results are never ``None``, but may be empty.
 
     Raises:
         ValueError: if the given user could not be found.
@@ -198,6 +210,10 @@ def get_friend_circle(
                      for friendship in all_friendships)
 
     if not user_known:
-        raise ValueError("The given user could not be found.")
+        raise ValueError("The given user could not be found: either they don't"
+                         + " exist, or they have no friends.")
 
-    return connections.bfs_friend_layers(user_id, max_layers)
+    if grouping:
+        return connections.bfs_friend_layers(user_id, max_layers)
+    else:
+        return connections.dfs_recursion(user_id, set())

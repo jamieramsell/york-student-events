@@ -33,7 +33,7 @@ def dfs_recursion(start_node: uuid.UUID,
 def bfs_friend_layers(
     start_node: uuid.UUID,
     max_layers: int | None = None
-) -> dict[int, list[uuid.UUID]]:
+) -> dict[int, set[uuid.UUID]]:
     """Traverses a friendship graph breadth-first, grouping reachable users by
     their distance from the start node.
 
@@ -45,31 +45,33 @@ def bfs_friend_layers(
     Args:
         start_node: the node (user) to begin the search from.
         max_layers: the highest layer index to generate; ``None`` traverses
-            until the graph is exhausted. A value of ``1`` yields layers 0 and 1.
+            until the graph is exhausted. A value of ``1`` yields layers 0 and
+            1.
 
     Returns:
-        A dictionary mapping each layer index to the list of user IDs at that
-        distance. Never ``None``, but may be empty (e.g. a user with no friends).
+        A dictionary mapping each layer index to the set of user IDs at that
+        distance. Never ``None``, but may be empty (e.g. a user with no
+        friends).
     """
 
-    layers: dict[int, list[uuid.UUID]] = {}
+    layers: dict[int, set[uuid.UUID]] = {}
 
     # The start node is marked visited up front so it can never reappear as one
     # of its own (possibly transitive) friends.
     visited: set[uuid.UUID] = {start_node}
-    frontier: list[uuid.UUID] = [start_node]
+    frontier: set[uuid.UUID] = {start_node}
     current_layer = 0
 
     while frontier:
 
         # Collect the not-yet-seen friends of everyone in the current frontier;
         # these form the next layer out from the start node.
-        next_frontier: list[uuid.UUID] = []
+        next_frontier: set[uuid.UUID] = set()
         for node in frontier:
             for friend in friends.friendship_service.get_friends(node):
                 if friend not in visited:
                     visited.add(friend)
-                    next_frontier.append(friend)
+                    next_frontier.add(friend)
 
         # No new users were reached, so the graph is exhausted.
         if not next_frontier:
