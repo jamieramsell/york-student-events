@@ -23,7 +23,10 @@ public enum RequestType {
   GET_USER_EVENTS("GET_USER_EVENTS"),
 
   /** Request the event recommendations for a user. */
-  GET_RECOMMENDED_EVENTS("GET_RECOMMENDED_EVENTS");
+  GET_RECOMMENDED_EVENTS("GET_RECOMMENDED_EVENTS"),
+  
+  /** Record a user's attendance to a particular event. */
+  RECORD_ATTENDANCE("RECORD_ATTENDANCE");
 
   private final String request;
 

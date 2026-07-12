@@ -13,7 +13,7 @@ import java.util.UUID;
  * @see AwardBadgePayload
  * @see RequestType
  */
-sealed interface IPayload permits UserIdPayload, AwardBadgePayload {
+sealed interface IPayload permits UserIdPayload, AwardBadgePayload, AttendancePayload {
 
   /** Returns the ID of the user this request targets. */
   UUID userId();
