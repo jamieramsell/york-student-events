@@ -186,4 +186,18 @@ def get_friend_circle(
         ValueError: if the given user could not be found.
         ValueError: if ``max_layers < 0``.
     """
-    ...
+
+    if max_layers is not None and max_layers < 0:
+        raise ValueError("max_layers must not be negative.")
+
+    # api-core has no user registry, so the friend graph is the only source of
+    # truth for whether a user exists: a user is "known" if they participate in
+    # at least one friendship record (pending or accepted).
+    all_friendships = friendship_repository._repository.find_all()
+    user_known = any(user_id in friendship.get_id()
+                     for friendship in all_friendships)
+
+    if not user_known:
+        raise ValueError("The given user could not be found.")
+
+    return connections.bfs_friend_layers(user_id, max_layers)
