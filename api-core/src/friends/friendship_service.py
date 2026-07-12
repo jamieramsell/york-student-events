@@ -194,8 +194,8 @@ def is_friend(id1: uuid.UUID, id2: uuid.UUID) -> bool:
 
 def get_friend_circle(
     user_id: uuid.UUID,
-    max_layers: int | None = None,
-    grouping: bool = True
+    grouping: bool = True,
+    max_layers: int | None = None
     ) -> dict[int, set[uuid.UUID]] | set[uuid.UUID]:
     """Algorithm used to discover and generate the layers of the interactive
     maps of friend networks.
@@ -219,11 +219,11 @@ def get_friend_circle(
 
     Args:
         user_id: The target user's ID.
+        grouping: whether or not to group the circle into layers.
         max_layers: The maximum depth to generate. A value of 1 means that
             layers 0 and 1 will be generated. Ignored when ``grouping`` is
             ``False``.
-        grouping: whether or not to group the circle into layers.
-    
+        
     Returns:
         If grouping is enabled, returns a ``dict[int, set[uuid.UUID]]``, where
         integer keys represent the layers (the number of friends that exist
