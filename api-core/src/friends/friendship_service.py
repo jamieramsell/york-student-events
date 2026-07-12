@@ -210,13 +210,18 @@ def get_friend_circle(
     have a connection with the given user through two other friends, and so on.
 
     If grouping is disabled, the program uses a more efficient depth-first
-    searching algorithm (as opposed to breadth-first), and returns user IDs in
-    a plain set.
+    searching algorithm (as opposed to breadth-first), and returns the connected
+    users' IDs in a plain set. In this mode ``max_layers`` is ignored: the whole
+    reachable circle is returned, as depth-bounding a depth-first traversal
+    cannot reliably yield every user within a given distance.
+
+    In either mode the target user is never included in the result.
 
     Args:
         user_id: The target user's ID.
         max_layers: The maximum depth to generate. A value of 1 means that
-            layers 0 and 1 will be generated.
+            layers 0 and 1 will be generated. Ignored when ``grouping`` is
+            ``False``.
         grouping: whether or not to group the circle into layers.
     
     Returns:
@@ -250,5 +255,12 @@ def get_friend_circle(
 
     if grouping:
         return connections.bfs_friend_layers(user_id, max_layers)
-    else:
-        return connections.dfs_recursion(user_id, set())
+
+    # grouping disabled: a flat depth-first sweep of the user's whole connected
+    # component -- the efficient path for large circles where only reachability,
+    # not distance, matters. dfs_recursion seeds its visited set with the target
+    # user, so remove them to match the grouped form (which never includes the
+    # target). max_layers is intentionally not threaded through here.
+    reachable = connections.dfs_recursion(user_id, set())
+    reachable.discard(user_id)
+    return reachable

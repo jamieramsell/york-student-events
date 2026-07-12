@@ -468,3 +468,38 @@ class TestFriendshipService:
         friendship_service.accept_friend_request(c, b)
         circle = friendship_service.get_friend_circle(a)
         assert circle == {0: {b}, 1: {c}}
+
+    # -- get_friend_circle (grouping disabled) -------------------------------
+    def test_ungrouped_returns_flat_reachable_set(self):
+        a, b, c, d = (uuid.uuid4() for _ in range(4))
+        self._befriend(a, b)
+        self._befriend(b, c)
+        self._befriend(c, d)
+        circle = friendship_service.get_friend_circle(a, grouping=False)
+        assert circle == {b, c, d}
+
+    def test_ungrouped_excludes_the_target_user(self):
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        self._befriend(a, b)
+        self._befriend(b, c)
+        assert a not in friendship_service.get_friend_circle(a, grouping=False)
+
+    def test_ungrouped_ignores_max_layers(self):
+        # The depth bound applies only to the grouped (BFS) form; the flat form
+        # returns the whole reachable circle regardless of max_layers.
+        a, b, c, d = (uuid.uuid4() for _ in range(4))
+        self._befriend(a, b)
+        self._befriend(b, c)
+        self._befriend(c, d)  # three hops from a
+        circle = friendship_service.get_friend_circle(a, max_layers=1,
+                                                      grouping=False)
+        assert circle == {b, c, d}
+
+    def test_ungrouped_pending_only_user_is_empty(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(a, b)  # left PENDING
+        assert friendship_service.get_friend_circle(a, grouping=False) == set()
+
+    def test_ungrouped_unknown_user_raises_value_error(self):
+        with pytest.raises(ValueError):
+            friendship_service.get_friend_circle(uuid.uuid4(), grouping=False)
