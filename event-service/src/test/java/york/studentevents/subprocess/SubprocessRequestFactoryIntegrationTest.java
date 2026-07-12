@@ -31,6 +31,13 @@ class SubprocessRequestFactoryIntegrationTest {
   private static final UUID CANNED_EVENT_ID =
       UUID.fromString("22222222-2222-2222-2222-222222222222");
 
+  // The user recommended by the responder's canned friend graph
+  // (InMemoryCannedFriendshipRepository): USER_ID doubles as the canned
+  // friend-seeker, who shares a mutual friend with this user but is not
+  // directly connected to them, so they are the sole recommendation.
+  private static final UUID CANNED_RECOMMENDED_FRIEND_ID =
+      UUID.fromString("44444444-4444-4444-4444-444444444444");
+
   @BeforeEach
   void requirePython3() {
     assumeTrue(python3Available(), "python3 is not available on PATH");
@@ -94,5 +101,22 @@ class SubprocessRequestFactoryIntegrationTest {
         () -> SubprocessRequestFactory.sendRequest(
             SubprocessRequestFactory.buildRecordAttendance(USER_ID, CANNED_EVENT_ID)));
     assertTrue(exception.getMessage().contains("already been recorded"));
+  }
+
+  @Test
+  void getRecommendedFriendsReturnsCannedRecommendationInOkEnvelope() {
+    JsonObject response = send(SubprocessRequestFactory.buildGetRecommendedFriends(USER_ID));
+    assertEquals("ok", response.get("status").getAsString());
+    JsonArray friends = response.getAsJsonObject("payload").getAsJsonArray("friends");
+    assertEquals(1, friends.size());
+    assertEquals(CANNED_RECOMMENDED_FRIEND_ID.toString(), friends.get(0).getAsString());
+  }
+
+  @Test
+  void getRecommendedFriendsForUnknownUserReturnsEmptyList() {
+    JsonObject response = send(
+        SubprocessRequestFactory.buildGetRecommendedFriends(UUID.randomUUID()));
+    assertEquals("ok", response.get("status").getAsString());
+    assertEquals(0, response.getAsJsonObject("payload").getAsJsonArray("friends").size());
   }
 }
