@@ -1,6 +1,7 @@
 import collections.abc
 import json
 import os
+import recommendations
 import sys
 import uuid
 
@@ -51,6 +52,14 @@ def record_attendance(payload: IncomingPayload) -> OutgoingPayload:
     return {}
 
 
+def get_recommended_friends(payload: IncomingPayload) -> OutgoingPayload:
+    user_id = uuid.UUID(payload["userId"])
+    return {
+        "friends": [str(recommended_friend_id) for recommended_friend_id
+                     in recommendations.find_new_friends(user_id)]
+    }
+
+
 class MessageHandlerFactory:
     """Routes incoming messages to their corresponding handler functions.
 
@@ -64,7 +73,8 @@ class MessageHandlerFactory:
             "GET_USER_FRIENDS": get_user_friends,
             "AWARD_BADGE": award_badge,
             "GET_RECOMMENDED_EVENTS": get_recommended_events,
-            "RECORD_ATTENDANCE": record_attendance
+            "RECORD_ATTENDANCE": record_attendance,
+            "GET_RECOMMENDED_FRIENDS": get_recommended_friends
         }
 
     def get_handler(self, message_type: str) -> Handler:
