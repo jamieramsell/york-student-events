@@ -28,6 +28,7 @@ class SubprocessRequestFactory {
    *
    * @see UserIdPayload
    * @see AwardBadgePayload
+   * @see AttendancePayload
    * @see RequestType
    */
   static record Request<T extends IPayload>(RequestType requestType, T payload) {}
@@ -144,6 +145,38 @@ class SubprocessRequestFactory {
   }
 
   /**
+   * Builds a JSON request for the subprocess to record a user's attendance to an event.
+   *
+   * @param userId the user's ID
+   * @param eventId the event's ID
+   * @return the JSON request envelope.
+   */
+  public static String buildRecordAttendance(UUID userId, UUID eventId) {
+    Request<AttendancePayload> request = new Request<>(
+        RequestType.RECORD_ATTENDANCE,
+        new AttendancePayload(userId, eventId)
+    );
+
+    return GSON.toJson(request);
+  }
+
+  /**
+   * Builds a JSON request for the subprocess to get a user's friend recommendations.
+   *
+   * @param userId the user's ID
+   * @return the JSON request envelope.
+   */
+  public static String buildGetRecommendedFriends(UUID userId) {
+    Request<UserIdPayload> request = new Request<>(
+        RequestType.GET_RECOMMENDED_FRIENDS,
+        new UserIdPayload(userId)
+    );
+
+    return GSON.toJson(request);
+  }
+
+
+  /**
    * Sends a JSON request to the subprocess and returns its JSON response.
    *
    * @param requestJson the JSON request to send to the subprocess; must be a
@@ -163,7 +196,7 @@ class SubprocessRequestFactory {
       // Launch the Python bridge as a fresh subprocess.
       Path scriptPath = resolveScriptPath();
       ProcessBuilder processBuilder = new ProcessBuilder(
-          "python3",
+          "python",
           scriptPath.toString()
       );
       Process process = processBuilder.start();

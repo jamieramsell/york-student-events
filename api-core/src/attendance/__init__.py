@@ -10,7 +10,10 @@ the service-level operations callers use to drive attendance operations.
 """
 
 from attendance.base import Attendance
-from attendance.attendance_repository import InMemoryAttendanceRepository
+from attendance.attendance_repository import (
+    InMemoryAttendanceRepository,
+    InMemoryCannedAttendanceRepository,
+)
 from attendance.attendance_service import (
     record_attendance,
     withdraw_attendance,
@@ -22,6 +25,7 @@ from attendance.attendance_service import (
 __all__ = [
     "Attendance",
     "InMemoryAttendanceRepository",
+    "InMemoryCannedAttendanceRepository",
     "record_attendance",
     "withdraw_attendance",
     "has_attended",

@@ -7,6 +7,9 @@ singleton injected into the service layer. This stands in for a database-backed
 repository during early development.
 """
 
+import datetime
+import uuid
+
 import attendance.base as base
 import repositories
 
@@ -42,8 +45,42 @@ class InMemoryAttendanceRepository(
     def find_all(self) -> list[base.Attendance]:
         return list(self.__dict.values())
 
+# Canonical canned attendance record seeded into every
+# InMemoryCannedAttendanceRepository. The attendee id matches the KNOWN_USER_ID
+# used by the bridge integration tests; the pair is what those tests re-record to
+# exercise the duplicate-rejection path.
+CANNED_ATTENDEE_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
+CANNED_EVENT_ID = uuid.UUID("22222222-2222-2222-2222-222222222222")
+
+
+class InMemoryCannedAttendanceRepository(InMemoryAttendanceRepository):
+    """In-memory attendance repository pre-seeded with a single canned record.
+
+    Behaves exactly like ``InMemoryAttendanceRepository`` but starts populated
+    with the ``(CANNED_ATTENDEE_ID, CANNED_EVENT_ID)`` attendance. This gives the
+    bridge responder deterministic, functional state to serve during end-to-end
+    testing: re-recording the canned pair surfaces the duplicate-attendance
+    error, while any other pair records successfully.
+
+    See Also:
+        InMemoryAttendanceRepository
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.save(
+            base.Attendance(
+                CANNED_ATTENDEE_ID, CANNED_EVENT_ID, datetime.datetime.now()
+            )
+        )
+
 # Variable used to inject an instance of a repository into attendance_service.
 # Package-internal (single leading underscore): consumed by other modules in the
 # attendance package, but not part of the package's public API. Do not remove
 # unless changing the dependency!
-_repository = InMemoryAttendanceRepository()
+#
+# The bridge responder serves this singleton, so it defaults to the canned
+# repository to give end-to-end tests deterministic data. The Python test suite
+# swaps it for a bare InMemoryAttendanceRepository per test (see conftest.py),
+# so the seeded record is only ever visible over the subprocess bridge.
+_repository = InMemoryCannedAttendanceRepository()
