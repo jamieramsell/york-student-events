@@ -19,7 +19,7 @@ The `requestType` string must be one of the following:
 - `GET_USER_EVENTS`
 - `GET_RECOMMENDED_EVENTS`
 - `RECORD_ATTENDANCE`
-- `GET_RECOMMENDED_USERS`
+- `GET_RECOMMENDED_FRIENDS`
 
 For example:
 ```json
