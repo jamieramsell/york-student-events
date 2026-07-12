@@ -16,6 +16,7 @@ from friends.friendship_repository import InMemoryFriendshipRepository
 from friends.friendship_service import (
     accept_friend_request,
     get_friends,
+    get_pending_requests,
     is_friend,
     remove_friend,
     send_friend_request,
@@ -28,6 +29,7 @@ __all__ = [
     "InMemoryFriendshipRepository",
     "accept_friend_request",
     "get_friends",
+    "get_pending_requests",
     "is_friend",
     "remove_friend",
     "send_friend_request",

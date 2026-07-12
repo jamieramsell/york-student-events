@@ -133,6 +133,41 @@ def get_friends(user_id: uuid.UUID) -> list[uuid.UUID]:
     
     return friend_list
 
+def get_pending_requests(user_id: uuid.UUID) -> list[uuid.UUID]:
+    """Retrieves the IDs of users with a pending friendship with the user.
+
+    This is the counterpart to ``get_friends``: it yields only friendships that
+    are still awaiting acceptance, and excludes those that have been accepted.
+    The direction of the request is not distinguished -- both requests sent by
+    the user and requests received by the user are included.
+
+    Args:
+        user_id: The ID of the target user.
+
+    Returns:
+        A list of the IDs of users with a pending request to or from the target
+        user; will never be None, but may be empty.
+    """
+
+    # Retrieve all friendships from the repository and initialise the user's
+    # pending list.
+    all_friendships = friendship_repository._repository.find_all()
+    pending_list: list[uuid.UUID] = []
+
+    for friendship in all_friendships:
+
+        # If the current friendship is pending and involves the target user,
+        # then add the ID of the other party to the list.
+        if (user_id in friendship.get_id()
+            and friendship.friendship_status == base.FriendshipStatus.PENDING):
+
+            if friendship.user_id == user_id:
+                pending_list.append(friendship.friend_id)
+            else:
+                pending_list.append(friendship.user_id)
+
+    return pending_list
+
 def is_friend(id1: uuid.UUID, id2: uuid.UUID) -> bool:
     """Checks whether two users are friends.
 
@@ -167,7 +202,7 @@ def get_friend_circle(
 
     If grouping is enabled (which is the default option), results are generated
     as a dictionary, with integer keys which represent the number of friends
-    between two users, and list[UUID] values, which store the IDs of the users
+    between two users, and set[UUID] values, which store the IDs of the users
     at that given level.
 
     The users in layer 0 are those who are directly friends with the target

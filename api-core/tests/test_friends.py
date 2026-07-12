@@ -411,8 +411,8 @@ class TestFriendshipService:
         self._befriend(a, b)
         self._befriend(b, c)  # c is a's friend-of-friend, not a direct friend
         circle = friendship_service.get_friend_circle(a)
-        assert circle[0] == [b]
-        assert circle[1] == [c]
+        assert circle[0] == {b}
+        assert circle[1] == {c}
 
     def test_circle_places_each_user_in_nearest_layer_only(self):
         # c is both a direct friend of a and a friend of b; it must appear only
@@ -423,7 +423,7 @@ class TestFriendshipService:
         self._befriend(b, c)
         circle = friendship_service.get_friend_circle(a)
         assert set(circle[0]) == {b, c}
-        assert circle.get(1, []) == []
+        assert circle.get(1, set()) == set()
 
     def test_circle_excludes_pending_friends_of_friends(self):
         # b -> c is only pending, so c is never reached from a.
@@ -431,14 +431,14 @@ class TestFriendshipService:
         self._befriend(a, b)
         friendship_service.send_friend_request(b, c)  # stays PENDING
         circle = friendship_service.get_friend_circle(a)
-        assert circle == {0: [b]}
+        assert circle == {0: {b}}
 
     def test_circle_max_layers_zero_yields_only_layer_zero(self):
         a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
         self._befriend(a, b)
         self._befriend(b, c)
         circle = friendship_service.get_friend_circle(a, max_layers=0)
-        assert circle == {0: [b]}
+        assert circle == {0: {b}}
 
     def test_circle_max_layers_one_yields_layers_zero_and_one(self):
         a, b, c, d = (uuid.uuid4() for _ in range(4))
@@ -447,8 +447,8 @@ class TestFriendshipService:
         self._befriend(c, d)  # d sits at layer 2 and must be excluded
         circle = friendship_service.get_friend_circle(a, max_layers=1)
         assert set(circle) == {0, 1}
-        assert circle[0] == [b]
-        assert circle[1] == [c]
+        assert circle[0] == {b}
+        assert circle[1] == {c}
 
     def test_circle_none_max_layers_traverses_whole_chain(self):
         a, b, c, d = (uuid.uuid4() for _ in range(4))
@@ -456,7 +456,7 @@ class TestFriendshipService:
         self._befriend(b, c)
         self._befriend(c, d)
         circle = friendship_service.get_friend_circle(a)
-        assert circle == {0: [b], 1: [c], 2: [d]}
+        assert circle == {0: {b}, 1: {c}, 2: {d}}
 
     def test_circle_is_direction_independent(self):
         # Friendships are stored symmetrically, so the circle is the same
@@ -467,4 +467,4 @@ class TestFriendshipService:
         friendship_service.send_friend_request(c, b)  # c -> b
         friendship_service.accept_friend_request(c, b)
         circle = friendship_service.get_friend_circle(a)
-        assert circle == {0: [b], 1: [c]}
+        assert circle == {0: {b}, 1: {c}}
