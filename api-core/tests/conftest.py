@@ -1,11 +1,11 @@
 # api-core/tests/conftest.py
 """Pytest configuration and shared fixtures for the api-core test suite.
 
-The api-core modules use flat intra-package imports (e.g. ``import base``,
-``import repositories``, ``import friendship_repository``) rather than
-package-qualified ones, so the source roots must be on ``sys.path`` for the
-suite to resolve them. This file adds them so the suite runs from the repo root
-with ``python -m pytest api-core/tests/``.
+The api-core modules use package-qualified intra-package imports (e.g.
+``import friends.base as base``, ``import friends.friendship_repository``), so
+the ``src`` source root must be on ``sys.path`` for the suite to resolve them.
+This file adds it so the suite runs from the repo root with
+``python -m pytest api-core/tests/``.
 
 It also resets the module-level repository singletons before every test: the
 service layers operate on module-level ``_repository`` instances (the friends
@@ -18,11 +18,9 @@ import sys
 import pytest
 
 _SRC = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
-_FRIENDS = os.path.join(_SRC, "friends")
 
-for _path in (_SRC, _FRIENDS):
-    if _path not in sys.path:
-        sys.path.insert(0, _path)
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
 
 
 @pytest.fixture(autouse=True)
@@ -33,7 +31,7 @@ def reset_repository():
     so replacing the singleton here is picked up by all service functions.
     """
 
-    import friendship_repository
+    import friends.friendship_repository as friendship_repository
 
     friendship_repository._repository = (
         friendship_repository.InMemoryFriendshipRepository()
