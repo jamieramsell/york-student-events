@@ -138,7 +138,7 @@ def find_new_friends(user_id: uuid.UUID) -> set[uuid.UUID]:
     if len(friends.get_friends(user_id)) == 0:
         return set()
 
-    friend_circle = friends.get_friend_circle(user_id, 2)
+    friend_circle = friends.get_friend_circle(user_id, max_layers=2)
     TARGET_RECOMMENDATIONS = 10
 
     recommended = __iterate_over_graph_layers(friend_circle,
