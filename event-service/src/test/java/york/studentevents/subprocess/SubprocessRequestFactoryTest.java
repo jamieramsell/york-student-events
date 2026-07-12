@@ -61,4 +61,12 @@ class SubprocessRequestFactoryTest {
     assertEquals(EVENT_ID.toString(), payload.get("eventId").getAsString());
   }
 
+  @Test
+  void buildGetRecommendedFriendsProducesEnvelope() {
+    JsonObject envelope = parse(SubprocessRequestFactory.buildGetRecommendedFriends(USER_ID));
+    assertEquals("GET_RECOMMENDED_FRIENDS", envelope.get("requestType").getAsString());
+    assertEquals(
+        USER_ID.toString(), envelope.getAsJsonObject("payload").get("userId").getAsString());
+  }
+
 }
