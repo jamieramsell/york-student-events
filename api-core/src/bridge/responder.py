@@ -1,6 +1,8 @@
-import sys
-import json
+import attendance
 import collections.abc
+import json
+import sys
+import uuid
 
 # Type alias of a Payload returned by a handler, formed of str keys, and
 # list[str] elements
@@ -27,6 +29,15 @@ def get_recommended_events(payload: str):
     return {"events": ["cd1e0662-beab-4fc0-af84-9dc29c98d561",
                        "0c51b12f-6bec-4172-bba0-25bba3bef9d9"]}
 
+
+def record_attendance(payload: str) -> Payload:
+    with json.loads(payload) as payload_dict:
+        attendee_id = uuid.UUID(payload_dict["userId"])
+        event_id = uuid.UUID(payload_dict["eventId"])
+        attendance.record_attendance(attendee_id, event_id)
+        return {}
+
+
 class MessageHandlerFactory:
     """Routes incoming messages to their corresponding handler functions.
 
@@ -39,7 +50,8 @@ class MessageHandlerFactory:
             "GET_USER_BADGES": get_user_badges,
             "GET_USER_FRIENDS": get_user_friends,
             "AWARD_BADGE": award_badge,
-            "GET_RECOMMENDED_EVENTS": get_recommended_events
+            "GET_RECOMMENDED_EVENTS": get_recommended_events,
+            "RECORD_ATTENDANCE": record_attendance
         }
 
     def get_handler(self, message_type: str) -> Handler:
@@ -51,7 +63,8 @@ class MessageHandlerFactory:
                 - `GET_USER_BADGES`,
                 - `GET_USER_FRIENDS`,
                 - `AWARD_BADGE`,
-                - `GET_RECOMMENDED_EVENTS`
+                - `GET_RECOMMENDED_EVENTS`,
+                - `RECORD_ATTENDANCE`
 
         Raises:
             ValueError: If the message type is unknown, or doesn't have a
