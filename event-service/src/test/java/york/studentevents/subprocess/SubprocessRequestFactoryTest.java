@@ -12,6 +12,9 @@ class SubprocessRequestFactoryTest {
   private static final UUID USER_ID =
       UUID.fromString("11111111-1111-1111-1111-111111111111");
 
+  private static final UUID EVENT_ID =
+      UUID.fromString("22222222-2222-2222-2222-222222222222");
+
   private static JsonObject parse(String json) {
     return JsonParser.parseString(json).getAsJsonObject();
   }
@@ -40,4 +43,22 @@ class SubprocessRequestFactoryTest {
     assertEquals(USER_ID.toString(), payload.get("userId").getAsString());
     assertEquals("Social5", payload.get("badgeName").getAsString());
   }
+
+  @Test
+  void buildGetRecommendedEventsProducesEnvelope() {
+    JsonObject envelope = parse(SubprocessRequestFactory.buildGetRecommendedEvents(USER_ID));
+    assertEquals("GET_RECOMMENDED_EVENTS", envelope.get("requestType").getAsString());
+    assertEquals(
+        USER_ID.toString(), envelope.getAsJsonObject("payload").get("userId").getAsString());
+  }
+
+  @Test
+  void buildRecordAttendenceIncludesUserIdAndEventId() {
+    JsonObject envelope = parse(SubprocessRequestFactory.buildRecordAttendance(USER_ID, EVENT_ID));
+    assertEquals("RECORD_ATTENDANCE", envelope.get("requestType").getAsString());
+    JsonObject payload = envelope.getAsJsonObject("payload");
+    assertEquals(USER_ID.toString(), payload.get("userId").getAsString());
+    assertEquals(EVENT_ID.toString(), payload.get("eventId").getAsString());
+  }
+
 }
