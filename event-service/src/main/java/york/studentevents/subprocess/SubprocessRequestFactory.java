@@ -28,6 +28,7 @@ class SubprocessRequestFactory {
    *
    * @see UserIdPayload
    * @see AwardBadgePayload
+   * @see AttendancePayload
    * @see RequestType
    */
   static record Request<T extends IPayload>(RequestType requestType, T payload) {}
