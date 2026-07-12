@@ -30,12 +30,11 @@ def get_recommended_events(payload: str):
                        "0c51b12f-6bec-4172-bba0-25bba3bef9d9"]}
 
 
-def record_attendance(payload: str) -> Payload:
-    with json.loads(payload) as payload_dict:
-        attendee_id = uuid.UUID(payload_dict["userId"])
-        event_id = uuid.UUID(payload_dict["eventId"])
-        attendance.record_attendance(attendee_id, event_id)
-        return {}
+def record_attendance(payload: dict) -> Payload:
+    attendee_id = uuid.UUID(payload["userId"])
+    event_id = uuid.UUID(payload["eventId"])
+    attendance.record_attendance(attendee_id, event_id)
+    return {}
 
 
 class MessageHandlerFactory:
