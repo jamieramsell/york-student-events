@@ -143,7 +143,7 @@ class SubprocessRequestFactory {
     return GSON.toJson(request);
   }
 
-    /**
+  /**
    * Builds a JSON request for the subprocess to record a user's attendance to an event.
    *
    * @param userId the user's ID
