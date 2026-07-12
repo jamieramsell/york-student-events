@@ -179,7 +179,7 @@ class SubprocessRequestFactory {
       // Launch the Python bridge as a fresh subprocess.
       Path scriptPath = resolveScriptPath();
       ProcessBuilder processBuilder = new ProcessBuilder(
-          "python3",
+          "python",
           scriptPath.toString()
       );
       Process process = processBuilder.start();
