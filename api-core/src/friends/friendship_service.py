@@ -173,7 +173,8 @@ def get_friend_circle(
 
     Args:
         user_id: The target user's ID.
-        max_layers: The maximum number of layers (depth) to generate.
+        max_layers: The maximum depth to generate. A value of 1 means that
+            layers 0 and 1 will be generated.
     
     Returns:
         A dictionary, with integer keys representing the number of friends
