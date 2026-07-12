@@ -11,9 +11,12 @@ import importlib.util
 import json
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
 import pytest
+
+from attendance.attendance_repository import CANNED_ATTENDEE_ID, CANNED_EVENT_ID
 
 _RESPONDER_PATH = Path(__file__).resolve().parents[1] / "src" / "bridge" / "responder.py"
 
@@ -51,6 +54,16 @@ class TestHandlers:
         with pytest.raises(ValueError):
             responder.award_badge({})
 
+    def test_record_attendance_records_and_returns_empty_payload(self):
+        payload = {"userId": str(uuid.uuid4()), "eventId": str(uuid.uuid4())}
+        assert responder.record_attendance(payload) == {}
+
+    def test_record_attendance_duplicate_raises(self):
+        payload = {"userId": str(uuid.uuid4()), "eventId": str(uuid.uuid4())}
+        responder.record_attendance(payload)
+        with pytest.raises(ValueError):
+            responder.record_attendance(payload)
+
 
 class TestMessageHandlerFactory:
     def test_returns_handler_for_known_type(self):
@@ -58,6 +71,10 @@ class TestMessageHandlerFactory:
         assert factory.get_handler("GET_USER_BADGES") is responder.get_user_badges
         assert factory.get_handler("GET_USER_FRIENDS") is responder.get_user_friends
         assert factory.get_handler("AWARD_BADGE") is responder.award_badge
+        assert (
+            factory.get_handler("RECORD_ATTENDANCE")
+            is responder.record_attendance
+        )
 
     def test_unknown_type_raises(self):
         factory = responder.MessageHandlerFactory()
@@ -99,3 +116,36 @@ class TestResponderSubprocess:
         assert result.returncode == 1
         response = json.loads(result.stdout.strip())
         assert response["status"] == "error"
+
+    def test_record_attendance_new_pair_succeeds(self):
+        request = json.dumps(
+            {
+                "requestType": "RECORD_ATTENDANCE",
+                "payload": {
+                    "userId": str(uuid.uuid4()),
+                    "eventId": str(uuid.uuid4()),
+                },
+            }
+        )
+        result = _run(request + "\n")
+        assert result.returncode == 0
+        response = json.loads(result.stdout.strip())
+        assert response == {"status": "ok", "payload": {}}
+
+    def test_record_attendance_duplicate_of_canned_record_errors(self):
+        # The subprocess serves the canned repository, which is pre-seeded with
+        # this pair, so re-recording it must be rejected as a duplicate.
+        request = json.dumps(
+            {
+                "requestType": "RECORD_ATTENDANCE",
+                "payload": {
+                    "userId": str(CANNED_ATTENDEE_ID),
+                    "eventId": str(CANNED_EVENT_ID),
+                },
+            }
+        )
+        result = _run(request + "\n")
+        assert result.returncode == 1
+        response = json.loads(result.stdout.strip())
+        assert response["status"] == "error"
+        assert "already been recorded" in response["error"]
