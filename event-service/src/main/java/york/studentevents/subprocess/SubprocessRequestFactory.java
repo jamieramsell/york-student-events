@@ -143,6 +143,22 @@ class SubprocessRequestFactory {
     return GSON.toJson(request);
   }
 
+    /**
+   * Builds a JSON request for the subprocess to record a user's attendance to an event.
+   *
+   * @param userId the user's ID
+   * @param eventId the event's ID
+   * @return the JSON request envelope.
+   */
+  public static String buildRecordAttendance(UUID userId, UUID eventId) {
+    Request<AttendancePayload> request = new Request<>(
+        RequestType.RECORD_ATTENDANCE,
+        new AttendancePayload(userId, eventId)
+    );
+
+    return GSON.toJson(request);
+  }
+
   /**
    * Sends a JSON request to the subprocess and returns its JSON response.
    *
