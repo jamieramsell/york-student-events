@@ -1,19 +1,19 @@
 import collections.abc
 import json
 import os
-import recommendations
 import sys
 import uuid
 
 # responder.py is launched as a standalone subprocess (by event-service and by
 # the test suite), so the api-core ``src`` root is not guaranteed to be on
-# ``sys.path``. Anchor it relative to this file so ``import attendance``
-# resolves regardless of the working directory the process is launched from.
+# ``sys.path``. Anchor it relative to this file so the api-core packages below
+# resolve regardless of the working directory the process is launched from.
 _SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
 import attendance  # noqa: E402  (imported after the sys.path bootstrap above)
+import recommendations  # noqa: E402  (imported after the sys.path bootstrap above)
 
 # Type alias of a Payload passed to a handler, formed of str keys, and str
 # elements
