@@ -5,7 +5,7 @@ This is the inverse of ``responder.py``: instead of event-service
 spawning Python, api-core spawns the Java ``SubprocessResponder`` as a fresh
 process per call, writes a JSON request envelope to its stdin, and reads a JSON
 response envelope from its stdout. The envelope contract is documented in
-``docs/docs/subprocess-contract.md``.
+``docs/subprocess-contract.md``.
 """
 
 from __future__ import annotations
