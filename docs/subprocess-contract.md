@@ -18,6 +18,8 @@ The `requestType` string must be one of the following:
 - `AWARD_BADGE` 
 - `GET_USER_EVENTS`
 - `GET_RECOMMENDED_EVENTS`
+- `RECORD_ATTENDANCE`
+- `GET_RECOMMENDED_FRIENDS`
 
 For example:
 ```json
