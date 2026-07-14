@@ -23,7 +23,7 @@ import york.studentevents.events.StudentEventService;
  *
  * <p>Each invocation reads a single request envelope, routes on its {@link RequestType}, and emits
  * a response envelope. Both follow the shared JSON contract documented in
- * {@code docs/docs/subprocess-contract.md}. A malformed request, an unknown or unsupported request
+ * {@code docs/subprocess-contract.md}. A malformed request, an unknown or unsupported request
  * type, or an unknown user yields an {@code error} envelope and a non-zero exit status.
  *
  * <p>Only {@link RequestType#GET_USER_EVENTS} is currently supported, since {@code event-service}

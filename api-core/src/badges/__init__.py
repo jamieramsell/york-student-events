@@ -33,7 +33,6 @@ from badges.evaluation import (
     build_award_context,
     register
 )
-from badges.predicates import AwardContext, AttendedEvent
 
 __all__ = [
     "Badge",
