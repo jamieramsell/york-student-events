@@ -23,6 +23,48 @@ if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
 
+# Canned event info the stubbed bridge serves; the values must parse the way the
+# badges evaluation code expects (``host`` a UUID, ``start`` ISO-8601, ``category``
+# a string), and match the canned data in ``SubprocessResponder.java``.
+_CANNED_EVENT_INFO = {
+    "host": "22222222-2222-2222-2222-222222222222",
+    "start": "2026-09-15T18:00:00",
+    "category": "SOCIAL",
+}
+
+
+@pytest.fixture(autouse=True)
+def mock_bridge(request, monkeypatch):
+    """Stub the subprocess bridge so no unit test spawns a real responder.
+
+    Several service paths reach across the bridge transitively: recording an
+    attendance or accepting a friend request publishes an ``activity`` event,
+    which the badges ``evaluation_listener`` answers by calling
+    ``bridge.get_event_info`` for each attended event; ``recommendations`` calls
+    ``bridge.get_user_events``. Left unmocked, those spawn the real Java
+    responder, which only recognises a few canned UUIDs and raises
+    ``SubprocessError`` for the random ids these tests use. Patching both bridge
+    entry points to return canned data keeps the unit suite free of the
+    JDK/subprocess dependency.
+
+    Tests marked ``integration`` opt out to exercise the real round trip; a test
+    wanting bespoke bridge behaviour (e.g. ``test_recommendations``'s ``world``)
+    simply re-patches these names on top.
+    """
+
+    if request.node.get_closest_marker("integration"):
+        yield
+        return
+
+    import bridge
+
+    monkeypatch.setattr(
+        bridge, "get_event_info", lambda event_id: dict(_CANNED_EVENT_INFO)
+    )
+    monkeypatch.setattr(bridge, "get_user_events", lambda user_id: [])
+    yield
+
+
 @pytest.fixture(autouse=True)
 def reset_repository():
     """Give every test a clean, isolated friends repository.
