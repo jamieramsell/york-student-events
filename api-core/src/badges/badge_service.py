@@ -152,7 +152,7 @@ def has_badge(
         return False
     
 
-def get_user_badges(user_id: uuid.UUID) -> list[uuid.UUID]:
+def get_user_badges(user_id: uuid.UUID) -> list[base.Badge]:
     """Retrieves a list of IDs of the badges that the user has earned.
 
     Args:
@@ -161,18 +161,28 @@ def get_user_badges(user_id: uuid.UUID) -> list[uuid.UUID]:
     Returns:
         A list of the IDs of the user's earned badges; will never be None, but
         may be empty.
+
+    Raises:
+        ValueError: if the user has been awarded with a badge that does not
+            exist.
     """
     
     # Retrieve all award records from the repository and initialise the user's
     # badge list.
     all_awards = awarded_badge_repository._repository.find_all()
-    badge_list: list[uuid.UUID] = []
+    badge_list: list[base.Badge] = []
 
     for award in all_awards:
         # If the current award points to the target user, then add the ID of its
         # badge to the list
         if (award.get_id().__contains__(user_id)):
-            badge_list.append(award.badge_id)
+            badge = badge_repository._repository.find_by_id(award.badge_id)
+
+            if badge is None:
+                raise ValueError("A badge which does not exist has been awarded"
+                                 + " to the user")
+
+            badge_list.append(badge)
     
     return badge_list
 
