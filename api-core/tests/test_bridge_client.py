@@ -16,7 +16,12 @@ from unittest import mock
 import pytest
 
 from bridge import client
-from bridge.client import SubprocessError, get_event_info, get_user_events
+from bridge.client import (
+    SubprocessError,
+    get_event_info,
+    get_user_events,
+    notify_badge_awarded,
+)
 
 OK_LINE = json.dumps({"status": "ok", "payload": {"events": ["e1", "e2"]}}) + "\n"
 
@@ -174,6 +179,33 @@ class TestGetEventInfo:
         proc = _fake_process(stdout=line, returncode=1)
         with _patch_popen(proc), pytest.raises(SubprocessError, match="not found"):
             get_event_info("e")
+
+
+class TestNotifyBadgeAwarded:
+    def test_builds_request_and_returns_none(self, monkeypatch):
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        # A successful notification has an empty payload; the client returns None.
+        line = json.dumps({"status": "ok", "payload": {}}) + "\n"
+        proc = _fake_process(stdout=line)
+        with _patch_popen(proc) as popen:
+            result = notify_badge_awarded("user-123", "First Event")
+        assert result is None
+        # The request carries the user id and badge name under the BADGE_AWARDED
+        # envelope...
+        sent = json.loads(proc.communicate.call_args.args[0])
+        assert sent == {
+            "requestType": "BADGE_AWARDED",
+            "payload": {"userId": "user-123", "badgeName": "First Event"},
+        }
+        # ...and the resolved classpath is passed straight to java -cp.
+        assert popen.call_args.args[0] == ["java", "-cp", "fake-cp", client.RESPONDER_MAIN_CLASS]
+
+    def test_propagates_responder_error(self, monkeypatch):
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        line = json.dumps({"status": "error", "error": "User u not found"}) + "\n"
+        proc = _fake_process(stdout=line, returncode=1)
+        with _patch_popen(proc), pytest.raises(SubprocessError, match="not found"):
+            notify_badge_awarded("u", "First Event")
 
 
 class TestParsingHelpers:

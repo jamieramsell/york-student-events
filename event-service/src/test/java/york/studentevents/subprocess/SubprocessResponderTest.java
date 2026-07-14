@@ -41,6 +41,12 @@ class SubprocessResponderTest {
         "{\"requestType\":\"%s\",\"payload\":{\"eventId\":\"%s\"}}", requestType, eventId);
   }
 
+  private static String badgeAwardedRequest(String userId, String badgeName) {
+    return String.format(
+        "{\"requestType\":\"BADGE_AWARDED\",\"payload\":{\"userId\":\"%s\",\"badgeName\":\"%s\"}}",
+        userId, badgeName);
+  }
+
   private static Result run(String requestLine) throws Exception {
     String javaBin = Path.of(System.getProperty("java.home"), "bin", "java").toString();
     ProcessBuilder builder = new ProcessBuilder(
@@ -121,6 +127,37 @@ class SubprocessResponderTest {
     Result result = run(eventRequest("GET_EVENT_INFO", "not-a-uuid"));
     assertEquals(1, result.exitCode());
     assertEquals("'eventId' field is not a valid UUID.", errorOf(result));
+  }
+
+  @Test
+  void knownUserBadgeAwardedReturnsEmptyPayloadAndExitsZero() throws Exception {
+    Result result = run(badgeAwardedRequest(KNOWN_USER, "First Event"));
+    assertEquals(0, result.exitCode());
+    assertEquals("ok", result.response().get("status").getAsString());
+    assertTrue(result.response().getAsJsonObject("payload").isEmpty());
+  }
+
+  @Test
+  void unknownUserBadgeAwardedReturnsErrorAndExitsNonZero() throws Exception {
+    Result result = run(badgeAwardedRequest(UNKNOWN_USER, "First Event"));
+    assertEquals(1, result.exitCode());
+    assertEquals("error", result.response().get("status").getAsString());
+    assertTrue(errorOf(result).contains("not found"));
+  }
+
+  @Test
+  void missingBadgeNameReturnsError() throws Exception {
+    Result result = run(
+        "{\"requestType\":\"BADGE_AWARDED\",\"payload\":{\"userId\":\"" + KNOWN_USER + "\"}}");
+    assertEquals(1, result.exitCode());
+    assertEquals("Missing 'badgeName' field.", errorOf(result));
+  }
+
+  @Test
+  void blankBadgeNameReturnsError() throws Exception {
+    Result result = run(badgeAwardedRequest(KNOWN_USER, "   "));
+    assertEquals(1, result.exitCode());
+    assertEquals("'badgeName' field is not valid.", errorOf(result));
   }
 
   @Test

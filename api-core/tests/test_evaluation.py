@@ -31,6 +31,7 @@ import activity.base
 import badges
 import badges.awarded_badge_repository as awarded_badge_repository
 import badges.base as badges_base
+import bridge
 import friends.friendship_service as friendship_service
 from badges import evaluation
 from badges.predicates import MinFriends
@@ -161,3 +162,58 @@ class TestAutomaticAward:
         _befriend(a, d)
 
         assert _award(a, badge.id).times_awarded == 1
+
+
+# ---------------------------------------------------------------------------
+# event-service notification on auto-award (issue #169)
+# ---------------------------------------------------------------------------
+class TestBadgeAwardNotification:
+    """The listener must notify event-service over the bridge for every badge it
+    auto-awards, while never letting a bridge failure escape back to the
+    publisher that triggered evaluation. ``bridge.notify_badge_awarded`` is
+    stubbed per test (over the no-op the conftest installs) so no JVM is spawned.
+    """
+
+    def test_notifies_event_service_for_each_awarded_badge(self, monkeypatch):
+        notified = []
+        monkeypatch.setattr(
+            bridge,
+            "notify_badge_awarded",
+            lambda user_id, badge_name: notified.append((user_id, badge_name)),
+        )
+        badges.create_badge("Social Butterfly", None, MinFriends(2))
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+
+        _befriend(a, b)
+        _befriend(a, c)  # crossing to two friends auto-awards -> notifies
+
+        assert (a, "Social Butterfly") in notified
+
+    def test_does_not_notify_when_nothing_is_awarded(self, monkeypatch):
+        notified = []
+        monkeypatch.setattr(
+            bridge,
+            "notify_badge_awarded",
+            lambda user_id, badge_name: notified.append((user_id, badge_name)),
+        )
+        badges.create_badge("Very Popular", None, MinFriends(5))
+        a, b = uuid.uuid4(), uuid.uuid4()
+
+        _befriend(a, b)  # one friend is below the threshold
+
+        assert notified == []
+
+    def test_bridge_failure_does_not_propagate_or_undo_the_award(self, monkeypatch):
+        def boom(user_id, badge_name):
+            raise bridge.SubprocessError("event-service unavailable")
+
+        monkeypatch.setattr(bridge, "notify_badge_awarded", boom)
+        badge = badges.create_badge("Social Butterfly", None, MinFriends(2))
+        a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+
+        _befriend(a, b)
+        # The award fires the failing notification; accepting the request must
+        # still succeed (no exception) and the badge must remain awarded.
+        _befriend(a, c)
+
+        assert badges.has_badge(a, badge.id)

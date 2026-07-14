@@ -15,7 +15,12 @@ from pathlib import Path
 import pytest
 
 from bridge import client
-from bridge.client import SubprocessError, get_event_info, get_user_events
+from bridge.client import (
+    SubprocessError,
+    get_event_info,
+    get_user_events,
+    notify_badge_awarded,
+)
 
 # Spawns the Java responder, so it shares the suite-wide `integration` marker
 # (registered in pytest.ini) and can be deselected with `-m 'not integration'`.
@@ -81,3 +86,13 @@ class TestRoundTrip:
     def test_unknown_event_raises_not_found(self):
         with pytest.raises(SubprocessError, match="not found"):
             get_event_info("99999999-9999-9999-9999-999999999999")
+
+    def test_badge_awarded_notification_for_known_user_succeeds(self):
+        # Fire-and-forget: a successful notification returns None (empty payload).
+        assert notify_badge_awarded(KNOWN_USER_ID, "First Event") is None
+
+    def test_badge_awarded_notification_unknown_user_raises(self):
+        with pytest.raises(SubprocessError, match="not found"):
+            notify_badge_awarded(
+                "00000000-0000-0000-0000-000000000000", "First Event"
+            )
