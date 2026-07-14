@@ -27,9 +27,10 @@ import york.studentevents.events.StudentEventService;
  * {@code docs/subprocess-contract.md}. A malformed request, an unknown or unsupported request
  * type, or an unknown user yields an {@code error} envelope and a non-zero exit status.
  *
- * <p>Only {@link RequestType#GET_USER_EVENTS} and {@link RequestType#GET_EVENT_INFO} are currently
- * supported, since {@code event-service} owns event data; badge and friend requests belong to
- * {@code api-core}.
+ * <p>Only {@link RequestType#GET_USER_EVENTS}, {@link RequestType#GET_EVENT_INFO} and
+ * {@link RequestType#BADGE_AWARDED} are currently supported: {@code event-service} owns event data
+ * and is the party notified when {@code api-core} auto-awards a badge; badge and friend queries
+ * belong to {@code api-core}.
  *
  * @see RequestType
  * @see SubprocessRequestFactory
@@ -71,6 +72,9 @@ public class SubprocessResponder {
 
   /** Payload of a successful {@code GET_EVENT_INFO} response. */
   private record EventInfoPayload(UUID host, String start, String category) {}
+
+  /** Empty payload for a successful acknowledgement (e.g. a {@code BADGE_AWARDED} response). */
+  private record EmptyPayload() {}
 
   /** Response envelope for a failed request. */
   private record ErrorResponse(String status, String error) {}
@@ -220,6 +224,11 @@ public class SubprocessResponder {
         UUID userId = getUserId(envelope.payload());
         return getUserEvents(userId);
       }
+      case BADGE_AWARDED -> {
+        UUID userId = getUserId(envelope.payload());
+        String badgeName = getBadgeName(envelope.payload());
+        return badgeAwarded(userId, badgeName);
+      }
       case GET_EVENT_INFO -> {
         UUID eventId = getEventId(envelope.payload());
         return getEventInfo(eventId);
@@ -302,6 +311,39 @@ public class SubprocessResponder {
   }
 
   /**
+   * Convenience function which retrieves the badge's display name from a request payload.
+   *
+   * @param payload The request payload from which to retrieve the awarded badge's name.
+   * @return The display name of the badge.
+   *
+   * @throws IllegalArgumentException if the payload is missing a badgeName field, or the badgeName
+   *     field is not a non-blank string.
+   *
+   * @see #validateEnvelope(com.google.gson.JsonObject)
+   */
+  private static String getBadgeName(JsonObject payload) {
+    // Checks that the payload contains a value named 'badgeName', which is not null.
+    if (!payload.has("badgeName") || payload.get("badgeName").isJsonNull()) {
+      throw new IllegalArgumentException("Missing 'badgeName' field.");
+    }
+
+    // Try to parse the badgeName element of the payload into a String
+    String badgeName;
+    try {
+      badgeName = payload.get("badgeName").getAsString();
+    } catch (UnsupportedOperationException | IllegalStateException e) {
+      throw new IllegalArgumentException("'badgeName' field is not valid.");
+    }
+
+    // A badge always has a non-blank display name; reject anything blank as malformed.
+    if (badgeName.isBlank()) {
+      throw new IllegalArgumentException("'badgeName' field is not valid.");
+    }
+
+    return badgeName;
+  }
+
+  /**
    * Returns the events for the given user as a JSON {@code ok} response envelope.
    *
    * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
@@ -338,6 +380,28 @@ public class SubprocessResponder {
       throw new IllegalArgumentException("Event " + eventId + " not found");
     }
     return GSON.toJson(new OkResponse("ok", info));
+  }
+
+  /**
+   * Notifies the given user that they have been awarded a badge, returning an empty JSON
+   * {@code ok} response envelope.
+   *
+   * <p>Note that this method is currently just a stub: it validates the request and acknowledges
+   * it, but does not yet act on the notification. A real implementation would deliver the award to
+   * the user (e.g. as a user-facing notification) once persistence and dependency injection are
+   * configured.
+   *
+   * @param userId the user who has been awarded the badge.
+   * @param badgeName the display name of the badge that was awarded.
+   * @return the JSON {@code ok} response envelope.
+   *
+   * @throws IllegalArgumentException if the user ID is not recognised.
+   */
+  private static String badgeAwarded(UUID userId, String badgeName) {
+    if (!KNOWN_USER_ID.equals(userId)) {
+      throw new IllegalArgumentException("User " + userId + " not found");
+    }
+    return GSON.toJson(new OkResponse("ok", new EmptyPayload()));
   }
 
   /** Writes a response envelope to standard output, newline-terminated and flushed. */
