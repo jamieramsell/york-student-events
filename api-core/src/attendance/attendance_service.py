@@ -7,6 +7,7 @@ Orchestrates the ``Attendance`` domain model from ``base`` with the in-memory
 repository, keeping persistence details out of callers.
 """
 
+import activity
 import attendance.base as base
 import attendance.attendance_repository as attendance_repository
 import datetime
@@ -36,7 +37,7 @@ def record_attendance(attendee_id: uuid.UUID, event_id: uuid.UUID) -> None:
     )
     attendance_repository._repository.save(attendance_record)
 
-    # Add activity.publish(attendee_id) here
+    activity.publish(attendee_id)
 
 
 def withdraw_attendance(attendee_id: uuid.UUID, event_id: uuid.UUID) -> None:

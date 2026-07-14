@@ -29,7 +29,13 @@ public enum RequestType {
   RECORD_ATTENDANCE("RECORD_ATTENDANCE"),
 
   /** Request the new friend recommendations for a user. */
-  GET_RECOMMENDED_FRIENDS("GET_RECOMMENDED_FRIENDS");
+  GET_RECOMMENDED_FRIENDS("GET_RECOMMENDED_FRIENDS"),
+
+  /** Request event information necessary to construct an AwardedBadge record. */
+  GET_EVENT_INFO("GET_EVENT_INFO"),
+
+  /** Notify event-service that a new badge has been awarded to a user. */
+  BADGE_AWARDED("BADGE_AWARDED");
 
   private final String request;
 

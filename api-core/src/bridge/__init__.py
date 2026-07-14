@@ -14,6 +14,16 @@ Stdlib only, in keeping with the project's no-dependencies convention.
 # from outside of the Python service, therefore doesn't need to be imported
 # into any python files. For testing, simply import the file directly.
 
-from bridge.client import SubprocessError, get_user_events
+from bridge.client import (
+    SubprocessError,
+    get_user_events,
+    get_event_info,
+    notify_badge_awarded,
+)
 
-__all__ = ["SubprocessError", "get_user_events"]
+__all__ = [
+    "SubprocessError",
+    "get_user_events",
+    "get_event_info",
+    "notify_badge_awarded",
+]
