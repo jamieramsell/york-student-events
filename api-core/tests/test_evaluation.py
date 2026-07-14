@@ -31,7 +31,7 @@ import activity.base
 import badges
 import badges.awarded_badge_repository as awarded_badge_repository
 import badges.base as badges_base
-import friendship_service
+import friends.friendship_service as friendship_service
 from badges import evaluation
 from badges.predicates import MinFriends
 
