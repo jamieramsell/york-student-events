@@ -53,6 +53,7 @@ Each row lists the responder that owns the type, the request payload fields, and
 | `GET_USER_EVENTS` | event-service | `userId` (UUID) | `events`: array of event UUIDs |
 | `RECORD_ATTENDANCE` | api-core | `userId` (UUID), `eventId` (UUID) | *(empty — success signalled by the `ok` status)* |
 | `GET_RECOMMENDED_FRIENDS` | api-core | `userId` (UUID) | `events`: array of event UUIDs |
+| `GET_EVENT_INFO` | event-service | `eventId` (UUID) | `host` (UUID), `start` (str, ISO-8601 formatted datetime), `category` (str) |
 
 > **Note:** the responder handlers are still stubs — they return canned data rather than querying real repositories, and `GET_USER_BADGES` currently emits placeholder badge *names* instead of UUIDs. The schema above describes the intended contract; wiring the handlers up to it is tracked separately.
 
