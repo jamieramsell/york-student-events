@@ -40,6 +40,48 @@ def reset_repository():
 
 
 @pytest.fixture(autouse=True)
+def reset_badge_repositories():
+    """Give every test clean, isolated badge repositories.
+
+    ``badge_service`` reads the module-level ``_repository`` singletons of both
+    ``badge_repository`` and ``awarded_badge_repository`` at call time, so
+    swapping them here isolates badge and award state between tests (mirrors the
+    ``reset_repository`` pattern for the friends slice).
+    """
+
+    import badges.awarded_badge_repository as awarded_badge_repository
+    import badges.badge_repository as badge_repository
+
+    badge_repository._repository = badge_repository.InMemoryBadgeRepository()
+    awarded_badge_repository._repository = (
+        awarded_badge_repository.InMemoryAwardedBadgeRepository()
+    )
+    yield
+
+
+@pytest.fixture(autouse=True)
+def reset_activity_listeners():
+    """Give every test a clean ``activity`` listener registry.
+
+    The registry is a process-wide, module-level set, so without a reset the
+    listeners one test subscribes would leak into the next. After clearing, the
+    badge ``evaluation`` listener is re-registered -- the subscription
+    ``badges`` installs on import -- so automatic badge evaluation stays wired
+    for the integration tests without leaking any test-local spies. Cleared
+    again on teardown so nothing survives into an unrelated test.
+    """
+
+    import activity.base
+    from badges import evaluation
+
+    # ``__listeners`` is module-private with no public reset hook; reaching in
+    # here (outside any class, so unmangled) is the reset seam for the tests.
+    activity.base.__listeners.clear()
+    evaluation.register()
+    yield
+    activity.base.__listeners.clear()
+    
+@pytest.fixture(autouse=True)
 def reset_attendance_repository():
     """Give every test a clean, isolated attendance repository.
 
