@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import york.studentevents.events.StudentEventService;
 
@@ -26,8 +27,9 @@ import york.studentevents.events.StudentEventService;
  * {@code docs/subprocess-contract.md}. A malformed request, an unknown or unsupported request
  * type, or an unknown user yields an {@code error} envelope and a non-zero exit status.
  *
- * <p>Only {@link RequestType#GET_USER_EVENTS} is currently supported, since {@code event-service}
- * owns event data; badge and friend requests belong to {@code api-core}.
+ * <p>Only {@link RequestType#GET_USER_EVENTS} and {@link RequestType#GET_EVENT_INFO} are currently
+ * supported, since {@code event-service} owns event data; badge and friend requests belong to
+ * {@code api-core}.
  *
  * @see RequestType
  * @see SubprocessRequestFactory
@@ -45,14 +47,30 @@ public class SubprocessResponder {
       UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
       UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
 
+  /** Canned event info keyed by event ID (stands in for a real EventService query). */
+  private static final Map<UUID, EventInfoPayload> CANNED_EVENT_INFO = Map.of(
+      UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+      new EventInfoPayload(
+          UUID.fromString("22222222-2222-2222-2222-222222222222"),
+          "2026-09-15T18:00:00",
+          "SOCIAL"),
+      UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+      new EventInfoPayload(
+          UUID.fromString("33333333-3333-3333-3333-333333333333"),
+          "2026-10-01T14:30:00",
+          "ACADEMIC"));
+
   /** Request envelope: a request type and its still-raw JSON payload. */
   private record RequestEnvelope(RequestType requestType, JsonObject payload) {}
 
-  /** Response envelope for a successful request. */
-  private record OkResponse(String status, EventsPayload payload) {}
+  /** Response envelope for a successful request; {@code payload} shape depends on the request. */
+  private record OkResponse(String status, Object payload) {}
 
   /** Payload of a successful {@code GET_USER_EVENTS} response. */
   private record EventsPayload(List<UUID> events) {}
+
+  /** Payload of a successful {@code GET_EVENT_INFO} response. */
+  private record EventInfoPayload(UUID host, String start, String category) {}
 
   /** Response envelope for a failed request. */
   private record ErrorResponse(String status, String error) {}
@@ -192,17 +210,23 @@ public class SubprocessResponder {
    * @param envelope the deserialised request.
    * @return the JSON {@code ok} response envelope.
    *
-   * @throws IllegalArgumentException if the request type is not supported by this responder; or if
-   *     {@code userId} is missing or not a valid UUID.
+   * @throws IllegalArgumentException if the request type is not supported by this responder; or a
+   *     required attribute is missing from the payload or is not valid.
    */
   private static String route(RequestEnvelope envelope) {
-    UUID userId = getUserId(envelope.payload());
 
-    return switch (envelope.requestType()) {
-      case GET_USER_EVENTS -> getUserEvents(userId);
+    switch (envelope.requestType()) {
+      case GET_USER_EVENTS -> {
+        UUID userId = getUserId(envelope.payload());
+        return getUserEvents(userId);
+      }
+      case GET_EVENT_INFO -> {
+        UUID eventId = getEventId(envelope.payload());
+        return getEventInfo(eventId);
+      }
       default -> throw new IllegalArgumentException(
           "Unsupported requestType for event-service: " + envelope.requestType());
-    };
+    }
   }
 
   /**
@@ -242,6 +266,42 @@ public class SubprocessResponder {
   }
 
   /**
+   * Convenience function which retrieves the event's ID from a request payload.
+   *
+   * @param payload The request payload from which to retrieve the target event's ID
+   * @return The UUID of the target event.
+   *
+   * @throws IllegalArgumentException if the payload is missing an eventId field, or the eventId
+   *     field is not valid.
+   *
+   * @see #validateEnvelope(com.google.gson.JsonObject)
+   */
+  private static UUID getEventId(JsonObject payload) {
+    // Checks that the payload contains a value named 'eventId', which is not null.
+    if (!payload.has("eventId") || payload.get("eventId").isJsonNull()) {
+      throw new IllegalArgumentException("Missing 'eventId' field.");
+    }
+
+    // Try to parse the eventId element of the payload into a String
+    String eventId;
+    try {
+      eventId = payload.get("eventId").getAsString();
+    } catch (UnsupportedOperationException | IllegalStateException e) {
+      throw new IllegalArgumentException("'eventId' field is not valid.");
+    }
+
+    // Try to parse the eventId String into a UUID
+    UUID uuidEventId;
+    try {
+      uuidEventId = UUID.fromString(eventId);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("'eventId' field is not a valid UUID.");
+    }
+
+    return uuidEventId;
+  }
+
+  /**
    * Returns the events for the given user as a JSON {@code ok} response envelope.
    *
    * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
@@ -258,6 +318,26 @@ public class SubprocessResponder {
       throw new IllegalArgumentException("User " + userId + " not found");
     }
     return GSON.toJson(new OkResponse("ok", new EventsPayload(CANNED_EVENTS)));
+  }
+
+  /**
+   * Returns the information required about a given events as a JSON {@code ok} response envelope.
+   *
+   * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
+   *     purposes. Logic must be ripped out and swapped for code which contacts
+   *     {@link StudentEventService} when persistence is configured.
+   *
+   * @param eventId the event to retrieve info about.
+   * @return the JSON {@code ok} response envelope.
+   *
+   * @throws IllegalArgumentException if the event ID is not recognised.
+   */
+  private static String getEventInfo(UUID eventId) {
+    EventInfoPayload info = CANNED_EVENT_INFO.get(eventId);
+    if (info == null) {
+      throw new IllegalArgumentException("Event " + eventId + " not found");
+    }
+    return GSON.toJson(new OkResponse("ok", info));
   }
 
   /** Writes a response envelope to standard output, newline-terminated and flushed. */
