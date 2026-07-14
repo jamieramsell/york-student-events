@@ -6,6 +6,8 @@ listener that re-evaluates a user's badges whenever another slice (e.g.
 import those slices directly.
 """
 
+from __future__ import annotations
+
 import activity
 import badges
 import friends
