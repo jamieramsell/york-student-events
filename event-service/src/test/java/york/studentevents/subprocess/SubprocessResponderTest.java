@@ -25,6 +25,8 @@ class SubprocessResponderTest {
 
   private static final String KNOWN_USER = "11111111-1111-1111-1111-111111111111";
   private static final String UNKNOWN_USER = "00000000-0000-0000-0000-000000000000";
+  private static final String KNOWN_EVENT = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  private static final String UNKNOWN_EVENT = "99999999-9999-9999-9999-999999999999";
 
   /** The exit code and parsed response envelope from one responder invocation. */
   private record Result(int exitCode, JsonObject response) {}
@@ -32,6 +34,11 @@ class SubprocessResponderTest {
   private static String request(String requestType, String userId) {
     return String.format(
         "{\"requestType\":\"%s\",\"payload\":{\"userId\":\"%s\"}}", requestType, userId);
+  }
+
+  private static String eventRequest(String requestType, String eventId) {
+    return String.format(
+        "{\"requestType\":\"%s\",\"payload\":{\"eventId\":\"%s\"}}", requestType, eventId);
   }
 
   private static Result run(String requestLine) throws Exception {
@@ -80,6 +87,40 @@ class SubprocessResponderTest {
     assertEquals(1, result.exitCode());
     assertEquals("error", result.response().get("status").getAsString());
     assertTrue(errorOf(result).contains("not found"));
+  }
+
+  @Test
+  void knownEventReturnsCannedInfoAndExitsZero() throws Exception {
+    Result result = run(eventRequest("GET_EVENT_INFO", KNOWN_EVENT));
+    assertEquals(0, result.exitCode());
+    assertEquals("ok", result.response().get("status").getAsString());
+    JsonObject payload = result.response().getAsJsonObject("payload");
+    assertEquals(
+        "22222222-2222-2222-2222-222222222222", payload.get("host").getAsString());
+    assertEquals("2026-09-15T18:00:00", payload.get("start").getAsString());
+    assertEquals("SOCIAL", payload.get("category").getAsString());
+  }
+
+  @Test
+  void unknownEventReturnsErrorAndExitsNonZero() throws Exception {
+    Result result = run(eventRequest("GET_EVENT_INFO", UNKNOWN_EVENT));
+    assertEquals(1, result.exitCode());
+    assertEquals("error", result.response().get("status").getAsString());
+    assertTrue(errorOf(result).contains("not found"));
+  }
+
+  @Test
+  void missingEventIdReturnsError() throws Exception {
+    Result result = run("{\"requestType\":\"GET_EVENT_INFO\",\"payload\":{}}");
+    assertEquals(1, result.exitCode());
+    assertEquals("Missing 'eventId' field.", errorOf(result));
+  }
+
+  @Test
+  void invalidEventIdReturnsError() throws Exception {
+    Result result = run(eventRequest("GET_EVENT_INFO", "not-a-uuid"));
+    assertEquals(1, result.exitCode());
+    assertEquals("'eventId' field is not a valid UUID.", errorOf(result));
   }
 
   @Test

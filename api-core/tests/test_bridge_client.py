@@ -16,7 +16,7 @@ from unittest import mock
 import pytest
 
 from bridge import client
-from bridge.client import SubprocessError, get_user_events
+from bridge.client import SubprocessError, get_event_info, get_user_events
 
 OK_LINE = json.dumps({"status": "ok", "payload": {"events": ["e1", "e2"]}}) + "\n"
 
@@ -145,6 +145,35 @@ class TestGetUserEvents:
         proc = _fake_process(stdout=line, returncode=1)
         with _patch_popen(proc), pytest.raises(SubprocessError, match="not found"):
             get_user_events("u")
+
+
+class TestGetEventInfo:
+    def test_builds_request_and_returns_payload(self, monkeypatch):
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        # get_event_info returns the responder's payload verbatim (the caller,
+        # not the client, parses host/start/category into typed values).
+        payload = {
+            "host": "22222222-2222-2222-2222-222222222222",
+            "start": "2026-09-15T18:00:00",
+            "category": "SOCIAL",
+        }
+        line = json.dumps({"status": "ok", "payload": payload}) + "\n"
+        proc = _fake_process(stdout=line)
+        with _patch_popen(proc) as popen:
+            result = get_event_info("event-123")
+        assert result == payload
+        # The request carries the event id under the GET_EVENT_INFO envelope...
+        sent = json.loads(proc.communicate.call_args.args[0])
+        assert sent == {"requestType": "GET_EVENT_INFO", "payload": {"eventId": "event-123"}}
+        # ...and the resolved classpath is passed straight to java -cp.
+        assert popen.call_args.args[0] == ["java", "-cp", "fake-cp", client.RESPONDER_MAIN_CLASS]
+
+    def test_propagates_responder_error(self, monkeypatch):
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        line = json.dumps({"status": "error", "error": "Event e not found"}) + "\n"
+        proc = _fake_process(stdout=line, returncode=1)
+        with _patch_popen(proc), pytest.raises(SubprocessError, match="not found"):
+            get_event_info("e")
 
 
 class TestParsingHelpers:

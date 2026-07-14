@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 from bridge import client
-from bridge.client import SubprocessError, get_user_events
+from bridge.client import SubprocessError, get_event_info, get_user_events
 
 # Spawns the Java responder, so it shares the suite-wide `integration` marker
 # (registered in pytest.ini) and can be deselected with `-m 'not integration'`.
@@ -30,6 +30,14 @@ EXPECTED_EVENTS = [
     uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
     uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
 ]
+
+# One of the canned events known to the responder, with its expected info payload.
+KNOWN_EVENT_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+EXPECTED_EVENT_INFO = {
+    "host": "22222222-2222-2222-2222-222222222222",
+    "start": "2026-09-15T18:00:00",
+    "category": "SOCIAL",
+}
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -66,3 +74,10 @@ class TestRoundTrip:
     def test_unknown_user_raises_not_found(self):
         with pytest.raises(SubprocessError, match="not found"):
             get_user_events("00000000-0000-0000-0000-000000000000")
+
+    def test_known_event_returns_canned_info(self):
+        assert get_event_info(KNOWN_EVENT_ID) == EXPECTED_EVENT_INFO
+
+    def test_unknown_event_raises_not_found(self):
+        with pytest.raises(SubprocessError, match="not found"):
+            get_event_info("99999999-9999-9999-9999-999999999999")
