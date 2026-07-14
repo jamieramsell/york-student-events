@@ -13,6 +13,11 @@ def subscribe(listener: Listener) -> None:
     __listeners.add(listener)
 
 def publish(user_id: uuid.UUID) -> None:
-    """Publishes a ``user_id`` payload to all subscribed listener methods."""
+    """Publishes a ``user_id`` payload to all subscribed listener methods.
+    
+    Note that a listener raising an exception propagates to the publisher,
+    meaning that the publisher should be equipped to deal with these exceptions;
+    they are not hidden or handled here.
+    """
     for listener in __listeners:
         listener(user_id)
