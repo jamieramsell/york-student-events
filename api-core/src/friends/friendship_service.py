@@ -6,6 +6,7 @@ friends. Orchestrates the ``Friendship`` domain model from ``base`` with the
 in-memory repository, keeping persistence details out of callers.
 """
 
+import activity
 import friends.base as base
 import datetime
 import friends.friendship_repository as friendship_repository
@@ -42,6 +43,7 @@ def send_friend_request(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
 
     friendship_repository._repository.save(friendship)
 
+
 def accept_friend_request(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """Updates the status of a friendship record to ACCEPTED.
 
@@ -76,6 +78,11 @@ def accept_friend_request(id1: uuid.UUID, id2: uuid.UUID) -> None:
                                 status)
     friendship_repository._repository.save(friendship)
 
+    # Publish changes to badge service
+    activity.publish(id1)
+    activity.publish(id2)
+
+
 def remove_friend(id1: uuid.UUID, id2: uuid.UUID) -> None:
     """Removes the Frienship record between two users from the repository.
 
@@ -96,6 +103,7 @@ def remove_friend(id1: uuid.UUID, id2: uuid.UUID) -> None:
         friendship_repository._repository.delete(friendship_id)
     except KeyError:
         raise ValueError("No friendship exists between the two users.")
+
 
 def get_friends(user_id: uuid.UUID) -> list[uuid.UUID]:
     """Retrieves a list of user IDs of the user's friends.
