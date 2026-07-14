@@ -26,7 +26,7 @@ def create_badge(
         The Badge object that has been created and saved to the Badge
         repository.
     """
-    badge_id = uuid.UUID()
+    badge_id = uuid.uuid4()
     badge = base.Badge(badge_id, name, description, award_condition, repeatable)
     badge_repository._repository.save(badge)
 
