@@ -14,7 +14,10 @@ import badges
 import bridge
 import datetime
 import friends
+import logging
 import uuid
+
+_logger = logging.getLogger(__name__)
 
 
 def __retrieve_event_info(event_id: uuid.UUID) -> badges.AttendedEvent:
@@ -88,12 +91,40 @@ def evaluation_listener(user_id: uuid.UUID) -> None:
 
     Builds a fresh ``AwardContext`` for the user and passes it to
     ``badges.evaluate_badges``, awarding any badges the user has newly become
-    eligible for.
+    eligible for, then notifies event-service of each newly awarded badge.
 
     Args:
         user_id: The ID of the user whose activity changed.
     """
-    badges.evaluate_badges(build_award_context(user_id))
+    awarded_badges = badges.evaluate_badges(build_award_context(user_id))
+    for badge in awarded_badges:
+        _notify_badge_awarded(user_id, badge)
+
+
+def _notify_badge_awarded(user_id: uuid.UUID, badge: badges.Badge) -> None:
+    """Best-effort notification to event-service that a badge was auto-awarded.
+
+    The badge is already persisted in ``api-core`` by the time this runs, and
+    this listener executes synchronously inside ``activity.publish`` -- so a
+    failure here would otherwise propagate back to the original publisher (e.g.
+    ``record_attendance``) and roll its operation back. A dropped cross-service
+    notification must not undo a real award, so bridge failures are logged and
+    swallowed rather than raised.
+
+    Args:
+        user_id: The ID of the user who was awarded the badge.
+        badge: The badge that was awarded.
+    """
+    try:
+        bridge.notify_badge_awarded(user_id, badge.name)
+    except bridge.SubprocessError:
+        _logger.warning(
+            "Failed to notify event-service that user %s was awarded badge %s"
+            " (%s)",
+            user_id,
+            badge.name,
+            badge.id,
+        )
 
 
 def register() -> None:
