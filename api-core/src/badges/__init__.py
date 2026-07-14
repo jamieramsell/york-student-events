@@ -20,7 +20,6 @@ from badges.awarded_badge_repository import InMemoryAwardedBadgeRepository
 from badges.base import Badge, AwardedBadge
 from badges.predicates import AwardContext, AttendedEvent
 from badges.badge_repository import InMemoryBadgeRepository
-from badges.awarded_badge_repository import InMemoryAwardedBadgeRepository
 from badges.badge_service import (
     award_badge,
     create_badge,
