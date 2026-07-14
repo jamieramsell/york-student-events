@@ -25,9 +25,11 @@ _EVENT_SERVICE = _REPO_ROOT / "event-service"
 _CLASSES_DIR = _EVENT_SERVICE / "target" / "classes"
 _CLASSPATH_FILE = _EVENT_SERVICE / "target" / "cp.txt"
 
+
 class SubprocessError(RuntimeError):
     """Raised when the Java responder returns an error envelope or exits
     non-zero."""
+
 
 def get_user_events(user_id: uuid.UUID) -> list[uuid.UUID]:
     """Fetch the IDs of events a user is registered for from event-service.
@@ -54,6 +56,31 @@ def get_user_events(user_id: uuid.UUID) -> list[uuid.UUID]:
         event_uuids.append(uuid.UUID(event))
 
     return event_uuids
+
+
+def get_event_info(event_id: uuid.UUID) -> dict[str, str]:
+    """Fetch the properties of a given event from event-service, which is
+    required to construct a ``badges.AttendedEvent`` object.
+
+    Args:
+        event_id (uuid.UUID): UUID of the event whose information to fetch.
+
+    Returns:
+        dict[str, str]: The properties of the event with the given ID.
+
+    Raises:
+        SubprocessError: If event-service is not built, or the responder returns
+            an error envelope, exits non-zero, times out, or returns an
+            unparseable response.
+    """
+    event_id: str = str(event_id)
+    classpath = _resolve_classpath()
+    request = {"requestType": "GET_EVENT_INFO",
+               "payload": {"eventId": event_id}}
+
+    event_properties: dict[str, str] = _call_responder(request, classpath)
+    return event_properties
+
 
 def _resolve_classpath() -> str:
     """Builds the classpath from the event-service build output.
