@@ -21,16 +21,17 @@ No frontend exists yet. No database — both services use in-memory repositories
 york-student-events/
 ├── api-core/
 │   ├── src/
-│   │   ├── attendance/attendance.py
-│   │   ├── badges/badges.py
-│   │   ├── friends/        (base, friendship_service, friendship_repository, getFriendCircle)
-│   │   ├── matching/matching.py
-│   │   └── repositories/   (base — IEntity, IRepository)
+│   │   ├── attendance/
+│   │   ├── badges/
+│   │   ├── bridge/
+│   │   ├── friends/        
+│   │   ├── recommendations/
+│   │   └── repositories/   
 │   └── tests/
 │       ├── test_attendance.py
 │       ├── test_badges.py
 │       ├── test_friends.py
-│       └── test_matching.py
+│       └── test_recommendations.py
 ├── event-service/
 │   ├── src/main/java/york/studentevents/
 │   │   ├── Application.java
