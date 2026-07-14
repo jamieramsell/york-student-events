@@ -140,21 +140,13 @@ york-student-events/
 ├── api-core/
 │   ├── src/
 │   │   ├── attendance/
-│   │   │   └── attendance.py
 │   │   ├── badges/
-│   │   │   └── badges.py
 │   │   ├── bridge/                 # subprocess bridge to event-service
 │   │   │   ├── __init__.py
 │   │   │   ├── client.py           # Python→Java: spawns SubprocessResponder
 │   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
-│   │   │   ├── __init__.py
-│   │   │   ├── base.py
-│   │   │   ├── friendship_repository.py
-│   │   │   ├── friendship_service.py
-│   │   │   └── getFriendCircle.py
 │   │   ├── matching/
-│   │   │   └── matching.py
 │   │   └── repositories/           # in-memory repository pattern (mirrors Java)
 │   │       ├── __init__.py
 │   │       └── base.py
@@ -170,7 +162,7 @@ york-student-events/
 │
 ├── docs/
 │   ├── api-spec.yaml
-│   ├── apidocs/              # generated Javadoc (mvn package / javadoc:javadoc)
+│   ├── apidocs/                     # generated Javadoc (mvn package / javadoc:javadoc)
 │   └── docs/
 │       └── subprocess-contract.md   # Python↔Java JSON envelope contract
 │
