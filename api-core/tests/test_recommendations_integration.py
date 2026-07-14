@@ -51,7 +51,7 @@ import pytest
 import bridge
 import friends
 from bridge import client as bridge_client
-from matching.matching import get_recommended_events
+from recommendations.base import get_recommended_events
 
 # The single user recognised by the SubprocessResponder stub, and the events it
 # returns for that user. These mirror the constants in SubprocessResponder.java.
