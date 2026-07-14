@@ -22,11 +22,22 @@ class PayloadTest {
   }
 
   @Test
+  void attendancePayloadExposesUserIdAndEventId() {
+    UUID userId = UUID.randomUUID();
+    UUID eventId = UUID.randomUUID();
+    AttendancePayload payload = new AttendancePayload(userId, eventId);
+    assertEquals(userId, payload.userId());
+    assertEquals(eventId, payload.eventId());
+  }
+
+  @Test
   void payloadsExposeUserIdViaInterface() {
     UUID id = UUID.randomUUID();
     IPayload userIdPayload = new UserIdPayload(id);
     IPayload awardBadgePayload = new AwardBadgePayload(id, "Social5");
+    IPayload attendancePayload = new AttendancePayload(id, UUID.randomUUID());
     assertEquals(id, userIdPayload.userId());
     assertEquals(id, awardBadgePayload.userId());
+    assertEquals(id, attendancePayload.userId());
   }
 }

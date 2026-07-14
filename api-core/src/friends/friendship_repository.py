@@ -7,7 +7,10 @@ layer. This stands in for a database-backed repository during early development.
 """
 
 from __future__ import annotations
-import base
+import datetime
+import uuid
+
+import friends.base as base
 import repositories
 
 class InMemoryFriendshipRepository(repositories.IRepository[
@@ -43,8 +46,62 @@ class InMemoryFriendshipRepository(repositories.IRepository[
     def find_all(self) -> list[base.Friendship]:
         return list(self.__dict.values())
 
+# Canonical canned friend graph seeded into every
+# InMemoryCannedFriendshipRepository. The two accepted friendships form a chain
+#
+#     CANNED_FRIEND_SEEKER_ID -- CANNED_DIRECT_FRIEND_ID -- CANNED_RECOMMENDED_FRIEND_ID
+#
+# so the seeker and the recommended user share a mutual friend but are not
+# themselves connected. The seeker id matches the KNOWN_USER_ID used by the
+# bridge integration tests.
+CANNED_FRIEND_SEEKER_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
+CANNED_DIRECT_FRIEND_ID = uuid.UUID("33333333-3333-3333-3333-333333333333")
+CANNED_RECOMMENDED_FRIEND_ID = uuid.UUID("44444444-4444-4444-4444-444444444444")
+
+
+class InMemoryCannedFriendshipRepository(InMemoryFriendshipRepository):
+    """In-memory friendship repository pre-seeded with a small friend graph.
+
+    Behaves exactly like ``InMemoryFriendshipRepository`` but starts populated
+    with two accepted friendships forming the chain
+    ``CANNED_FRIEND_SEEKER_ID -- CANNED_DIRECT_FRIEND_ID --
+    CANNED_RECOMMENDED_FRIEND_ID``. Because the seeker and the recommended user
+    share a mutual friend but are not directly connected,
+    ``recommendations.find_new_friends(CANNED_FRIEND_SEEKER_ID)`` yields exactly
+    ``{CANNED_RECOMMENDED_FRIEND_ID}``. This gives the bridge responder
+    deterministic, functional state to serve when exercising the
+    GET_RECOMMENDED_FRIENDS path end to end.
+
+    See Also:
+        InMemoryFriendshipRepository
+    """
+
+    def __init__(self):
+        super().__init__()
+        now = datetime.datetime.now()
+        accepted = base.FriendshipStatus.ACCEPTED
+        self.save(
+            base.Friendship(
+                CANNED_FRIEND_SEEKER_ID, CANNED_DIRECT_FRIEND_ID, now, accepted
+            )
+        )
+        self.save(
+            base.Friendship(
+                CANNED_DIRECT_FRIEND_ID,
+                CANNED_RECOMMENDED_FRIEND_ID,
+                now,
+                accepted,
+            )
+        )
+
 # Variable used to inject an instance of a repository into friendship_service.
 # Package-internal (single leading underscore): consumed by other modules in the
 # friends package, but not part of the package's public API. Do not remove
 # unless changing the dependency!
-_repository = InMemoryFriendshipRepository()
+#
+# The bridge responder serves this singleton (via recommendations.find_new_friends),
+# so it defaults to the canned repository to give end-to-end tests deterministic
+# data. The Python test suite swaps it for a bare InMemoryFriendshipRepository
+# per test (see conftest.py), so the seeded graph is only ever visible over the
+# subprocess bridge.
+_repository = InMemoryCannedFriendshipRepository()

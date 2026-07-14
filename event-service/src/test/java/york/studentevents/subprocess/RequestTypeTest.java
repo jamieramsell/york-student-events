@@ -12,6 +12,9 @@ class RequestTypeTest {
     assertEquals("GET_USER_BADGES", RequestType.GET_USER_BADGES.getRequest());
     assertEquals("GET_USER_FRIENDS", RequestType.GET_USER_FRIENDS.getRequest());
     assertEquals("AWARD_BADGE", RequestType.AWARD_BADGE.getRequest());
+    assertEquals("RECORD_ATTENDANCE", RequestType.RECORD_ATTENDANCE.getRequest());
+    assertEquals(
+        "GET_RECOMMENDED_FRIENDS", RequestType.GET_RECOMMENDED_FRIENDS.getRequest());
   }
 
   @Test
