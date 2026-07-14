@@ -19,6 +19,7 @@ import uuid
 
 import pytest
 
+import activity
 import friendship_repository
 import friendship_service
 import repositories
@@ -364,3 +365,105 @@ class TestFriendshipService:
         same = uuid.uuid4()
         with pytest.raises(ValueError):
             friendship_service.is_friend(same, same)
+
+
+# ---------------------------------------------------------------------------
+# friendship_service  ->  activity publication (issue #157)
+# ---------------------------------------------------------------------------
+class TestActivityPublication:
+    """The friends slice is the first publisher into the ``activity`` registry.
+
+    Accepting a request must publish for *both* users (their friend counts
+    changed) strictly after the accepted ``Friendship`` is saved. Every other
+    path -- failed acceptances, sends and removals -- must publish nothing: a
+    pending or lost friend cannot newly satisfy a ``Min*`` predicate, and badge
+    awards are never auto-revoked.
+    """
+
+    def _spy(self):
+        """Subscribe and return a listener recording each published id."""
+
+        received: list[uuid.UUID] = []
+        activity.subscribe(received.append)
+        return received
+
+    # -- accept_friend_request publishes -------------------------------------
+    def test_accept_publishes_for_both_users(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(a, b)
+        received = self._spy()
+
+        friendship_service.accept_friend_request(a, b)
+
+        # Exactly two publications, one per user (order is id1 then id2).
+        assert received == [a, b]
+
+    def test_accept_publishes_both_ids_regardless_of_argument_order(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(a, b)
+        received = self._spy()
+
+        # Accept with the arguments reversed relative to the original request.
+        friendship_service.accept_friend_request(b, a)
+
+        assert set(received) == {a, b}
+        assert len(received) == 2
+
+    def test_publish_happens_after_the_accepted_friendship_is_saved(self):
+        # A subscriber may immediately re-read the repository (the badge
+        # evaluation listener does exactly this via get_friends), so the
+        # accepted state must already be persisted when listeners fire.
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(a, b)
+
+        seen_friends: list[list[uuid.UUID]] = []
+        activity.subscribe(
+            lambda user_id: seen_friends.append(
+                friendship_service.get_friends(user_id)
+            )
+        )
+
+        friendship_service.accept_friend_request(a, b)
+
+        # Both listener invocations saw the friendship already accepted.
+        assert seen_friends == [[b], [a]]
+
+    # -- failed acceptances publish nothing ----------------------------------
+    def test_accept_with_no_pending_request_publishes_nothing(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        received = self._spy()
+
+        with pytest.raises(ValueError):
+            friendship_service.accept_friend_request(a, b)
+
+        assert received == []
+
+    def test_accept_already_accepted_publishes_nothing(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
+        received = self._spy()  # subscribe only after the first, valid accept
+
+        with pytest.raises(ValueError):
+            friendship_service.accept_friend_request(a, b)
+
+        assert received == []
+
+    # -- send / remove publish nothing ---------------------------------------
+    def test_send_request_publishes_nothing(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        received = self._spy()
+
+        friendship_service.send_friend_request(a, b)
+
+        assert received == []
+
+    def test_remove_friend_publishes_nothing(self):
+        a, b = uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(a, b)
+        friendship_service.accept_friend_request(a, b)
+        received = self._spy()  # subscribe after the accept's own publications
+
+        friendship_service.remove_friend(a, b)
+
+        assert received == []
