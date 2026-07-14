@@ -16,10 +16,9 @@ plus ``predicate_from_dict``) is intentionally left behind ``badges.predicates``
 rather than re-exported here.
 """
 
-from badges.base import Badge, AwardedBadge
-from badges.predicates import AwardContext, AttendedEvent
-from badges.badge_repository import InMemoryBadgeRepository
 from badges.awarded_badge_repository import InMemoryAwardedBadgeRepository
+from badges.base import Badge, AwardedBadge
+from badges.badge_repository import InMemoryBadgeRepository
 from badges.badge_service import (
     award_badge,
     create_badge,
@@ -28,6 +27,11 @@ from badges.badge_service import (
     has_badge,
     revoke_badge,
 )
+from badges.evaluation import (
+    build_award_context,
+    register
+)
+from badges.predicates import AwardContext, AttendedEvent
 
 __all__ = [
     "Badge",
@@ -42,4 +46,10 @@ __all__ = [
     "get_user_badges",
     "has_badge",
     "revoke_badge",
+    "build_award_context",
+    "register"
 ]
+
+# Call badges.evaluation.register() on module import to automatically subscribe
+# the evaluation listener to be notified of any changes to user data.
+register()
