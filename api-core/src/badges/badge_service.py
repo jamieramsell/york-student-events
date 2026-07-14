@@ -191,7 +191,7 @@ def evaluate_badges(context: predicates.AwardContext) -> list[base.Badge]:
     """Evaluates the given award context, and automatically awards any badges
     that the user is eligible to recieve.
     
-    If a badge is not yet held badge, it is simply awarded if the given context
+    If a badge is not yet held, it is simply awarded if the given context
     satisfies the badge's award condition.
     
     If the badge is already held, but is repeatable, then it is evaluated
