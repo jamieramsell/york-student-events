@@ -14,36 +14,20 @@ import attendance.base as base
 import repositories
 
 class InMemoryAttendanceRepository(
-    repositories.IRepository[base.AttendanceId, base.Attendance]
+    repositories.InMemoryRepository[base.AttendanceId, base.Attendance]
 ):
     """Dictionary backed repository for storing and retrieving Attendance
     records.
     
-    Extends repositories.IRepository with ``tuple[uuid.UUID, uuid.UUID]`` as the
-    managed type, providing standard CRUD operations scoped to the keys (formed
-    of a 2-tuple of UUID keys) of Attendance records. Used for integration
-    testing before implementing database-backed repositories.
+    Extends repositories.InMemoryRepository with ``tuple[uuid.UUID, uuid.UUID]``
+    as the managed type, providing standard CRUD operations scoped to the keys
+    (formed of a 2-tuple of UUID keys) of Attendance records. Used for
+    integration testing before implementing database-backed repositories.
     
     See Also:
         repositories.IRepository
+        repositories.InMemoryRepository
     """
-
-    def __init__(self):
-        self.__dict: dict[base.AttendanceId, base.Attendance] = {}
-
-    def save(self, entity: base.Attendance) -> None:
-        self.__dict[entity.get_id()] = entity
-
-    def delete(self, entity_id: base.AttendanceId) -> None:
-        self.__dict.pop(entity_id)
-
-    def find_by_id(
-        self, entity_id: base.AttendanceId
-    ) -> base.Attendance | None:
-        return self.__dict.get(entity_id)
-
-    def find_all(self) -> list[base.Attendance]:
-        return list(self.__dict.values())
 
 # Canonical canned attendance record seeded into every
 # InMemoryCannedAttendanceRepository. The attendee id matches the KNOWN_USER_ID
