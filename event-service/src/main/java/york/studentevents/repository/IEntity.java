@@ -5,7 +5,7 @@ import java.util.UUID;
 /**
  * Represents an entity which can be stored in an {@link IRepository}.
  * 
- * <p>This common interface enforced that all entities have a UUID which can be used as a key.
+ * <p>This common interface enforces that all entities have a UUID which can be used as a key.
  */
 public interface IEntity {
 

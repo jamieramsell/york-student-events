@@ -131,7 +131,7 @@ class TestResponderSubprocess:
         assert result.returncode == 1
         response = json.loads(result.stdout.strip())
         assert response["status"] == "error"
-        assert response["error"] == "Incorrectly formated json."
+        assert response["error"] == "Incorrectly formatted json."
 
     def test_missing_request_type_yields_error(self):
         result = _run(json.dumps({"payload": {}}) + "\n")

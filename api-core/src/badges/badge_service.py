@@ -1,3 +1,13 @@
+"""Service-level operations for the badges slice.
+
+Exposes the badge use cases callers depend on: creating badges, manually
+awarding and revoking them, querying whether (and how many times) a user holds a
+badge, and the condition-driven ``evaluate_badges`` that auto-awards eligible
+badges from an ``AwardContext``. Orchestrates the ``Badge`` / ``AwardedBadge``
+domain models from ``base`` with their in-memory repositories, keeping
+persistence details out of callers.
+"""
+
 import badges.awarded_badge_repository as awarded_badge_repository
 import badges.base as base
 import badges.predicates as predicates
@@ -146,10 +156,8 @@ def has_badge(
 
     if award is None:
         return False
-    elif award.times_awarded >= times:
-        return True
-    else:
-        return False
+
+    return award.times_awarded >= times
     
 
 def get_user_badges(user_id: uuid.UUID) -> list[base.Badge]:
@@ -173,9 +181,9 @@ def get_user_badges(user_id: uuid.UUID) -> list[base.Badge]:
     badge_list: list[base.Badge] = []
 
     for award in all_awards:
-        # If the current award points to the target user, then add the ID of its
-        # badge to the list
-        if (award.get_id().__contains__(user_id)):
+        # If the current award points to the target user, then add its badge to
+        # the list
+        if award.user_id == user_id:
             badge = badge_repository._repository.find_by_id(award.badge_id)
 
             if badge is None:
@@ -189,7 +197,7 @@ def get_user_badges(user_id: uuid.UUID) -> list[base.Badge]:
 
 def evaluate_badges(context: predicates.AwardContext) -> list[base.Badge]:
     """Evaluates the given award context, and automatically awards any badges
-    that the user is eligible to recieve.
+    that the user is eligible to receive.
     
     If a badge is not yet held, it is simply awarded if the given context
     satisfies the badge's award condition.

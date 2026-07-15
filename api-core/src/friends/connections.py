@@ -21,7 +21,7 @@ def dfs_recursion(start_node: uuid.UUID,
     visited.add(start_node)
     friends_of_user = friends.friendship_service.get_friends(start_node)
 
-    # Base case: implicit. The function stops recursing when there are no mpre
+    # Base case: implicit. The function stops recursing when there are no more
     # unvisited friends.
     for friend in friends_of_user:
         if friend not in visited:

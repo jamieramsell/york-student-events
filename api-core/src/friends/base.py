@@ -56,12 +56,12 @@ class Friendship(repositories.IEntity[FriendshipId]):
     api-core service.
 
     Note that user_id represents the ID of the user who originally sent the
-    request; friend_id represents the user who recieves and must approve/decline
+    request; friend_id represents the user who receives and must approve/decline
     said request.
 
     Args:
         user_id: The ID of the user sending the request.
-        friend_id: The ID of the user recieving the request.
+        friend_id: The ID of the user receiving the request.
         created_at: The datetime of when the friend request was sent.
         friendship_status: Whether or not the friend request has been accepted
             yet.

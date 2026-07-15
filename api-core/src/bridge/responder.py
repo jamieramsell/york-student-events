@@ -1,3 +1,18 @@
+"""Responder answering subprocess requests issued by the Java event-service.
+
+This is the inverse of ``client.py``: event-service spawns this module as a fresh
+process per call, writes a JSON request envelope to its stdin, and reads a JSON
+response envelope from its stdout. Each line of stdin is one request; the
+``MessageHandlerFactory`` routes it to a handler by ``requestType`` and the
+result is written back as an ``ok`` or ``error`` envelope. The envelope contract
+is documented in ``docs/subprocess-contract.md``.
+
+Several handlers are still stubs returning canned data (tracked in #164);
+``record_attendance`` and ``get_recommended_friends`` are wired to real services.
+
+Stdlib only, in keeping with the project's no-dependencies convention.
+"""
+
 import collections.abc
 import json
 import os
@@ -87,7 +102,8 @@ class MessageHandlerFactory:
                 - `GET_USER_FRIENDS`,
                 - `AWARD_BADGE`,
                 - `GET_RECOMMENDED_EVENTS`,
-                - `RECORD_ATTENDANCE`
+                - `RECORD_ATTENDANCE`,
+                - `GET_RECOMMENDED_FRIENDS`
 
         Raises:
             ValueError: If the message type is unknown, or doesn't have a
@@ -131,7 +147,7 @@ def main():
         except json.JSONDecodeError:
             response = {
                 "status": "error",
-                "error": "Incorrectly formated json."
+                "error": "Incorrectly formatted json."
             }
 
         except Exception as e:
