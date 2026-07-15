@@ -7,9 +7,11 @@ in-memory repository today and remaining open to a database-backed backend
 later.
 
 The public surface is the ``Badge`` and ``AwardedBadge`` entities, the
-``AwardContext`` (with its ``AttendedEvent`` member) that ``evaluate_badges``
-reads, their corresponding in-memory repositories, and the service-level
-operations callers use to drive badge operations.
+``AwardContext`` (with its ``AttendedEvent`` member) that
+``BadgeService.evaluate_badges`` reads, their corresponding in-memory
+repositories, ``BadgeService`` (the operations callers use to drive badge
+operations) and ``EvaluationService`` (the ``activity``-driven auto-award
+listener).
 
 The composable predicate vocabulary (``IPredicate`` and its combinators/leaves,
 plus ``predicate_from_dict``) is intentionally left behind ``badges.predicates``
@@ -20,18 +22,8 @@ from badges.awarded_badge_repository import InMemoryAwardedBadgeRepository
 from badges.base import Badge, AwardedBadge
 from badges.predicates import AwardContext, AttendedEvent
 from badges.badge_repository import InMemoryBadgeRepository
-from badges.badge_service import (
-    award_badge,
-    create_badge,
-    evaluate_badges,
-    get_user_badges,
-    has_badge,
-    revoke_badge,
-)
-from badges.evaluation import (
-    build_award_context,
-    register
-)
+from badges.badge_service import BadgeService
+from badges.evaluation import EvaluationService
 
 __all__ = [
     "Badge",
@@ -40,16 +32,6 @@ __all__ = [
     "AttendedEvent",
     "InMemoryBadgeRepository",
     "InMemoryAwardedBadgeRepository",
-    "award_badge",
-    "create_badge",
-    "evaluate_badges",
-    "get_user_badges",
-    "has_badge",
-    "revoke_badge",
-    "build_award_context",
-    "register"
+    "BadgeService",
+    "EvaluationService"
 ]
-
-# Call badges.evaluation.register() on module import to automatically subscribe
-# the evaluation listener to be notified of any changes to user data.
-register()

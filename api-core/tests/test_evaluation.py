@@ -12,13 +12,13 @@ re-evaluates their badges whenever ``activity`` publishes for them. Layout:
         ``register`` subscribes the listener and is idempotent (no duplicate
         subscription).
   * ``TestAutomaticAward``
-        end-to-end through the live singletons: accepting friend requests
+        end-to-end through the injected services: accepting friend requests
         drives awards with no explicit ``evaluate_badges`` call, and re-firing
         on unchanged / further activity never double-awards a non-repeatable
         badge.
 
-These run through the real module-level singletons (the friends repository, the
-badge repositories and the ``activity`` registry), all reset per test by the
+These run through a fresh, consistently wired service graph (the friends, badge
+and evaluation services and the ``activity`` registry), built per test by the
 autouse fixtures in ``conftest.py``.
 
 Run from the repo root:  ``python -m pytest api-core/tests/``
@@ -28,13 +28,30 @@ import uuid
 
 import activity
 import activity.base
-import badges
-import badges.awarded_badge_repository as awarded_badge_repository
 import badges.base as badges_base
 import bridge
-import friends.friendship_service as friendship_service
-from badges import evaluation
+from attendance import AttendanceService, InMemoryAttendanceRepository
+from badges import (
+    BadgeService,
+    EvaluationService,
+    InMemoryAwardedBadgeRepository,
+    InMemoryBadgeRepository,
+)
 from badges.predicates import MinFriends
+from friends import FriendshipService, InMemoryFriendshipRepository
+
+# Module-level defaults so the file is usable on its own; ``compose_services`` in
+# conftest.py swaps in a single, consistently wired graph (the same
+# ``friendship_service`` and ``badge_service`` the ``evaluation_service`` reads)
+# before every test.
+friendship_service = FriendshipService(InMemoryFriendshipRepository())
+awarded_badge_repo = InMemoryAwardedBadgeRepository()
+badge_service = BadgeService(InMemoryBadgeRepository(), awarded_badge_repo)
+evaluation_service = EvaluationService(
+    AttendanceService(InMemoryAttendanceRepository()),
+    friendship_service,
+    badge_service,
+)
 
 
 def _befriend(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
@@ -48,7 +65,7 @@ def _award(user_id: uuid.UUID, badge_id: uuid.UUID):
     """Return the stored ``AwardedBadge`` record, or ``None`` if unawarded."""
 
     award_id = badges_base._generate_award_id(user_id, badge_id)
-    return awarded_badge_repository._repository.find_by_id(award_id)
+    return awarded_badge_repo.find_by_id(award_id)
 
 
 def _listener_registry() -> set:
@@ -72,24 +89,24 @@ class TestBuildAwardContext:
         _befriend(a, b)
         _befriend(a, c)
 
-        context = evaluation.build_award_context(a)
+        context = evaluation_service.build_award_context(a)
 
         assert context.friend_count == 2
 
     def test_zero_friends_gives_zero_count(self):
-        context = evaluation.build_award_context(uuid.uuid4())
+        context = evaluation_service.build_award_context(uuid.uuid4())
         assert context.friend_count == 0
 
     def test_attended_events_and_messages_are_empty_stubs(self):
         # Both fact sources are documented stubs until their slices land; the
         # context must still be well-formed empty tuples, not ``None``.
-        context = evaluation.build_award_context(uuid.uuid4())
+        context = evaluation_service.build_award_context(uuid.uuid4())
         assert context.attended_events == ()
         assert context.messages_sent == ()
 
     def test_context_carries_the_requested_user_id(self):
         user_id = uuid.uuid4()
-        assert evaluation.build_award_context(user_id).user_id == user_id
+        assert evaluation_service.build_award_context(user_id).user_id == user_id
 
 
 # ---------------------------------------------------------------------------
@@ -98,60 +115,61 @@ class TestBuildAwardContext:
 class TestRegister:
     def test_register_subscribes_the_evaluation_listener(self):
         _listener_registry().clear()
-        evaluation.register()
-        assert evaluation.evaluation_listener in _listener_registry()
+        evaluation_service.register()
+        assert evaluation_service.evaluation_listener in _listener_registry()
 
     def test_register_is_idempotent(self):
         # Calling register() more than once must not register a duplicate
-        # listener (the subscription is a set of the same module-level callable).
+        # listener (the subscription is a set of the same bound method, which
+        # compares equal across calls on the same instance).
         _listener_registry().clear()
-        evaluation.register()
-        evaluation.register()
+        evaluation_service.register()
+        evaluation_service.register()
         assert len(_listener_registry()) == 1
 
 
 # ---------------------------------------------------------------------------
-# Automatic award through the live singletons
+# Automatic award through the injected services
 # ---------------------------------------------------------------------------
 class TestAutomaticAward:
     def test_reaching_threshold_awards_badge_without_explicit_evaluate(self):
-        badge = badges.create_badge("Social Butterfly", None, MinFriends(2))
+        badge = badge_service.create_badge("Social Butterfly", None, MinFriends(2))
         a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
 
         _befriend(a, b)
         # One friend is below the threshold, so nothing is awarded yet.
-        assert not badges.has_badge(a, badge.id)
+        assert not badge_service.has_badge(a, badge.id)
 
         _befriend(a, c)
         # Crossing to two friends auto-awards purely via the accept -> publish
         # -> evaluation chain; note there is no evaluate_badges call anywhere.
-        assert badges.has_badge(a, badge.id)
+        assert badge_service.has_badge(a, badge.id)
 
     def test_threshold_not_reached_is_not_awarded(self):
-        badge = badges.create_badge("Very Popular", None, MinFriends(5))
+        badge = badge_service.create_badge("Very Popular", None, MinFriends(5))
         a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
 
         _befriend(a, b)
         _befriend(a, c)
 
-        assert not badges.has_badge(a, badge.id)
+        assert not badge_service.has_badge(a, badge.id)
 
     def test_republishing_unchanged_facts_does_not_double_award(self):
-        badge = badges.create_badge("Social Butterfly", None, MinFriends(2))
+        badge = badge_service.create_badge("Social Butterfly", None, MinFriends(2))
         a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
         _befriend(a, b)
         _befriend(a, c)
-        assert badges.has_badge(a, badge.id)
+        assert badge_service.has_badge(a, badge.id)
 
         # Publish again directly with the same facts. (Re-accepting would raise
         # before any publish, so it would never exercise this path.)
         activity.publish(a)
 
-        assert badges.has_badge(a, badge.id)
+        assert badge_service.has_badge(a, badge.id)
         assert _award(a, badge.id).times_awarded == 1
 
     def test_gaining_a_friend_beyond_threshold_leaves_award_unchanged(self):
-        badge = badges.create_badge("Social Butterfly", None, MinFriends(2))
+        badge = badge_service.create_badge("Social Butterfly", None, MinFriends(2))
         a, b, c, d = uuid.uuid4(), uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
         _befriend(a, b)
         _befriend(a, c)
@@ -181,7 +199,7 @@ class TestBadgeAwardNotification:
             "notify_badge_awarded",
             lambda user_id, badge_name: notified.append((user_id, badge_name)),
         )
-        badges.create_badge("Social Butterfly", None, MinFriends(2))
+        badge_service.create_badge("Social Butterfly", None, MinFriends(2))
         a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
 
         _befriend(a, b)
@@ -196,7 +214,7 @@ class TestBadgeAwardNotification:
             "notify_badge_awarded",
             lambda user_id, badge_name: notified.append((user_id, badge_name)),
         )
-        badges.create_badge("Very Popular", None, MinFriends(5))
+        badge_service.create_badge("Very Popular", None, MinFriends(5))
         a, b = uuid.uuid4(), uuid.uuid4()
 
         _befriend(a, b)  # one friend is below the threshold
@@ -208,7 +226,7 @@ class TestBadgeAwardNotification:
             raise bridge.SubprocessError("event-service unavailable")
 
         monkeypatch.setattr(bridge, "notify_badge_awarded", boom)
-        badge = badges.create_badge("Social Butterfly", None, MinFriends(2))
+        badge = badge_service.create_badge("Social Butterfly", None, MinFriends(2))
         a, b, c = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
 
         _befriend(a, b)
@@ -216,4 +234,4 @@ class TestBadgeAwardNotification:
         # still succeed (no exception) and the badge must remain awarded.
         _befriend(a, c)
 
-        assert badges.has_badge(a, badge.id)
+        assert badge_service.has_badge(a, badge.id)
