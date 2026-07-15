@@ -6,9 +6,8 @@ service-level operations callers use to execute the algorithms and find
 recommendations for a given user.
 """
 
-from recommendations.base import get_recommended_events, find_new_friends
+from recommendations.base import RecommendationsService
 
 __all__ = [
-    "get_recommended_events",
-    "find_new_friends"
+    "RecommendationsService"
 ]

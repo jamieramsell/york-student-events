@@ -20,14 +20,14 @@ Covers the ``predicates`` module on two fronts:
         ``since`` / ``until`` filtering (including the ``friend_count``
         state-fact pass-through).
 
-It also covers the ``badge_service`` service layer:
+It also covers the ``BadgeService`` service layer:
 
   * ``TestBadgeService``
         the manual operations (``create_badge`` / ``award_badge`` /
         ``revoke_badge`` / ``has_badge`` / ``get_user_badges``) and the
-        automatic, condition-driven ``evaluate_badges``, driven through the live
-        module-level repository singletons (reset per test by the
-        ``reset_badge_repositories`` autouse fixture in ``conftest.py``). The
+        automatic, condition-driven ``evaluate_badges``, driven through a
+        ``BadgeService`` backed by fresh in-memory repositories (injected per
+        test by the ``compose_services`` autouse fixture in ``conftest.py``). The
         repeatable-badge evaluation cases build activity timestamped relative to
         the stored ``awarded_at`` so the ``context.since`` re-award window is
         exercised on both sides.
@@ -41,9 +41,12 @@ import uuid
 
 import pytest
 
-import badges.awarded_badge_repository as awarded_badge_repository
 import badges.base as base
-from badges import badge_service
+from badges import (
+    BadgeService,
+    InMemoryAwardedBadgeRepository,
+    InMemoryBadgeRepository,
+)
 from badges.predicates import (
     AndPredicate,
     AttendedEvent,
@@ -62,6 +65,13 @@ _HOST = uuid.UUID("11111111-1111-1111-1111-111111111111")
 _HOST_B = uuid.UUID("22222222-2222-2222-2222-222222222222")
 _START = datetime.datetime(2026, 10, 31, 20, 0)
 _END = datetime.datetime(2026, 11, 1, 6, 0)
+
+# Module-level defaults so the file is usable on its own; ``compose_services`` in
+# conftest.py swaps in a fresh, isolated service (and its repositories) before
+# every test.
+badge_repo = InMemoryBadgeRepository()
+awarded_badge_repo = InMemoryAwardedBadgeRepository()
+badge_service = BadgeService(badge_repo, awarded_badge_repo)
 
 # A fixed origin the behavioural tests place facts relative to, in minutes, so
 # each test reads as an offset timeline rather than a wall of datetimes.
@@ -128,7 +138,7 @@ def _service_context(user_id, events=(), friend_count=0):
 def _award_record(user_id, badge_id):
     """Return the stored ``AwardedBadge`` for a pair, or ``None``."""
 
-    return awarded_badge_repository._repository.find_by_id(
+    return awarded_badge_repo.find_by_id(
         base._generate_award_id(user_id, badge_id)
     )
 
@@ -626,10 +636,10 @@ class TestAwardContextWindowing:
 
 
 class TestBadgeService:
-    """Service-layer behaviour for ``badges.badge_service``.
+    """Service-layer behaviour for ``badges.BadgeService``.
 
-    Runs against the live ``badge_repository`` / ``awarded_badge_repository``
-    singletons, reset per test by ``reset_badge_repositories`` in
+    Runs against a fresh ``BadgeService`` backed by bare in-memory badge and
+    awarded-badge repositories, injected per test by ``compose_services`` in
     ``conftest.py``.
     """
 
@@ -821,7 +831,7 @@ class TestBadgeService:
         # An award pointing at a badge absent from the badge repository is a
         # broken invariant the getter surfaces rather than silently skips.
         user = uuid.uuid4()
-        awarded_badge_repository._repository.save(
+        awarded_badge_repo.save(
             base.AwardedBadge(user, uuid.uuid4(), datetime.datetime.now())
         )
 

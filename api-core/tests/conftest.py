@@ -7,9 +7,11 @@ the ``src`` source root must be on ``sys.path`` for the suite to resolve them.
 This file adds it so the suite runs from the repo root with
 ``python -m pytest api-core/tests/``.
 
-It also resets the module-level repository singletons before every test: the
-service layers operate on module-level ``_repository`` instances (the friends
-and attendance slices), and without a reset that state would leak between tests.
+It also acts as the test suite's composition root: the service layers now take
+their repositories (and collaborating services) via constructor injection, so
+``compose_services`` builds a fresh, isolated service graph before every test and
+publishes the instances onto the test modules that drive them. No module-level
+repository singletons survive between tests, so state cannot leak.
 """
 
 import os
@@ -69,74 +71,96 @@ def mock_bridge(request, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def reset_repository():
-    """Give every test a clean, isolated friends repository.
+def compose_services():
+    """Build a fresh, isolated service graph and expose it to the test modules.
 
-    The service layer reads ``friendship_repository._repository`` at call time,
-    so replacing the singleton here is picked up by all service functions.
+    This is the test suite's composition root. Each service now receives its
+    repositories (and collaborating services) explicitly, so instead of resetting
+    module-level ``_repository`` singletons this fixture constructs brand-new
+    repositories and services per test and assigns them onto the module globals
+    the tests read at call time. Because a new graph is built every test, no
+    attendance/friend/badge state leaks between tests.
     """
 
-    import friends.friendship_repository as friendship_repository
+    import test_attendance
+    import test_badges
+    import test_evaluation
+    import test_friends
+    import test_recommendations
+    import test_recommendations_integration
 
-    friendship_repository._repository = (
-        friendship_repository.InMemoryFriendshipRepository()
+    from attendance import AttendanceService, InMemoryAttendanceRepository
+    from badges import (
+        BadgeService,
+        EvaluationService,
+        InMemoryAwardedBadgeRepository,
+        InMemoryBadgeRepository,
     )
-    yield
+    from friends import FriendshipService, InMemoryFriendshipRepository
+    from recommendations import RecommendationsService
+
+    # Fresh repositories, all bare (never the canned variants) so the unit suite
+    # starts from empty state.
+    attendance_repo = InMemoryAttendanceRepository()
+    friendship_repo = InMemoryFriendshipRepository()
+    badge_repo = InMemoryBadgeRepository()
+    awarded_badge_repo = InMemoryAwardedBadgeRepository()
+
+    # Services, wired to those repositories and to each other.
+    attendance_service = AttendanceService(attendance_repo)
+    friendship_service = FriendshipService(friendship_repo)
+    badge_service = BadgeService(badge_repo, awarded_badge_repo)
+    recommendations_service = RecommendationsService(friendship_service)
+    evaluation_service = EvaluationService(
+        attendance_service, friendship_service, badge_service
+    )
+
+    # Publish the instances (and the underlying repositories the tests assert
+    # against) onto each test module's globals.
+    test_attendance.attendance_service = attendance_service
+    test_attendance.attendance_repo = attendance_repo
+
+    test_friends.friendship_service = friendship_service
+    test_friends.friendship_repo = friendship_repo
+
+    test_badges.badge_service = badge_service
+    test_badges.badge_repo = badge_repo
+    test_badges.awarded_badge_repo = awarded_badge_repo
+
+    test_evaluation.friendship_service = friendship_service
+    test_evaluation.badge_service = badge_service
+    test_evaluation.evaluation_service = evaluation_service
+    test_evaluation.awarded_badge_repo = awarded_badge_repo
+
+    test_recommendations.friendship_service = friendship_service
+    test_recommendations.recommendations_service = recommendations_service
+
+    test_recommendations_integration.friendship_service = friendship_service
+    test_recommendations_integration.recommendations_service = (
+        recommendations_service
+    )
+
+    # Hand the evaluation service to the activity-wiring fixture below.
+    yield evaluation_service
 
 
 @pytest.fixture(autouse=True)
-def reset_badge_repositories():
-    """Give every test clean, isolated badge repositories.
-
-    ``badge_service`` reads the module-level ``_repository`` singletons of both
-    ``badge_repository`` and ``awarded_badge_repository`` at call time, so
-    swapping them here isolates badge and award state between tests (mirrors the
-    ``reset_repository`` pattern for the friends slice).
-    """
-
-    import badges.awarded_badge_repository as awarded_badge_repository
-    import badges.badge_repository as badge_repository
-
-    badge_repository._repository = badge_repository.InMemoryBadgeRepository()
-    awarded_badge_repository._repository = (
-        awarded_badge_repository.InMemoryAwardedBadgeRepository()
-    )
-    yield
-
-
-@pytest.fixture(autouse=True)
-def reset_activity_listeners():
+def reset_activity_listeners(compose_services):
     """Give every test a clean ``activity`` listener registry.
 
     The registry is a process-wide, module-level set, so without a reset the
     listeners one test subscribes would leak into the next. After clearing, the
-    badge ``evaluation`` listener is re-registered -- the subscription
-    ``badges`` installs on import -- so automatic badge evaluation stays wired
-    for the integration tests without leaking any test-local spies. Cleared
-    again on teardown so nothing survives into an unrelated test.
+    freshly composed ``EvaluationService`` re-registers its listener -- so
+    automatic badge evaluation stays wired for the integration tests without
+    leaking any test-local spies. Cleared again on teardown so nothing survives
+    into an unrelated test.
     """
 
     import activity.base
-    from badges import evaluation
 
     # ``__listeners`` is module-private with no public reset hook; reaching in
     # here (outside any class, so unmangled) is the reset seam for the tests.
     activity.base.__listeners.clear()
-    evaluation.register()
+    compose_services.register()
     yield
     activity.base.__listeners.clear()
-    
-@pytest.fixture(autouse=True)
-def reset_attendance_repository():
-    """Give every test a clean, isolated attendance repository.
-
-    The service layer reads ``attendance_repository._repository`` at call time,
-    so replacing the singleton here is picked up by all service functions.
-    """
-
-    import attendance.attendance_repository as attendance_repository
-
-    attendance_repository._repository = (
-        attendance_repository.InMemoryAttendanceRepository()
-    )
-    yield

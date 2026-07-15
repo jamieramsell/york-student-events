@@ -1,12 +1,8 @@
 # api-core/tests/test_attendance.py
 """Integration tests for the attendance slice's service layer.
 
-Exercises ``attendance.attendance_service`` through the real in-memory
-repository singleton (``attendance.attendance_repository._repository``), the same
-object the service reads at call time, so the tests pin the behaviour callers
-actually get rather than that of a hand-injected fixture. The singleton is reset
-before every test by ``conftest.py``'s ``reset_attendance_repository`` fixture,
-so state cannot leak between tests.
+Exercises ``attendance.attendance_service``, so the tests pin the behaviour
+callers actually get, rather than that of a hand-injected fixture.
 
 Coverage mirrors the service contract: recording (field + ``recorded_at``
 timestamp storage, duplicate rejection without overwrite, re-record after
@@ -24,15 +20,20 @@ import uuid
 
 import pytest
 
-import attendance.attendance_repository as attendance_repository
-import attendance.attendance_service as attendance_service
+from attendance import AttendanceService, InMemoryAttendanceRepository
 from attendance.base import Attendance
+
+# Module-level defaults so the file is usable on its own; ``compose_services`` in
+# conftest.py swaps in a fresh, isolated service (and its repository) before
+# every test.
+attendance_repo = InMemoryAttendanceRepository()
+attendance_service = AttendanceService(attendance_repo)
 
 
 def _repo():
-    """Returns the live service repository singleton."""
+    """Returns the repository backing the service under test."""
 
-    return attendance_repository._repository
+    return attendance_repo
 
 
 def _record(attendee_id=None, event_id=None):

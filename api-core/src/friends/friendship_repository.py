@@ -1,9 +1,8 @@
 """In-memory persistence for ``Friendship`` entities.
 
 Provides ``InMemoryFriendshipRepository``, a dictionary-backed implementation of
-``repositories.IRepository`` keyed by the frozenset IDs of Friendship objects,
-plus the package-internal ``_repository`` singleton injected into the service
-layer. This stands in for a database-backed repository during early development.
+``repositories.IRepository`` keyed by the frozenset IDs of Friendship objects.
+This stands in for a database-backed repository during early development.
 """
 
 from __future__ import annotations
@@ -13,38 +12,23 @@ import uuid
 import friends.base as base
 import repositories
 
-class InMemoryFriendshipRepository(repositories.IRepository[
-                                                    base.FriendshipId,
-                                                    base.Friendship
-                                                ]):
+
+class InMemoryFriendshipRepository(
+    repositories.InMemoryRepository[base.FriendshipId, base.Friendship]
+):
     """Dictionary backed repository for storing and retrieving Friendship
     entities.
     
-    Extends repositories.IRepository with frozenset[uuid.UUID] as the managed
-    type, providing standard CRUD operations scoped to the frozenset keys of
-    Friendship objects. Used for integration testing before implementing
+    Extends repositories.InMemoryRepository with frozenset[uuid.UUID] as the
+    managed type, providing standard CRUD operations scoped to the frozenset
+    keys of Friendship objects. Used for integration testing before implementing
     database-backed repositories.
     
     See Also:
         repositories.IRepository
+        repositories.InMemoryRepository
     """
 
-    def __init__(self):
-        self.__dict: dict[base.FriendshipId, base.Friendship] = {}
-
-    def save(self, entity: base.Friendship) -> None:
-        self.__dict[entity.get_id()] = entity
-
-    def delete(self, entity_id: base.FriendshipId) -> None:
-        self.__dict.pop(entity_id)
-
-    def find_by_id(
-        self, entity_id: base.FriendshipId
-    ) -> base.Friendship | None:
-        return self.__dict.get(entity_id)
-
-    def find_all(self) -> list[base.Friendship]:
-        return list(self.__dict.values())
 
 # Canonical canned friend graph seeded into every
 # InMemoryCannedFriendshipRepository. The two accepted friendships form a chain
@@ -93,15 +77,3 @@ class InMemoryCannedFriendshipRepository(InMemoryFriendshipRepository):
                 accepted,
             )
         )
-
-# Variable used to inject an instance of a repository into friendship_service.
-# Package-internal (single leading underscore): consumed by other modules in the
-# friends package, but not part of the package's public API. Do not remove
-# unless changing the dependency!
-#
-# The bridge responder serves this singleton (via recommendations.find_new_friends),
-# so it defaults to the canned repository to give end-to-end tests deterministic
-# data. The Python test suite swaps it for a bare InMemoryFriendshipRepository
-# per test (see conftest.py), so the seeded graph is only ever visible over the
-# subprocess bridge.
-_repository = InMemoryCannedFriendshipRepository()
