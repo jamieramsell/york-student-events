@@ -5,11 +5,11 @@ collaborators to exercise the recommendation logic in isolation, this module
 exercises the *integration seam*: the same entry point driven against the real
 collaborators it wires together.
 
-  * The friend graph is built through the **real** friends service
-    (``friends.send_friend_request`` / ``friends.accept_friend_request``)
-    backed by the live ``InMemoryFriendshipRepository`` singleton. The
-    ``reset_repository`` fixture in ``conftest.py`` gives each test a clean
-    repository, so no state leaks between tests.
+  * The friend graph is built through the **real** ``FriendshipService``
+    (``send_friend_request`` / ``accept_friend_request``) backed by a fresh
+    ``InMemoryFriendshipRepository``. The ``compose_services`` fixture in
+    ``conftest.py`` injects a clean service graph per test, so no state leaks
+    between tests.
   * Event lookups are driven through the **real** subprocess bridge
     (``bridge.get_user_events``), which spawns the Java
     ``york.studentevents.subprocess.SubprocessResponder`` as a child process and
@@ -49,9 +49,15 @@ import uuid
 import pytest
 
 import bridge
-import friends
 from bridge import client as bridge_client
-from recommendations.base import get_recommended_events
+from friends import FriendshipService, InMemoryFriendshipRepository
+from recommendations import RecommendationsService
+
+# Module-level defaults so the file is usable on its own; ``compose_services`` in
+# conftest.py swaps in a fresh ``friendship_service`` and a
+# ``recommendations_service`` wrapping it before every test.
+friendship_service = FriendshipService(InMemoryFriendshipRepository())
+recommendations_service = RecommendationsService(friendship_service)
 
 # The single user recognised by the SubprocessResponder stub, and the events it
 # returns for that user. These mirror the constants in SubprocessResponder.java.
@@ -105,8 +111,8 @@ class TestMatchingFriendsSeam:
 
         # No friendships have been created, so the real get_friends() returns []
         # and get_recommended_events short-circuits before touching the bridge.
-        assert friends.get_friends(user) == []
-        assert get_recommended_events(user) == []
+        assert friendship_service.get_friends(user) == []
+        assert recommendations_service.get_recommended_events(user) == []
 
     def test_pending_friendship_does_not_contribute(self):
         """A sent-but-not-accepted request is not a friendship: it contributes
@@ -115,10 +121,10 @@ class TestMatchingFriendsSeam:
         user, invitee = uuid.uuid4(), uuid.uuid4()
 
         # Request sent but deliberately not accepted -> still PENDING.
-        friends.send_friend_request(user, invitee)
+        friendship_service.send_friend_request(user, invitee)
 
-        assert friends.get_friends(user) == []
-        assert get_recommended_events(user) == []
+        assert friendship_service.get_friends(user) == []
+        assert recommendations_service.get_recommended_events(user) == []
 
     def test_accepted_request_establishes_a_friend(self):
         """Sanity check on the friends seam itself: an accepted request makes
@@ -126,11 +132,11 @@ class TestMatchingFriendsSeam:
 
         user, friend = uuid.uuid4(), uuid.uuid4()
 
-        friends.send_friend_request(user, friend)
-        friends.accept_friend_request(user, friend)
+        friendship_service.send_friend_request(user, friend)
+        friendship_service.accept_friend_request(user, friend)
 
-        assert friends.get_friends(user) == [friend]
-        assert friends.get_friends(friend) == [user]
+        assert friendship_service.get_friends(user) == [friend]
+        assert friendship_service.get_friends(friend) == [user]
 
 
 @pytest.mark.integration
@@ -177,12 +183,12 @@ class TestRealBridge:
         """
 
         friend = uuid.uuid4()
-        friends.send_friend_request(SENTINEL_USER, friend)
-        friends.accept_friend_request(SENTINEL_USER, friend)
-        assert friends.get_friends(SENTINEL_USER) == [friend]
+        friendship_service.send_friend_request(SENTINEL_USER, friend)
+        friendship_service.accept_friend_request(SENTINEL_USER, friend)
+        assert friendship_service.get_friends(SENTINEL_USER) == [friend]
 
         with pytest.raises(bridge.SubprocessError) as excinfo:
-            get_recommended_events(SENTINEL_USER)
+            recommendations_service.get_recommended_events(SENTINEL_USER)
 
         # The friend's lookup is what failed, which means the target's own-event
         # lookup must have succeeded against the live responder first.
