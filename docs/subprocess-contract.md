@@ -52,7 +52,7 @@ Each row lists the responder that owns the type, the request payload fields, and
 | `GET_RECOMMENDED_EVENTS` | api-core | `userId` (UUID) | `events`: array of event UUIDs |
 | `GET_USER_EVENTS` | event-service | `userId` (UUID) | `events`: array of event UUIDs |
 | `RECORD_ATTENDANCE` | api-core | `userId` (UUID), `eventId` (UUID) | *(empty — success signalled by the `ok` status)* |
-| `GET_RECOMMENDED_FRIENDS` | api-core | `userId` (UUID) | `events`: array of event UUIDs |
+| `GET_RECOMMENDED_FRIENDS` | api-core | `userId` (UUID) | `friends`: array of user UUIDs |
 | `GET_EVENT_INFO` | event-service | `eventId` (UUID) | `host` (UUID), `start` (str, ISO-8601 formatted datetime), `category` (str) |
 | `BADGE_AWARDED` | event-service | `userId` (UUID), `badgeName` (string) | *(empty — success signalled by the `ok` status)* |
 

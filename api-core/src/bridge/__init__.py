@@ -1,7 +1,7 @@
 """Subprocess bridge between api-core (Python) and event-service (Java).
 
 This package wraps the JSON-over-stdio contract that lets the two services invoke
-each other as child processes (see ``docs/docs/subprocess-contract.md``):
+each other as child processes (see ``docs/subprocess-contract.md``):
 
 - ``client``     — api-core spawns the Java responder and requests payloads from it.
 - ``responder``  — api-core answers requests issued by event-service over standard

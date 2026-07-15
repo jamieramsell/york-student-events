@@ -47,7 +47,7 @@ def get_recommended_events(user_id: uuid.UUID) -> list[uuid.UUID]:
         recommended_events.update(friend_events)
     
     # Iterate through sorted list of tuples, and only return the event IDs, not
-    # their number of occurences.
+    # their number of occurrences.
     return [event_id for event_id, _ in recommended_events.most_common()]
 
 
@@ -81,7 +81,7 @@ def __iterate_over_graph_layers(
         raise ValueError("Value of current_layer out of bounds."
                          "\nExpected current_layer to be at least 1; layer 0"
                          " holds the user's existing friends."
-                         f"\nValue recieved: {current_layer}")
+                         f"\nValue received: {current_layer}")
 
     # The graph does not reach this depth, so there are no further users to
     # recommend from here.
