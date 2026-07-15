@@ -14,21 +14,11 @@ from attendance.attendance_repository import (
     InMemoryAttendanceRepository,
     InMemoryCannedAttendanceRepository,
 )
-from attendance.attendance_service import (
-    record_attendance,
-    withdraw_attendance,
-    has_attended,
-    get_attendances,
-    get_event_attendees
-)
+from attendance.attendance_service import AttendanceService
 
 __all__ = [
     "Attendance",
     "InMemoryAttendanceRepository",
     "InMemoryCannedAttendanceRepository",
-    "record_attendance",
-    "withdraw_attendance",
-    "has_attended",
-    "get_attendances",
-    "get_event_attendees"
+    "AttendanceService"
 ]
