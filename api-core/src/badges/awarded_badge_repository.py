@@ -2,9 +2,8 @@
 
 Provides ``InMemoryAwardedBadgeRepository``, a dictionary-backed implementation
 of ``repositories.IRepository`` keyed by the 2-tuple ``(uuid.UUID, uuid.UUID)``
-IDs of AwardedBadge objects, plus the package-internal ``_repository`` singleton
-which gets injected into the service layer. This stands in for a database-backed
-repository during early development.
+IDs of AwardedBadge objects. This stands in for a database-backed repository
+during early development.
 """
 
 from __future__ import annotations
@@ -26,9 +25,3 @@ class InMemoryAwardedBadgeRepository(
         repositories.IRepository
         repositories.InMemoryRepository
     """
-
-# Variable used to inject an instance of a repository into badge_service.
-# Package-internal (single leading underscore): consumed by other modules in the
-# badges package, but not part of the package's public API. Do not remove
-# unless changing the dependency!
-_repository = InMemoryAwardedBadgeRepository()
