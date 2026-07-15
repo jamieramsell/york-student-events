@@ -13,38 +13,23 @@ import uuid
 import friends.base as base
 import repositories
 
-class InMemoryFriendshipRepository(repositories.IRepository[
-                                                    base.FriendshipId,
-                                                    base.Friendship
-                                                ]):
+
+class InMemoryFriendshipRepository(
+    repositories.InMemoryRepository[base.FriendshipId, base.Friendship]
+):
     """Dictionary backed repository for storing and retrieving Friendship
     entities.
     
-    Extends repositories.IRepository with frozenset[uuid.UUID] as the managed
-    type, providing standard CRUD operations scoped to the frozenset keys of
-    Friendship objects. Used for integration testing before implementing
+    Extends repositories.InMemoryRepository with frozenset[uuid.UUID] as the
+    managed type, providing standard CRUD operations scoped to the frozenset
+    keys of Friendship objects. Used for integration testing before implementing
     database-backed repositories.
     
     See Also:
         repositories.IRepository
+        repositories.InMemoryRepository
     """
 
-    def __init__(self):
-        self.__dict: dict[base.FriendshipId, base.Friendship] = {}
-
-    def save(self, entity: base.Friendship) -> None:
-        self.__dict[entity.get_id()] = entity
-
-    def delete(self, entity_id: base.FriendshipId) -> None:
-        self.__dict.pop(entity_id)
-
-    def find_by_id(
-        self, entity_id: base.FriendshipId
-    ) -> base.Friendship | None:
-        return self.__dict.get(entity_id)
-
-    def find_all(self) -> list[base.Friendship]:
-        return list(self.__dict.values())
 
 # Canonical canned friend graph seeded into every
 # InMemoryCannedFriendshipRepository. The two accepted friendships form a chain
