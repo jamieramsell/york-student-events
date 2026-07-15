@@ -27,8 +27,28 @@ _SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-import attendance  # noqa: E402  (imported after the sys.path bootstrap above)
-import recommendations  # noqa: E402  (imported after the sys.path bootstrap above)
+from attendance import (  # noqa: E402  (imported after the sys.path bootstrap)
+    AttendanceService,
+    InMemoryCannedAttendanceRepository,
+)
+from friends import (  # noqa: E402  (imported after the sys.path bootstrap)
+    FriendshipService,
+    InMemoryCannedFriendshipRepository,
+)
+from recommendations import (  # noqa: E402  (after the sys.path bootstrap)
+    RecommendationsService,
+)
+
+# Composition root for the subprocess bridge. event-service spawns a fresh
+# responder process per call, so these singletons live only for that one call.
+# They default to the canned repositories to give end-to-end tests deterministic
+# seeded data (a pre-recorded attendance and a small friend graph); the Python
+# test suite that drives the handlers in-process swaps them for bare
+# repositories (see test_bridge_responder.py). Wiring lives here until the shared
+# composition root (#198) lands.
+attendance_service = AttendanceService(InMemoryCannedAttendanceRepository())
+friendship_service = FriendshipService(InMemoryCannedFriendshipRepository())
+recommendations_service = RecommendationsService(friendship_service)
 
 # Type alias of a Payload passed to a handler, formed of str keys, and str
 # elements
@@ -63,7 +83,7 @@ def get_recommended_events(payload: IncomingPayload) -> OutgoingPayload:
 def record_attendance(payload: IncomingPayload) -> OutgoingPayload:
     attendee_id = uuid.UUID(payload["userId"])
     event_id = uuid.UUID(payload["eventId"])
-    attendance.record_attendance(attendee_id, event_id)
+    attendance_service.record_attendance(attendee_id, event_id)
     return {}
 
 
@@ -71,7 +91,7 @@ def get_recommended_friends(payload: IncomingPayload) -> OutgoingPayload:
     user_id = uuid.UUID(payload["userId"])
     return {
         "friends": [str(recommended_friend_id) for recommended_friend_id
-                     in recommendations.find_new_friends(user_id)]
+                     in recommendations_service.find_new_friends(user_id)]
     }
 
 
