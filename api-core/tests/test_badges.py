@@ -20,6 +20,18 @@ Covers the ``predicates`` module on two fronts:
         ``since`` / ``until`` filtering (including the ``friend_count``
         state-fact pass-through).
 
+It also covers the ``badge_service`` service layer:
+
+  * ``TestBadgeService``
+        the manual operations (``create_badge`` / ``award_badge`` /
+        ``revoke_badge`` / ``has_badge`` / ``get_user_badges``) and the
+        automatic, condition-driven ``evaluate_badges``, driven through the live
+        module-level repository singletons (reset per test by the
+        ``reset_badge_repositories`` autouse fixture in ``conftest.py``). The
+        repeatable-badge evaluation cases build activity timestamped relative to
+        the stored ``awarded_at`` so the ``context.since`` re-award window is
+        exercised on both sides.
+
 Run from the repo root:  ``python -m pytest api-core/tests/``
 """
 
@@ -29,6 +41,9 @@ import uuid
 
 import pytest
 
+import badges.awarded_badge_repository as awarded_badge_repository
+import badges.base as base
+from badges import badge_service
 from badges.predicates import (
     AndPredicate,
     AttendedEvent,
@@ -79,6 +94,44 @@ def _context(events=(), friend_count=0, message_offsets=()):
             _T0 + datetime.timedelta(minutes=m) for m in message_offsets
         ),
     )
+
+def _event_at(when, host_id=_HOST, categories=("music",)):
+    """Build an ``AttendedEvent`` at an absolute ``when`` datetime.
+
+    The service-layer re-award tests need attendances placed relative to a
+    stored ``awarded_at`` (wall-clock ``now()``), which ``_event``'s
+    ``_T0``-relative offsets cannot express.
+    """
+
+    return AttendedEvent(
+        event_id=uuid.uuid4(),
+        host_id=host_id,
+        categories=frozenset(categories),
+        start_time=when,
+    )
+
+
+def _service_context(user_id, events=(), friend_count=0):
+    """Build an ``AwardContext`` for a specific ``user_id``.
+
+    ``_context`` invents a fresh user each call, but the service tests need a
+    context tied to the same user they award/query against.
+    """
+
+    return AwardContext(
+        user_id=user_id,
+        attended_events=tuple(events),
+        friend_count=friend_count,
+    )
+
+
+def _award_record(user_id, badge_id):
+    """Return the stored ``AwardedBadge`` for a pair, or ``None``."""
+
+    return awarded_badge_repository._repository.find_by_id(
+        base._generate_award_id(user_id, badge_id)
+    )
+
 
 # One instance of every predicate type, plus composites, exercising each
 # non-trivial field conversion (UUID ``host_id``, ISO ``between`` bounds with
@@ -570,3 +623,299 @@ class TestAwardContextWindowing:
         context = _context([_event(0)])
         assert context.since(_T0) is not context
         assert context.until(_T0) is not context
+
+
+class TestBadgeService:
+    """Service-layer behaviour for ``badges.badge_service``.
+
+    Runs against the live ``badge_repository`` / ``awarded_badge_repository``
+    singletons, reset per test by ``reset_badge_repositories`` in
+    ``conftest.py``.
+    """
+
+    # -- create_badge / award_badge -----------------------------------------
+
+    def test_create_then_award_is_retrievable(self):
+        # create + award round-trip: the created badge, keyed by its generated
+        # id, comes back out of get_user_badges once awarded.
+        user = uuid.uuid4()
+        badge = badge_service.create_badge("Explorer", "desc", MinFriends(1))
+
+        assert isinstance(badge.id, uuid.UUID)
+
+        badge_service.award_badge(user, badge.id)
+
+        assert badge in badge_service.get_user_badges(user)
+
+    def test_create_badge_generates_unique_ids(self):
+        first = badge_service.create_badge("Dup", None, MinFriends(1))
+        second = badge_service.create_badge("Dup", None, MinFriends(1))
+        assert first.id != second.id
+
+    def test_award_records_single_award(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge("First", None, MinFriends(1))
+
+        badge_service.award_badge(user, badge.id)
+
+        record = _award_record(user, badge.id)
+        assert record is not None
+        assert record.times_awarded == 1
+        assert record.user_id == user
+        assert record.badge_id == badge.id
+
+    def test_award_unknown_badge_raises(self):
+        with pytest.raises(ValueError):
+            badge_service.award_badge(uuid.uuid4(), uuid.uuid4())
+
+    def test_award_non_repeatable_already_held_raises(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge("Once", None, MinFriends(1))
+        badge_service.award_badge(user, badge.id)
+
+        with pytest.raises(ValueError):
+            badge_service.award_badge(user, badge.id)
+
+        # The rejected re-award leaves the single existing record untouched.
+        assert _award_record(user, badge.id).times_awarded == 1
+
+    def test_award_repeatable_increments_and_refreshes(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge(
+            "Repeat", None, MinFriends(1), repeatable=True
+        )
+
+        badge_service.award_badge(user, badge.id)
+        first_at = _award_record(user, badge.id).awarded_at
+        badge_service.award_badge(user, badge.id)
+        record = _award_record(user, badge.id)
+
+        assert record.times_awarded == 2
+        assert isinstance(record.awarded_at, datetime.datetime)
+        assert record.awarded_at >= first_at
+
+    def test_award_is_per_user(self):
+        alice, bob = uuid.uuid4(), uuid.uuid4()
+        badge = badge_service.create_badge("Shared", None, MinFriends(1))
+
+        badge_service.award_badge(alice, badge.id)
+
+        assert _award_record(alice, badge.id) is not None
+        assert _award_record(bob, badge.id) is None
+
+    # -- revoke_badge -------------------------------------------------------
+
+    def test_revoke_removes_award(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge("Revocable", None, MinFriends(1))
+        badge_service.award_badge(user, badge.id)
+
+        badge_service.revoke_badge(user, badge.id)
+
+        assert _award_record(user, badge.id) is None
+        assert not badge_service.has_badge(user, badge.id)
+
+    def test_revoke_repeatable_drops_whole_record(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge(
+            "Repeat", None, MinFriends(1), repeatable=True
+        )
+        badge_service.award_badge(user, badge.id)
+        badge_service.award_badge(user, badge.id)
+        assert _award_record(user, badge.id).times_awarded == 2
+
+        # A multi-count award is dropped in full, not decremented.
+        badge_service.revoke_badge(user, badge.id)
+
+        assert _award_record(user, badge.id) is None
+
+    def test_revoke_not_held_raises(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge("Unawarded", None, MinFriends(1))
+
+        with pytest.raises(ValueError):
+            badge_service.revoke_badge(user, badge.id)
+
+    def test_revoke_unknown_badge_raises(self):
+        with pytest.raises(ValueError):
+            badge_service.revoke_badge(uuid.uuid4(), uuid.uuid4())
+
+    def test_revoke_is_per_user(self):
+        alice, bob = uuid.uuid4(), uuid.uuid4()
+        badge = badge_service.create_badge("Shared", None, MinFriends(1))
+        badge_service.award_badge(alice, badge.id)
+        badge_service.award_badge(bob, badge.id)
+
+        badge_service.revoke_badge(alice, badge.id)
+
+        assert not badge_service.has_badge(alice, badge.id)
+        assert badge_service.has_badge(bob, badge.id)
+
+    # -- has_badge ----------------------------------------------------------
+
+    def test_has_badge_true_and_false(self):
+        user = uuid.uuid4()
+        held = badge_service.create_badge("Held", None, MinFriends(1))
+        unheld = badge_service.create_badge("Unheld", None, MinFriends(1))
+        badge_service.award_badge(user, held.id)
+
+        assert badge_service.has_badge(user, held.id)
+        assert not badge_service.has_badge(user, unheld.id)
+
+    def test_has_badge_times_threshold(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge(
+            "Repeat", None, MinFriends(1), repeatable=True
+        )
+        badge_service.award_badge(user, badge.id)
+        badge_service.award_badge(user, badge.id)
+
+        # Awarded exactly twice: the boundary holds, one past it fails.
+        assert badge_service.has_badge(user, badge.id, times=2)
+        assert not badge_service.has_badge(user, badge.id, times=3)
+
+    def test_has_badge_unknown_badge_raises(self):
+        with pytest.raises(ValueError):
+            badge_service.has_badge(uuid.uuid4(), uuid.uuid4())
+
+    def test_has_badge_times_below_one_raises(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge("Held", None, MinFriends(1))
+        with pytest.raises(ValueError):
+            badge_service.has_badge(user, badge.id, times=0)
+
+    def test_has_badge_times_above_one_non_repeatable_raises(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge("Once", None, MinFriends(1))
+        with pytest.raises(ValueError):
+            badge_service.has_badge(user, badge.id, times=2)
+
+    # -- get_user_badges ----------------------------------------------------
+
+    def test_get_user_badges_returns_all_held(self):
+        user = uuid.uuid4()
+        first = badge_service.create_badge("First", None, MinFriends(1))
+        second = badge_service.create_badge("Second", None, MinFriends(1))
+        badge_service.award_badge(user, first.id)
+        badge_service.award_badge(user, second.id)
+
+        assert set(badge_service.get_user_badges(user)) == {first, second}
+
+    def test_get_user_badges_empty_for_new_user(self):
+        assert badge_service.get_user_badges(uuid.uuid4()) == []
+
+    def test_get_user_badges_isolates_users(self):
+        alice, bob = uuid.uuid4(), uuid.uuid4()
+        alice_badge = badge_service.create_badge("Alice", None, MinFriends(1))
+        bob_badge = badge_service.create_badge("Bob", None, MinFriends(1))
+        badge_service.award_badge(alice, alice_badge.id)
+        badge_service.award_badge(bob, bob_badge.id)
+
+        earned = badge_service.get_user_badges(alice)
+
+        # Bob's award never leaks into Alice's result.
+        assert earned == [alice_badge]
+        assert bob_badge not in earned
+
+    def test_get_user_badges_orphan_award_raises(self):
+        # An award pointing at a badge absent from the badge repository is a
+        # broken invariant the getter surfaces rather than silently skips.
+        user = uuid.uuid4()
+        awarded_badge_repository._repository.save(
+            base.AwardedBadge(user, uuid.uuid4(), datetime.datetime.now())
+        )
+
+        with pytest.raises(ValueError):
+            badge_service.get_user_badges(user)
+
+    # -- evaluate_badges ----------------------------------------------------
+
+    def test_evaluate_awards_all_satisfied_and_returns_them(self):
+        user = uuid.uuid4()
+        earns_friends = badge_service.create_badge("Social", None, MinFriends(2))
+        earns_events = badge_service.create_badge(
+            "Attendee", None, MinEventsAttended(1)
+        )
+        missed = badge_service.create_badge("Popular", None, MinFriends(9))
+
+        context = _service_context(user, events=[_event(0)], friend_count=2)
+        awarded = badge_service.evaluate_badges(context)
+
+        # Exactly the satisfied badges are returned and recorded.
+        assert set(awarded) == {earns_friends, earns_events}
+        assert missed not in awarded
+        assert badge_service.has_badge(user, earns_friends.id)
+        assert badge_service.has_badge(user, earns_events.id)
+        assert not badge_service.has_badge(user, missed.id)
+
+    def test_evaluate_does_not_award_unmet(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge("Popular", None, MinFriends(5))
+
+        awarded = badge_service.evaluate_badges(
+            _service_context(user, friend_count=2)
+        )
+
+        assert awarded == []
+        assert not badge_service.has_badge(user, badge.id)
+
+    def test_evaluate_second_call_skips_non_repeatable(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge("Social", None, MinFriends(2))
+        context = _service_context(user, friend_count=2)
+
+        first = badge_service.evaluate_badges(context)
+        second = badge_service.evaluate_badges(context)
+
+        assert first == [badge]
+        # Already held and not repeatable: the second pass is a no-op.
+        assert second == []
+        assert _award_record(user, badge.id).times_awarded == 1
+
+    def test_evaluate_repeatable_not_retriggered_without_new_activity(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge(
+            "Gig-goer", None, MinEventsAttended(2), repeatable=True
+        )
+        # ``_event`` places attendances at ``_T0`` (2026-01-01), comfortably
+        # before the ``awarded_at`` wall-clock stamped by the first award.
+        old = [_event(0), _event(10)]
+        assert badge_service.evaluate_badges(
+            _service_context(user, events=old)
+        ) == [badge]
+
+        # Re-evaluating the very same pre-award activity: ``since(awarded_at)``
+        # drops all of it, so the repeatable badge is not re-triggered.
+        assert badge_service.evaluate_badges(
+            _service_context(user, events=old)
+        ) == []
+        assert _award_record(user, badge.id).times_awarded == 1
+
+    def test_evaluate_repeatable_reawards_on_new_activity(self):
+        user = uuid.uuid4()
+        badge = badge_service.create_badge(
+            "Gig-goer", None, MinEventsAttended(2), repeatable=True
+        )
+        old = [_event(0), _event(10)]
+        assert badge_service.evaluate_badges(
+            _service_context(user, events=old)
+        ) == [badge]
+
+        awarded_at = _award_record(user, badge.id).awarded_at
+        # Two fresh attendances strictly after ``awarded_at``: ``since`` keeps
+        # only these, so MinEventsAttended(2) is met over the new window.
+        fresh = [
+            _event_at(awarded_at + datetime.timedelta(minutes=1)),
+            _event_at(awarded_at + datetime.timedelta(minutes=2)),
+        ]
+        second = badge_service.evaluate_badges(
+            _service_context(user, events=old + fresh)
+        )
+
+        assert second == [badge]
+        assert _award_record(user, badge.id).times_awarded == 2
+
+    def test_evaluate_no_badges_returns_empty(self):
+        assert badge_service.evaluate_badges(
+            _service_context(uuid.uuid4())
+        ) == []
