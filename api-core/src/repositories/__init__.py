@@ -7,5 +7,6 @@ implementation can be dropped in without changing any caller.
 """
 
 from repositories.base import IEntity, IRepository
+from repositories.inmemory import InMemoryRepository
 
-__all__ = ["IEntity", "IRepository"]
+__all__ = ["IEntity", "IRepository", "InMemoryRepository"]
