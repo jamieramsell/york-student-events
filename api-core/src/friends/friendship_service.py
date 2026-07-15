@@ -18,7 +18,7 @@ def send_friend_request(user_id: uuid.UUID, friend_id: uuid.UUID) -> None:
 
     Args:
         user_id: The user sending the request.
-        friend_id: The user recieving the request.
+        friend_id: The user receiving the request.
 
     Throws:
         ValueError: if a friend request or Friendship already exists between
@@ -84,7 +84,7 @@ def accept_friend_request(id1: uuid.UUID, id2: uuid.UUID) -> None:
 
 
 def remove_friend(id1: uuid.UUID, id2: uuid.UUID) -> None:
-    """Removes the Frienship record between two users from the repository.
+    """Removes the Friendship record between two users from the repository.
 
     Args:
         id1: The ID of one friend.
@@ -128,7 +128,7 @@ def get_friends(user_id: uuid.UUID) -> list[uuid.UUID]:
 
         # If the current friendship is not pending, and involves the target
         # user, then add the ID of the friend to the list
-        if (friendship.get_id().__contains__(user_id)
+        if (user_id in friendship.get_id()
             and friendship.friendship_status == base.FriendshipStatus.ACCEPTED):
 
             friendship_sender_id = friendship.user_id
