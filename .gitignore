@@ -39,6 +39,7 @@ env/
 dist/
 build/
 .pytest_cache/
+.ruff_cache/
 
 # ===========================
 # VS Code
@@ -77,3 +78,9 @@ $RECYCLE.BIN/
 .env
 .env.local
 *.secret
+
+# ===========================
+# Generated documentation
+# ===========================
+# Javadoc site is build output (./mvnw javadoc:javadoc); regenerate, don't commit.
+docs/apidocs/
