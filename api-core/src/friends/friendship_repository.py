@@ -1,9 +1,8 @@
 """In-memory persistence for ``Friendship`` entities.
 
 Provides ``InMemoryFriendshipRepository``, a dictionary-backed implementation of
-``repositories.IRepository`` keyed by the frozenset IDs of Friendship objects,
-plus the package-internal ``_repository`` singleton injected into the service
-layer. This stands in for a database-backed repository during early development.
+``repositories.IRepository`` keyed by the frozenset IDs of Friendship objects.
+This stands in for a database-backed repository during early development.
 """
 
 from __future__ import annotations
@@ -78,15 +77,3 @@ class InMemoryCannedFriendshipRepository(InMemoryFriendshipRepository):
                 accepted,
             )
         )
-
-# Variable used to inject an instance of a repository into friendship_service.
-# Package-internal (single leading underscore): consumed by other modules in the
-# friends package, but not part of the package's public API. Do not remove
-# unless changing the dependency!
-#
-# The bridge responder serves this singleton (via recommendations.find_new_friends),
-# so it defaults to the canned repository to give end-to-end tests deterministic
-# data. The Python test suite swaps it for a bare InMemoryFriendshipRepository
-# per test (see conftest.py), so the seeded graph is only ever visible over the
-# subprocess bridge.
-_repository = InMemoryCannedFriendshipRepository()

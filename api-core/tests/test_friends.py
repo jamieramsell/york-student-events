@@ -7,8 +7,8 @@ Layout mirrors the package's three modules:
   * ``TestInMemoryFriendshipRepository``
         unit tests for ``friendship_repository`` (storage, in isolation).
   * ``TestFriendshipService``
-        integration tests for ``friendship_service``, exercising the service
-        functions through the real in-memory repository singleton.
+        integration tests for ``FriendshipService``, exercising the service
+        through a freshly injected in-memory repository.
 
 Run from the repo root:  ``python -m pytest api-core/tests/``
 """
@@ -20,13 +20,18 @@ import uuid
 import pytest
 
 import activity
-import friends.friendship_repository as friendship_repository
-import friends.friendship_service as friendship_service
 import repositories
+from friends import FriendshipService
 from friends.base import Friendship, FriendshipStatus, _generate_id
 from friends.friendship_repository import InMemoryFriendshipRepository
 
 _FIXED_TIME = datetime.datetime(2026, 6, 20, 12, 0, 0)
+
+# Module-level defaults so the file is usable on its own; ``compose_services`` in
+# conftest.py swaps in a fresh, isolated service (and its repository) before
+# every test.
+friendship_repo = InMemoryFriendshipRepository()
+friendship_service = FriendshipService(friendship_repo)
 
 
 def _friendship(
@@ -46,9 +51,9 @@ def _friendship(
 
 
 def _repo():
-    """Returns the live service repository singleton."""
+    """Returns the repository backing the service under test."""
 
-    return friendship_repository._repository
+    return friendship_repo
 
 
 # ---------------------------------------------------------------------------
@@ -193,7 +198,7 @@ class TestInMemoryFriendshipRepository:
 
 
 # ---------------------------------------------------------------------------
-# friendship_service  (integration through the repository singleton)
+# FriendshipService  (integration through the injected repository)
 # ---------------------------------------------------------------------------
 class TestFriendshipService:
     # -- send_friend_request --------------------------------------------------
