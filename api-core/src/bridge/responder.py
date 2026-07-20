@@ -27,28 +27,28 @@ _SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-from attendance import (  # noqa: E402  (imported after the sys.path bootstrap)
-    AttendanceService,
+import bootstrap  # noqa: E402  (imported after the sys.path bootstrap)
+from attendance import (  # noqa: E402  (after the sys.path bootstrap)
     InMemoryCannedAttendanceRepository,
 )
-from friends import (  # noqa: E402  (imported after the sys.path bootstrap)
-    FriendshipService,
+from friends import (  # noqa: E402  (after the sys.path bootstrap)
     InMemoryCannedFriendshipRepository,
 )
-from recommendations import (  # noqa: E402  (after the sys.path bootstrap)
-    RecommendationsService,
-)
 
-# Composition root for the subprocess bridge. event-service spawns a fresh
-# responder process per call, so these singletons live only for that one call.
-# They default to the canned repositories to give end-to-end tests deterministic
-# seeded data (a pre-recorded attendance and a small friend graph); the Python
-# test suite that drives the handlers in-process swaps them for bare
-# repositories (see test_bridge_responder.py). Wiring lives here until the shared
-# composition root (#198) lands.
-attendance_service = AttendanceService(InMemoryCannedAttendanceRepository())
-friendship_service = FriendshipService(InMemoryCannedFriendshipRepository())
-recommendations_service = RecommendationsService(friendship_service)
+# Compose the service graph for the subprocess bridge through the shared
+# composition root (``bootstrap``). event-service spawns a fresh responder
+# process per call, so this graph lives only for that one call; it is seeded with
+# the canned repositories to give end-to-end tests deterministic data (a
+# pre-recorded attendance and a small friend graph). The in-process handler tests
+# replace ``_services`` with a bare graph (see test_bridge_responder.py). Badge
+# evaluation is left unregistered (``register=False``): the responder is a
+# stateless per-call surface and is not where the activity-driven auto-award
+# listener should run.
+_services = bootstrap.bootstrap(
+    attendance_repository=InMemoryCannedAttendanceRepository(),
+    friendship_repository=InMemoryCannedFriendshipRepository(),
+    register=False,
+)
 
 # Type alias of a Payload passed to a handler, formed of str keys, and str
 # elements
@@ -83,7 +83,7 @@ def get_recommended_events(payload: IncomingPayload) -> OutgoingPayload:
 def record_attendance(payload: IncomingPayload) -> OutgoingPayload:
     attendee_id = uuid.UUID(payload["userId"])
     event_id = uuid.UUID(payload["eventId"])
-    attendance_service.record_attendance(attendee_id, event_id)
+    _services.attendance_service.record_attendance(attendee_id, event_id)
     return {}
 
 
@@ -91,7 +91,7 @@ def get_recommended_friends(payload: IncomingPayload) -> OutgoingPayload:
     user_id = uuid.UUID(payload["userId"])
     return {
         "friends": [str(recommended_friend_id) for recommended_friend_id
-                     in recommendations_service.find_new_friends(user_id)]
+                     in _services.recommendations_service.find_new_friends(user_id)]
     }
 
 

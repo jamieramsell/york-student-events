@@ -73,6 +73,7 @@ def bootstrap(
     friendship_repository: friends.FriendshipRepository | None = None,
     badge_repository: badges.BadgeRepository | None = None,
     awarded_badge_repository: badges.AwardedBadgeRepository | None = None,
+    register: bool = True,
 ) -> Services:
     """Composition root which constructs, wires, and registers the api-core
     service graph.
@@ -82,14 +83,15 @@ def bootstrap(
     place. Any repository not supplied defaults to a fresh, empty in-memory
     implementation. Callers that require a seeded state (e.g. the v0.4.0 bridge
     responder) pass the canned repositories, and tests pass their own instances
-    so they can assert against them. Registers ``evaluation_service`` with the
-    ``activity`` registry, so a change published by any slice automatically
-    triggers badge re-evaluation.
+    so they can assert against them. When ``register`` is true (the default),
+    subscribes ``evaluation_service`` to the ``activity`` registry, so a change
+    published by any slice automatically triggers badge re-evaluation.
 
-    ``EvaluationService.register()`` mutates the process-wide ``activity``
-    listener set, so calling ``bootstrap`` more than once in a single process
-    subscribes an additional listener each time. A caller that re-bootstraps
-    (such as the test suite) should clear that registry between calls.
+    That subscription mutates the process-wide ``activity`` listener set, so
+    calling ``bootstrap`` with ``register=True`` more than once in a single
+    process subscribes an additional listener each time. A caller that
+    re-bootstraps (such as the test suite) should either pass ``register=False``
+    and manage the registry itself, or clear that registry between calls.
 
     Args:
         attendance_repository: Store backing ``attendance_service``. Defaults to
@@ -101,10 +103,17 @@ def bootstrap(
         awarded_badge_repository: Store of earned badges backing
             ``badge_service``. Defaults to a fresh empty
             ``InMemoryAwardedBadgeRepository``.
+        register: Whether to subscribe ``evaluation_service`` to the ``activity``
+            registry before returning (default True). Pass False for callers that
+            compose the graph but must not activate the auto-award listener -- the
+            stateless bridge responder, which cannot serve the listener's
+            cross-service callbacks, and the test suite, which manages the
+            ``activity`` registry itself.
 
     Returns:
-        A ``Services`` container holding the repositories and the fully wired,
-        ``activity``-registered services.
+        A ``Services`` container holding the repositories and the fully wired
+        services (``evaluation_service`` subscribed to ``activity`` when
+        ``register`` is true).
     """
     attendance_repository = (
         attendance_repository
@@ -138,7 +147,8 @@ def bootstrap(
         attendance_service, friendship_service, badge_service
     )
 
-    evaluation_service.register()
+    if register:
+        evaluation_service.register()
 
     services = Services(
         attendance_repo=attendance_repository,

@@ -74,10 +74,11 @@ def mock_bridge(request, monkeypatch):
 def compose_services():
     """Build a fresh, isolated service graph and expose it to the test modules.
 
-    This is the test suite's composition root. Each service now receives its
-    repositories (and collaborating services) explicitly, so instead of resetting
-    module-level ``_repository`` singletons this fixture constructs brand-new
-    repositories and services per test and assigns them onto the module globals
+    This is the test suite's composition root. Rather than assembling the graph
+    by hand, it calls the shared ``bootstrap`` with bare repositories (so the
+    unit suite starts from empty state) and ``register=False`` (the ``activity``
+    registry is wired per test by ``reset_activity_listeners`` below), then
+    publishes the constructed repositories and services onto the module globals
     the tests read at call time. Because a new graph is built every test, no
     attendance/friend/badge state leaks between tests.
     """
@@ -89,59 +90,43 @@ def compose_services():
     import test_recommendations
     import test_recommendations_integration
 
-    from attendance import AttendanceService, InMemoryAttendanceRepository
-    from badges import (
-        BadgeService,
-        EvaluationService,
-        InMemoryAwardedBadgeRepository,
-        InMemoryBadgeRepository,
-    )
-    from friends import FriendshipService, InMemoryFriendshipRepository
-    from recommendations import RecommendationsService
+    import bootstrap
 
-    # Fresh repositories, all bare (never the canned variants) so the unit suite
-    # starts from empty state.
-    attendance_repo = InMemoryAttendanceRepository()
-    friendship_repo = InMemoryFriendshipRepository()
-    badge_repo = InMemoryBadgeRepository()
-    awarded_badge_repo = InMemoryAwardedBadgeRepository()
-
-    # Services, wired to those repositories and to each other.
-    attendance_service = AttendanceService(attendance_repo)
-    friendship_service = FriendshipService(friendship_repo)
-    badge_service = BadgeService(badge_repo, awarded_badge_repo)
-    recommendations_service = RecommendationsService(friendship_service)
-    evaluation_service = EvaluationService(
-        attendance_service, friendship_service, badge_service
-    )
+    # Fresh graph, over bare repositories (never the canned variants) so the
+    # unit suite starts from empty state.
+    services = bootstrap.bootstrap(register=False)
 
     # Publish the instances (and the underlying repositories the tests assert
     # against) onto each test module's globals.
-    test_attendance.attendance_service = attendance_service
-    test_attendance.attendance_repo = attendance_repo
+    test_attendance.attendance_service = services.attendance_service
+    test_attendance.attendance_repo = services.attendance_repo
 
-    test_friends.friendship_service = friendship_service
-    test_friends.friendship_repo = friendship_repo
+    test_friends.friendship_service = services.friendship_service
+    test_friends.friendship_repo = services.friendship_repo
 
-    test_badges.badge_service = badge_service
-    test_badges.badge_repo = badge_repo
-    test_badges.awarded_badge_repo = awarded_badge_repo
+    test_badges.badge_service = services.badge_service
+    test_badges.badge_repo = services.badge_repo
+    test_badges.awarded_badge_repo = services.awarded_badge_repo
 
-    test_evaluation.friendship_service = friendship_service
-    test_evaluation.badge_service = badge_service
-    test_evaluation.evaluation_service = evaluation_service
-    test_evaluation.awarded_badge_repo = awarded_badge_repo
+    test_evaluation.friendship_service = services.friendship_service
+    test_evaluation.badge_service = services.badge_service
+    test_evaluation.evaluation_service = services.evaluation_service
+    test_evaluation.awarded_badge_repo = services.awarded_badge_repo
 
-    test_recommendations.friendship_service = friendship_service
-    test_recommendations.recommendations_service = recommendations_service
-
-    test_recommendations_integration.friendship_service = friendship_service
-    test_recommendations_integration.recommendations_service = (
-        recommendations_service
+    test_recommendations.friendship_service = services.friendship_service
+    test_recommendations.recommendations_service = (
+        services.recommendations_service
     )
 
-    # Hand the evaluation service to the activity-wiring fixture below.
-    yield evaluation_service
+    test_recommendations_integration.friendship_service = (
+        services.friendship_service
+    )
+    test_recommendations_integration.recommendations_service = (
+        services.recommendations_service
+    )
+
+    # Hand the composed graph to the activity-wiring fixture below.
+    yield services
 
 
 @pytest.fixture(autouse=True)
@@ -161,6 +146,6 @@ def reset_activity_listeners(compose_services):
     # ``__listeners`` is module-private with no public reset hook; reaching in
     # here (outside any class, so unmangled) is the reset seam for the tests.
     activity.base.__listeners.clear()
-    compose_services.register()
+    compose_services.evaluation_service.register()
     yield
     activity.base.__listeners.clear()
