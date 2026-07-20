@@ -22,7 +22,11 @@ from badges.awarded_badge_repository import InMemoryAwardedBadgeRepository
 from badges.base import Badge, AwardedBadge
 from badges.predicates import AwardContext, AttendedEvent
 from badges.badge_repository import InMemoryBadgeRepository
-from badges.badge_service import BadgeService
+from badges.badge_service import (
+    BadgeService,
+    BadgeRepository, 
+    AwardedBadgeRepository
+)
 from badges.evaluation import EvaluationService
 
 __all__ = [
@@ -33,5 +37,7 @@ __all__ = [
     "InMemoryBadgeRepository",
     "InMemoryAwardedBadgeRepository",
     "BadgeService",
+    "BadgeRepository", 
+    "AwardedBadgeRepository",
     "EvaluationService"
 ]

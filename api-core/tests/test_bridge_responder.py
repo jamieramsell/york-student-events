@@ -16,14 +16,12 @@ from pathlib import Path
 
 import pytest
 
-from attendance import AttendanceService, InMemoryAttendanceRepository
+import bootstrap
 from attendance.attendance_repository import CANNED_ATTENDEE_ID, CANNED_EVENT_ID
-from friends import FriendshipService, InMemoryFriendshipRepository
 from friends.friendship_repository import (
     CANNED_FRIEND_SEEKER_ID,
     CANNED_RECOMMENDED_FRIEND_ID,
 )
-from recommendations import RecommendationsService
 
 _RESPONDER_PATH = Path(__file__).resolve().parents[1] / "src" / "bridge" / "responder.py"
 
@@ -40,31 +38,27 @@ responder = _load_responder()
 
 # Fresh friend service exposed to the in-process handler tests; rebuilt per test
 # by ``_wire_responder_to_fresh_services`` below.
-friendship_service = FriendshipService(InMemoryFriendshipRepository())
+friendship_service = bootstrap.bootstrap(register=False).friendship_service
 
 
 @pytest.fixture(autouse=True)
 def _wire_responder_to_fresh_services():
-    """Point the in-process responder handlers at fresh, isolated services.
+    """Point the in-process responder handlers at a fresh, isolated graph.
 
     ``responder`` composes the canned repositories at import time for the
     subprocess path, but the in-process handler tests build their own friend
-    graph and expect the responder to serve it. This injects a fresh service
-    graph onto the responder module (sharing the same ``friendship_service``
-    exposed here, so a graph built through it is visible to
-    ``get_recommended_friends``) before every test. The subprocess tests spawn a
-    separate process and are unaffected.
+    graph and expect the responder to serve it. This composes a fresh graph
+    through the shared ``bootstrap`` (bare repositories, evaluation left
+    unregistered) and installs it on the responder module before every test; the
+    exposed ``friendship_service`` is that graph's own, so a friend graph built
+    through it is visible to ``get_recommended_friends``. The subprocess tests
+    spawn a separate process and are unaffected.
     """
 
     global friendship_service
-    friendship_service = FriendshipService(InMemoryFriendshipRepository())
-    responder.friendship_service = friendship_service
-    responder.recommendations_service = RecommendationsService(
-        friendship_service
-    )
-    responder.attendance_service = AttendanceService(
-        InMemoryAttendanceRepository()
-    )
+    services = bootstrap.bootstrap(register=False)
+    friendship_service = services.friendship_service
+    responder._services = services
     yield
 
 

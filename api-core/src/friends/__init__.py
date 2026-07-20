@@ -16,12 +16,13 @@ from friends.friendship_repository import (
     InMemoryFriendshipRepository,
     InMemoryCannedFriendshipRepository,
 )
-from friends.friendship_service import FriendshipService
+from friends.friendship_service import FriendshipService, FriendshipRepository
 
 __all__ = [
     "Friendship",
     "FriendshipStatus",
     "InMemoryFriendshipRepository",
     "InMemoryCannedFriendshipRepository",
-    "FriendshipService"
+    "FriendshipService",
+    "FriendshipRepository"
 ]
