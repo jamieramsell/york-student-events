@@ -18,6 +18,7 @@ import pytest
 from bridge import client
 from bridge.client import (
     SubprocessError,
+    get_batch_event_info,
     get_event_info,
     get_user_events,
     notify_badge_awarded,
@@ -179,6 +180,110 @@ class TestGetEventInfo:
         proc = _fake_process(stdout=line, returncode=1)
         with _patch_popen(proc), pytest.raises(SubprocessError, match="not found"):
             get_event_info("e")
+
+
+class TestGetBatchEventInfo:
+    # Two canned events, each with the same payload shape get_event_info returns.
+    _INFO_A = {
+        "host": "22222222-2222-2222-2222-222222222222",
+        "start": "2026-09-15T18:00:00",
+        "category": "SOCIAL",
+    }
+    _INFO_B = {
+        "host": "33333333-3333-3333-3333-333333333333",
+        "start": "2026-10-01T14:30:00",
+        "category": "ACADEMIC",
+    }
+
+    def test_builds_request_and_returns_unwrapped_event_list(self, monkeypatch):
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        e1 = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+        e2 = uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+        # The responder wraps the per-event dicts in an ``events`` array; the
+        # client unwraps it so callers get the list directly.
+        line = (
+            json.dumps({"status": "ok", "payload": {"events": [self._INFO_A, self._INFO_B]}})
+            + "\n"
+        )
+        proc = _fake_process(stdout=line)
+        with _patch_popen(proc) as popen:
+            result = get_batch_event_info([e1, e2])
+        assert result == [self._INFO_A, self._INFO_B]
+        # The request carries the event ids (as strings) under the
+        # GET_BATCH_EVENT_INFO envelope...
+        sent = json.loads(proc.communicate.call_args.args[0])
+        assert sent == {
+            "requestType": "GET_BATCH_EVENT_INFO",
+            "payload": {"eventIds": [str(e1), str(e2)]},
+        }
+        # ...and the resolved classpath is passed straight to java -cp.
+        assert popen.call_args.args[0] == ["java", "-cp", "fake-cp", client.RESPONDER_MAIN_CLASS]
+
+    def test_uuid_objects_are_serialised_to_strings(self, monkeypatch):
+        # Regression guard: UUID objects are not JSON-serialisable, so the client
+        # must stringify each id before building the request envelope.
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        e1 = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+        proc = _fake_process(
+            stdout=json.dumps({"status": "ok", "payload": {"events": [self._INFO_A]}}) + "\n"
+        )
+        with _patch_popen(proc):
+            get_batch_event_info([e1])
+        sent = proc.communicate.call_args.args[0]
+        # Round-trips through json.dumps without raising, and carries string ids.
+        assert json.loads(sent)["payload"]["eventIds"] == [str(e1)]
+
+    def test_empty_event_list_returns_empty_list(self, monkeypatch):
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        proc = _fake_process(
+            stdout=json.dumps({"status": "ok", "payload": {"events": []}}) + "\n"
+        )
+        with _patch_popen(proc) as popen:
+            result = get_batch_event_info([])
+        assert result == []
+        sent = json.loads(proc.communicate.call_args.args[0])
+        assert sent == {"requestType": "GET_BATCH_EVENT_INFO", "payload": {"eventIds": []}}
+        assert popen.call_args.args[0] == ["java", "-cp", "fake-cp", client.RESPONDER_MAIN_CLASS]
+
+    def test_single_event_returns_single_item_list(self, monkeypatch):
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        e1 = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+        proc = _fake_process(
+            stdout=json.dumps({"status": "ok", "payload": {"events": [self._INFO_A]}}) + "\n"
+        )
+        with _patch_popen(proc):
+            result = get_batch_event_info([e1])
+        assert result == [self._INFO_A]
+
+    def test_preserves_event_order(self, monkeypatch):
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        e1 = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+        e2 = uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+        # Responder returns B before A; the client must not reorder.
+        proc = _fake_process(
+            stdout=json.dumps({"status": "ok", "payload": {"events": [self._INFO_B, self._INFO_A]}})
+            + "\n"
+        )
+        with _patch_popen(proc):
+            result = get_batch_event_info([e2, e1])
+        assert result == [self._INFO_B, self._INFO_A]
+
+    def test_propagates_responder_error(self, monkeypatch):
+        monkeypatch.setattr(client, "_resolve_classpath", lambda: "fake-cp")
+        line = json.dumps({"status": "error", "error": "Event e not found"}) + "\n"
+        proc = _fake_process(stdout=line, returncode=1)
+        with _patch_popen(proc), pytest.raises(SubprocessError, match="not found"):
+            get_batch_event_info([uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")])
+
+    def test_missing_build_output_raises_before_spawning(self, tmp_path, monkeypatch):
+        # _resolve_classpath runs first, so an unbuilt event-service fails fast
+        # without ever launching java.
+        monkeypatch.setattr(client, "_CLASSES_DIR", tmp_path / "classes")
+        monkeypatch.setattr(client, "_CLASSPATH_FILE", tmp_path / "cp.txt")
+        with mock.patch("bridge.client.subprocess.Popen") as popen:
+            with pytest.raises(SubprocessError, match="not built"):
+                get_batch_event_info([uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")])
+        popen.assert_not_called()
 
 
 class TestNotifyBadgeAwarded:

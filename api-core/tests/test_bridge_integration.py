@@ -17,6 +17,7 @@ import pytest
 from bridge import client
 from bridge.client import (
     SubprocessError,
+    get_batch_event_info,
     get_event_info,
     get_user_events,
     notify_badge_awarded,
@@ -42,6 +43,14 @@ EXPECTED_EVENT_INFO = {
     "host": "22222222-2222-2222-2222-222222222222",
     "start": "2026-09-15T18:00:00",
     "category": "SOCIAL",
+}
+
+# The responder's second canned event, used to exercise batch fetches.
+SECOND_EVENT_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+SECOND_EVENT_INFO = {
+    "host": "33333333-3333-3333-3333-333333333333",
+    "start": "2026-10-01T14:30:00",
+    "category": "ACADEMIC",
 }
 
 
@@ -86,6 +95,29 @@ class TestRoundTrip:
     def test_unknown_event_raises_not_found(self):
         with pytest.raises(SubprocessError, match="not found"):
             get_event_info("99999999-9999-9999-9999-999999999999")
+
+    def test_batch_returns_canned_info_in_request_order(self):
+        result = get_batch_event_info(
+            [uuid.UUID(SECOND_EVENT_ID), uuid.UUID(KNOWN_EVENT_ID)]
+        )
+        # Order follows the request, not the responder's internal map ordering.
+        assert result == [SECOND_EVENT_INFO, EXPECTED_EVENT_INFO]
+
+    def test_batch_single_event_matches_get_event_info(self):
+        [info] = get_batch_event_info([uuid.UUID(KNOWN_EVENT_ID)])
+        assert info == EXPECTED_EVENT_INFO == get_event_info(KNOWN_EVENT_ID)
+
+    def test_batch_empty_list_returns_empty(self):
+        assert get_batch_event_info([]) == []
+
+    def test_batch_with_any_unknown_event_raises_not_found(self):
+        with pytest.raises(SubprocessError, match="not found"):
+            get_batch_event_info(
+                [
+                    uuid.UUID(KNOWN_EVENT_ID),
+                    uuid.UUID("99999999-9999-9999-9999-999999999999"),
+                ]
+            )
 
     def test_badge_awarded_notification_for_known_user_succeeds(self):
         # Fire-and-forget: a successful notification returns None (empty payload).

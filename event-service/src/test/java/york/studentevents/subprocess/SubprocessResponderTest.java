@@ -26,6 +26,7 @@ class SubprocessResponderTest {
   private static final String KNOWN_USER = "11111111-1111-1111-1111-111111111111";
   private static final String UNKNOWN_USER = "00000000-0000-0000-0000-000000000000";
   private static final String KNOWN_EVENT = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  private static final String SECOND_EVENT = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
   private static final String UNKNOWN_EVENT = "99999999-9999-9999-9999-999999999999";
 
   /** The exit code and parsed response envelope from one responder invocation. */
@@ -39,6 +40,18 @@ class SubprocessResponderTest {
   private static String eventRequest(String requestType, String eventId) {
     return String.format(
         "{\"requestType\":\"%s\",\"payload\":{\"eventId\":\"%s\"}}", requestType, eventId);
+  }
+
+  private static String batchRequest(String... eventIds) {
+    StringBuilder ids = new StringBuilder();
+    for (int i = 0; i < eventIds.length; i++) {
+      if (i > 0) {
+        ids.append(",");
+      }
+      ids.append("\"").append(eventIds[i]).append("\"");
+    }
+    return String.format(
+        "{\"requestType\":\"GET_BATCH_EVENT_INFO\",\"payload\":{\"eventIds\":[%s]}}", ids);
   }
 
   private static String badgeAwardedRequest(String userId, String badgeName) {
@@ -127,6 +140,79 @@ class SubprocessResponderTest {
     Result result = run(eventRequest("GET_EVENT_INFO", "not-a-uuid"));
     assertEquals(1, result.exitCode());
     assertEquals("'eventId' field is not a valid UUID.", errorOf(result));
+  }
+
+  @Test
+  void batchOfKnownEventsReturnsInfoInRequestOrderAndExitsZero() throws Exception {
+    // Request order is second-then-first to prove ordering follows the request,
+    // not the responder's internal canned-map ordering.
+    Result result = run(batchRequest(SECOND_EVENT, KNOWN_EVENT));
+    assertEquals(0, result.exitCode());
+    assertEquals("ok", result.response().get("status").getAsString());
+    JsonArray events = result.response().getAsJsonObject("payload").getAsJsonArray("events");
+    assertEquals(2, events.size());
+
+    JsonObject first = events.get(0).getAsJsonObject();
+    assertEquals("33333333-3333-3333-3333-333333333333", first.get("host").getAsString());
+    assertEquals("2026-10-01T14:30:00", first.get("start").getAsString());
+    assertEquals("ACADEMIC", first.get("category").getAsString());
+
+    JsonObject second = events.get(1).getAsJsonObject();
+    assertEquals("22222222-2222-2222-2222-222222222222", second.get("host").getAsString());
+    assertEquals("2026-09-15T18:00:00", second.get("start").getAsString());
+    assertEquals("SOCIAL", second.get("category").getAsString());
+  }
+
+  @Test
+  void batchOfSingleKnownEventReturnsOneEntryAndExitsZero() throws Exception {
+    Result result = run(batchRequest(KNOWN_EVENT));
+    assertEquals(0, result.exitCode());
+    assertEquals("ok", result.response().get("status").getAsString());
+    JsonArray events = result.response().getAsJsonObject("payload").getAsJsonArray("events");
+    assertEquals(1, events.size());
+    assertEquals(
+        "22222222-2222-2222-2222-222222222222",
+        events.get(0).getAsJsonObject().get("host").getAsString());
+  }
+
+  @Test
+  void batchOfNoEventsReturnsEmptyArrayAndExitsZero() throws Exception {
+    Result result = run(batchRequest());
+    assertEquals(0, result.exitCode());
+    assertEquals("ok", result.response().get("status").getAsString());
+    JsonArray events = result.response().getAsJsonObject("payload").getAsJsonArray("events");
+    assertEquals(0, events.size());
+  }
+
+  @Test
+  void batchWithOneUnknownEventReturnsErrorAndExitsNonZero() throws Exception {
+    Result result = run(batchRequest(KNOWN_EVENT, UNKNOWN_EVENT));
+    assertEquals(1, result.exitCode());
+    assertEquals("error", result.response().get("status").getAsString());
+    assertTrue(errorOf(result).contains("not found"));
+  }
+
+  @Test
+  void missingEventIdsReturnsError() throws Exception {
+    Result result = run("{\"requestType\":\"GET_BATCH_EVENT_INFO\",\"payload\":{}}");
+    assertEquals(1, result.exitCode());
+    assertEquals("Missing 'eventIds' field.", errorOf(result));
+  }
+
+  @Test
+  void eventIdsNotAnArrayReturnsError() throws Exception {
+    Result result =
+        run("{\"requestType\":\"GET_BATCH_EVENT_INFO\",\"payload\":{\"eventIds\":\"" + KNOWN_EVENT
+            + "\"}}");
+    assertEquals(1, result.exitCode());
+    assertEquals("'eventIds' field is not valid.", errorOf(result));
+  }
+
+  @Test
+  void batchWithInvalidUuidReturnsError() throws Exception {
+    Result result = run(batchRequest(KNOWN_EVENT, "not-a-uuid"));
+    assertEquals(1, result.exitCode());
+    assertEquals("'eventIds' field contains an ID which is not a valid UUID.", errorOf(result));
   }
 
   @Test
