@@ -82,6 +82,32 @@ def get_event_info(event_id: uuid.UUID) -> dict[str, str]:
     return event_properties
 
 
+def get_batch_event_info(event_ids: list[uuid.UUID]) -> list[dict[str, str]]:
+    """Fetch the properties of a given list of events from event-service, which
+    is required to construct a series of ``badges.AttendedEvent`` objects.
+
+    Args:
+        event_ids (list[uuid.UUID]): the UUIDs of the events whose information
+            to fetch.
+
+    Returns:
+        list[dict[str, str]]: The properties of the given events.
+
+    Raises:
+        SubprocessError: If event-service is not built, or the responder returns
+            an error envelope, exits non-zero, times out, or returns an
+            unparseable response.
+    """
+    classpath = _resolve_classpath()
+    request = {
+        "requestType": "GET_BATCH_EVENT_INFO",
+        "payload": {"eventIds": [event_id for event_id in event_ids]}
+    }
+
+    event_properties: list[dict[str, str]] = _call_responder(request, classpath)
+    return event_properties
+
+
 def notify_badge_awarded(user_id: uuid.UUID, badge_name: str) -> None:
     """Notify event-service that a user has just been awarded a badge.
 
