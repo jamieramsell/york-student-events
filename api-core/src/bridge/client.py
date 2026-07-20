@@ -104,7 +104,13 @@ def get_batch_event_info(event_ids: list[uuid.UUID]) -> list[dict[str, str]]:
         "payload": {"eventIds": [str(event_id) for event_id in event_ids]},
     }
 
-    event_properties: list[dict[str, str]] = _call_responder(request, classpath)
+    # The responder wraps the per-event info dicts in an ``events`` array (see
+    # the GET_BATCH_EVENT_INFO row of docs/subprocess-contract.md); unwrap it so
+    # callers get the list of event-info dicts directly, mirroring
+    # ``get_user_events``.
+    event_properties: list[dict[str, str]] = _call_responder(
+        request, classpath
+    )["events"]
     return event_properties
 
 
