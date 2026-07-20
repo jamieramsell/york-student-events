@@ -29,8 +29,9 @@ import york.studentevents.events.StudentEventService;
  * {@code docs/subprocess-contract.md}. A malformed request, an unknown or unsupported request
  * type, or an unknown user yields an {@code error} envelope and a non-zero exit status.
  *
- * <p>Only {@link RequestType#GET_USER_EVENTS}, {@link RequestType#GET_EVENT_INFO} and
- * {@link RequestType#BADGE_AWARDED} are currently supported: {@code event-service} owns event data
+ * <p>Only {@link RequestType#GET_USER_EVENTS}, {@link RequestType#GET_EVENT_INFO},
+ * {@link RequestType#GET_BATCH_EVENT_INFO} and {@link RequestType#BADGE_AWARDED} are currently
+ * supported: {@code event-service} owns event data
  * and is the party notified when {@code api-core} auto-awards a badge; badge and friend queries
  * belong to {@code api-core}.
  *
@@ -319,6 +320,17 @@ public class SubprocessResponder {
     return uuidEventId;
   }
 
+  /**
+   * Convenience function which retrieves the list of event IDs from a batch request payload.
+   *
+   * @param payload The request payload from which to retrieve the target events' IDs.
+   * @return The UUIDs of the target events, in payload order.
+   *
+   * @throws IllegalArgumentException if the payload is missing an eventIds field, the field is not
+   *     a JSON array, or any element is not a valid UUID.
+   *
+   * @see #validateEnvelope(com.google.gson.JsonObject)
+   */
   private static List<UUID> getBatchEventIds(JsonObject payload) {
     // Checks that the payload contains a value named 'eventIds', which is not null.
     if (!payload.has("eventIds") || payload.get("eventIds").isJsonNull()) {
