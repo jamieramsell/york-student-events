@@ -328,7 +328,7 @@ public class SubprocessResponder {
     // Try to parse the eventIds element of the payload into a List<JsonElement>
     List<JsonElement> eventIds;
     try {
-      eventIds = payload.get("eventId").getAsJsonArray().asList();
+      eventIds = payload.get("eventIds").getAsJsonArray().asList();
     } catch (IllegalStateException e) {
       throw new IllegalArgumentException("'eventIds' field is not valid.");
     }
