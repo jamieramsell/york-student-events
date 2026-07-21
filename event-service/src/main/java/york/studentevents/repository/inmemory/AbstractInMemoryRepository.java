@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import york.studentevents.repository.IEntity;
@@ -39,7 +40,9 @@ abstract class AbstractInMemoryRepository<T extends IEntity> implements IReposit
 
   @Override
   public void delete(UUID id) {
-    hashMap.remove(id);
+    if (hashMap.remove(id) == null) {
+      throw new NoSuchElementException("No entity with ID " + id + " exists.");
+    }
   }
 
   @Override

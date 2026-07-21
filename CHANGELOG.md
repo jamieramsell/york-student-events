@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.4.0] - 2026-07-21
+
+M4 - Gamification: attendance tracking, the badge system, and automatic badge evaluation driven by user activity, plus the cross-service plumbing needed to support them and an explicit composition root for `api-core`. Still pure business logic, with no HTTP layer or real persistence yet.
+
+### Added
+- **Attendance (`api-core`):** `attendance` package provides an `Attendance` record (extends `IEntity`), `AttendanceService` (record / withdraw / `has_attended` / query a user's attendances and an event's attendees) injected with `InMemoryAttendanceRepository`
+- **Activity events (`api-core`):** `activity` package provides a lightweight in-process publish/subscribe registry so state changes (e.g. recording an attendance) can trigger downstream reactions such as badge evaluation without direct coupling
+- **Badges (`api-core`):** fully built `badges` slice, which provides `Badge` and `AwardedBadge` entities with in-memory repositories; a composable predicate DSL for award conditions (`predicates.py`: `IPredicate` + And/Or/Not combinators and `Min*` leaves, with JSON (de)serialisation via `predicate_from_dict`); `BadgeService` (create / award / revoke / query plus condition-driven `evaluate_badges`); and `EvaluationService`, which builds an `AwardContext` from the other slices and auto-awards newly earned badges
+- **Automatic badge evaluation:** `EvaluationService` subscribes to the `activity` registry, so a user's badges are re-evaluated whenever their activity changes, notifying event-service of each newly awarded badge over the bridge
+- **Recommendations (`api-core`):** `matching` reworked into a `recommendations` package (`recommendations/base.py`)
+- **Composition root (`api-core`):** `bootstrap.py` assembles the whole service graph via constructor injection; services now receive their repositories and collaborators as dependencies rather than reaching for module-level singletons
+- **Subprocess bridge:** new `GET_EVENT_INFO`, `GET_BATCH_EVENT_INFO`, and `BADGE_AWARDED` request types (Java `SubprocessResponder` handlers + Python `bridge.client` callers).
+- Comprehensive unit and integration tests: Python (`test_attendance.py`, `test_activity.py`, `test_badges.py`, `test_evaluation.py`, `test_recommendations.py` / `test_recommendations_integration.py`, expanded bridge suites); Java (expanded `SubprocessResponderTest`, `SubprocessRequestFactoryTest` / `SubprocessRequestFactoryIntegrationTest`, `PayloadTest`, `RequestTypeTest`)
+
+### Changed
+- **Breaking:** the `api-core` service layer now uses explicit dependency injection — repositories and collaborating services are constructor-injected via `bootstrap`, replacing the previous module-level `_repository` singletons
+- Renamed the `matching` package and its tests to `recommendations`
+- Updated `README.md` and `CLAUDE.md` files to reflect the program's current state
+
+### Removed
+- Removed the committed generated Javadoc site (`docs/apidocs/`) from version control; it is build output and is regenerated on demand via `./mvnw javadoc:javadoc`
+
+### Docs
+- Added `docs/adr/0001-inter-service-transport.md`, an ADR recording the decision to use the per-call subprocess bridge as the inter-service transport
+- Documented `GET_EVENT_INFO`, `GET_BATCH_EVENT_INFO`, and `BADGE_AWARDED` in `docs/subprocess-contract.md`
+
+### Known Issues
+- **#205 — attendance is not rolled back when badge evaluation fails (deferred to v0.4.1):** because `EvaluationService` runs synchronously inside `activity.publish`, a failed cross-service event lookup during badge evaluation propagates back out of `record_attendance`, so the caller sees an `error` for an attendance that was in fact saved (and a retry then reports a duplicate). This is **not fixed in 0.4.0**; it is scheduled for a **v0.4.1** patch so that M5 (v0.5.0) development can proceed in parallel on `main`.
+
+[v0.4.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.4.0
+
 ## [0.3.0] - 2026-07-04
 
 M3 - Social & Notification Layer: the friend graph, friend-based event recommendations, a polymorphic user model (students vs. hosts), and event subscriptions with Observer-pattern notification delivery. Still pure business logic — no HTTP layer or real persistence.

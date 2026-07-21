@@ -2,7 +2,7 @@
  
 > A centralised event discovery and social platform exclusively for University of York students.
  
-[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
 [![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
 [![Python](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org)
@@ -20,25 +20,30 @@ Beyond event discovery, the platform introduces a cohort-based social layer- thi
  
 ## Features
  
-### Planned (future versions)
- 
+### Implemented (domain logic — no HTTP layer yet)
+
+The business logic for these is built and tested across both services; none is exposed over HTTP or backed by real persistence yet.
+
 - **Event management** — create, update, and browse events hosted by the university, student societies, private venues, or the city
-- **User accounts** — student-verified profiles with cohort metadata (year, department)
 - **Subscriptions** — subscribe to event hosts and venues; receive updates when new events are posted
 - **Attendance tracking** — mark attendance at events; data feeds into the badge system
 - **Badge system** — earn badges based on attendance milestones and event categories
 - **Friends system** — send and accept friend requests between student accounts
 - **Mutual-interest matching** — algorithm surfaces students with overlapping interests and attendance history
-- **Cohort networking** — filter and connect with students by year group and department
+- **User accounts** *(partial)* — polymorphic `Student` / `Host` model with cohort metadata; student verification and authentication are not yet implemented
+- **Cohort networking** *(partial)* — cohort model and membership exist; filtering and connecting students by year group and department is not yet complete
+
+### Planned (future versions)
+
 - **Web platform** — HTTP-served frontend client
 - **Friend network maps** — interactive maps of friend networks
 - **Chat system** — messaging with filtering and report/moderation tooling
-- **Push notifications** — notify users of updates from subscribed hosts and venues
+- **Push notifications** — notify users of updates from subscribed hosts and venues (only in-process Observer notifications exist today)
 ---
  
 ## Architecture
  
-The backend is to be split across two services:
+The backend is split across two services:
  
 | Service | Language | Responsibility |
 |---|---|---|
@@ -139,40 +144,36 @@ york-student-events/
 │
 ├── api-core/
 │   ├── src/
+│   │   ├── activity/               # in-process publish/subscribe registry
 │   │   ├── attendance/
-│   │   │   └── attendance.py
 │   │   ├── badges/
-│   │   │   └── badges.py
 │   │   ├── bridge/                 # subprocess bridge to event-service
 │   │   │   ├── __init__.py
 │   │   │   ├── client.py           # Python→Java: spawns SubprocessResponder
 │   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
+│   │   ├── recommendations/
+│   │   ├── repositories/           # in-memory repository pattern (mirrors Java)
 │   │   │   ├── __init__.py
-│   │   │   ├── base.py
-│   │   │   ├── friendship_repository.py
-│   │   │   ├── friendship_service.py
-│   │   │   └── getFriendCircle.py
-│   │   ├── matching/
-│   │   │   └── matching.py
-│   │   └── repositories/           # in-memory repository pattern (mirrors Java)
-│   │       ├── __init__.py
-│   │       └── base.py
+│   │   │   └── base.py
+│   │   └── bootstrap.py            # composition root: wires the service graph
 │   └── tests/
 │       ├── conftest.py
+│       ├── test_activity.py
 │       ├── test_attendance.py
 │       ├── test_badges.py
 │       ├── test_bridge_client.py
 │       ├── test_bridge_responder.py
 │       ├── test_bridge_integration.py
+│       ├── test_evaluation.py
 │       ├── test_friends.py
-│       └── test_matching.py
+│       ├── test_recommendations.py
+│       └── test_recommendations_integration.py
 │
 ├── docs/
 │   ├── api-spec.yaml
-│   ├── apidocs/              # generated Javadoc (mvn package / javadoc:javadoc)
-│   └── docs/
-│       └── subprocess-contract.md   # Python↔Java JSON envelope contract
+│   ├── adr/                         # architecture decision records
+│   └── subprocess-contract.md       # Python↔Java JSON envelope contract
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/

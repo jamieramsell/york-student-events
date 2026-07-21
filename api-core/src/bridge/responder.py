@@ -1,31 +1,99 @@
-import sys
-import json
+"""Responder answering subprocess requests issued by the Java event-service.
+
+This is the inverse of ``client.py``: event-service spawns this module as a fresh
+process per call, writes a JSON request envelope to its stdin, and reads a JSON
+response envelope from its stdout. Each line of stdin is one request; the
+``MessageHandlerFactory`` routes it to a handler by ``requestType`` and the
+result is written back as an ``ok`` or ``error`` envelope. The envelope contract
+is documented in ``docs/subprocess-contract.md``.
+
+Several handlers are still stubs returning canned data (tracked in #164);
+``record_attendance`` and ``get_recommended_friends`` are wired to real services.
+
+Stdlib only, in keeping with the project's no-dependencies convention.
+"""
+
 import collections.abc
+import json
+import os
+import sys
+import uuid
+
+# responder.py is launched as a standalone subprocess (by event-service and by
+# the test suite), so the api-core ``src`` root is not guaranteed to be on
+# ``sys.path``. Anchor it relative to this file so the api-core packages below
+# resolve regardless of the working directory the process is launched from.
+_SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
+
+import bootstrap  # noqa: E402  (imported after the sys.path bootstrap)
+from attendance import (  # noqa: E402  (after the sys.path bootstrap)
+    InMemoryCannedAttendanceRepository,
+)
+from friends import (  # noqa: E402  (after the sys.path bootstrap)
+    InMemoryCannedFriendshipRepository,
+)
+
+# Compose the service graph for the subprocess bridge through the shared
+# composition root (``bootstrap``). event-service spawns a fresh responder
+# process per call, so this graph lives only for that one call; it is seeded with
+# the canned repositories to give end-to-end tests deterministic data (a
+# pre-recorded attendance and a small friend graph). The in-process handler tests
+# replace ``_services`` with a bare graph (see test_bridge_responder.py). Badge
+# evaluation is left unregistered (``register=False``): the responder is a
+# stateless per-call surface and is not where the activity-driven auto-award
+# listener should run.
+_services = bootstrap.bootstrap(
+    attendance_repository=InMemoryCannedAttendanceRepository(),
+    friendship_repository=InMemoryCannedFriendshipRepository(),
+    register=False,
+)
+
+# Type alias of a Payload passed to a handler, formed of str keys, and str
+# elements
+type IncomingPayload = dict[str, str]
 
 # Type alias of a Payload returned by a handler, formed of str keys, and
 # list[str] elements
-type Payload = dict[str, list[str]]
+type OutgoingPayload = dict[str, list[str]]
 
 # Type alias of a callable Handler, which accepts a str as a parameter, and
 # returns a Payload
-type Handler = collections.abc.Callable[[str], Payload]
+type Handler = collections.abc.Callable[[IncomingPayload], OutgoingPayload]
 
 #TODO
-def get_user_badges(payload: str):
+def get_user_badges(payload: IncomingPayload) -> OutgoingPayload:
     return {"badges": ["First Event", "Social5"]}
 
 #TODO
-def get_user_friends(payload: str):
+def get_user_friends(payload: IncomingPayload) -> OutgoingPayload:
     return {"friends": ["James", "Jamie"]}
 
 #TODO
-def award_badge(payload: str):
+def award_badge(payload: IncomingPayload) -> OutgoingPayload:
     raise ValueError("THIS IS A TEST ERROR")
 
 #TODO
-def get_recommended_events(payload: str):
+def get_recommended_events(payload: IncomingPayload) -> OutgoingPayload:
     return {"events": ["cd1e0662-beab-4fc0-af84-9dc29c98d561",
                        "0c51b12f-6bec-4172-bba0-25bba3bef9d9"]}
+
+
+def record_attendance(payload: IncomingPayload) -> OutgoingPayload:
+    attendee_id = uuid.UUID(payload["userId"])
+    event_id = uuid.UUID(payload["eventId"])
+    _services.attendance_service.record_attendance(attendee_id, event_id)
+    return {}
+
+
+def get_recommended_friends(payload: IncomingPayload) -> OutgoingPayload:
+    user_id = uuid.UUID(payload["userId"])
+    return {
+        "friends": [str(recommended_friend_id) for recommended_friend_id
+                     in _services.recommendations_service.find_new_friends(user_id)]
+    }
+
 
 class MessageHandlerFactory:
     """Routes incoming messages to their corresponding handler functions.
@@ -39,7 +107,9 @@ class MessageHandlerFactory:
             "GET_USER_BADGES": get_user_badges,
             "GET_USER_FRIENDS": get_user_friends,
             "AWARD_BADGE": award_badge,
-            "GET_RECOMMENDED_EVENTS": get_recommended_events
+            "GET_RECOMMENDED_EVENTS": get_recommended_events,
+            "RECORD_ATTENDANCE": record_attendance,
+            "GET_RECOMMENDED_FRIENDS": get_recommended_friends
         }
 
     def get_handler(self, message_type: str) -> Handler:
@@ -51,7 +121,9 @@ class MessageHandlerFactory:
                 - `GET_USER_BADGES`,
                 - `GET_USER_FRIENDS`,
                 - `AWARD_BADGE`,
-                - `GET_RECOMMENDED_EVENTS`
+                - `GET_RECOMMENDED_EVENTS`,
+                - `RECORD_ATTENDANCE`,
+                - `GET_RECOMMENDED_FRIENDS`
 
         Raises:
             ValueError: If the message type is unknown, or doesn't have a
@@ -87,7 +159,7 @@ def main():
             handler = factory.get_handler(msg_type)
             result_payload = handler(payload)
 
-            response: dict[str, str | Payload] = {
+            response: dict[str, str | OutgoingPayload] = {
                 "status": "ok",
                 "payload": result_payload,
             }
@@ -95,7 +167,7 @@ def main():
         except json.JSONDecodeError:
             response = {
                 "status": "error",
-                "error": "Incorrectly formated json."
+                "error": "Incorrectly formatted json."
             }
 
         except Exception as e:

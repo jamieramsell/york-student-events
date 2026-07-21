@@ -23,7 +23,27 @@ public enum RequestType {
   GET_USER_EVENTS("GET_USER_EVENTS"),
 
   /** Request the event recommendations for a user. */
-  GET_RECOMMENDED_EVENTS("GET_RECOMMENDED_EVENTS");
+  GET_RECOMMENDED_EVENTS("GET_RECOMMENDED_EVENTS"),
+  
+  /** Request that a user's attendance to a particular event be recorded. */
+  RECORD_ATTENDANCE("RECORD_ATTENDANCE"),
+
+  /** Request the new friend recommendations for a user. */
+  GET_RECOMMENDED_FRIENDS("GET_RECOMMENDED_FRIENDS"),
+
+  /** Request event information necessary to construct an AwardedBadge record. */
+  GET_EVENT_INFO("GET_EVENT_INFO"),
+
+  /**
+   * Request records of information surrounding multiple events, necessary to construct an
+   * AwardedBadge record, in one single sweep.
+   *
+   * @see RequestType#GET_EVENT_INFO
+   */
+  GET_BATCH_EVENT_INFO("GET_BATCH_EVENT_INFO"),
+
+  /** Notify event-service that a new badge has been awarded to a user. */
+  BADGE_AWARDED("BADGE_AWARDED");
 
   private final String request;
 
