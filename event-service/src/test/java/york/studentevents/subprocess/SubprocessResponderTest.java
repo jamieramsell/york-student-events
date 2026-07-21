@@ -143,21 +143,19 @@ class SubprocessResponderTest {
   }
 
   @Test
-  void batchOfKnownEventsReturnsInfoInRequestOrderAndExitsZero() throws Exception {
-    // Request order is second-then-first to prove ordering follows the request,
-    // not the responder's internal canned-map ordering.
+  void batchOfKnownEventsReturnsInfoKeyedByEventIdAndExitsZero() throws Exception {
     Result result = run(batchRequest(SECOND_EVENT, KNOWN_EVENT));
     assertEquals(0, result.exitCode());
     assertEquals("ok", result.response().get("status").getAsString());
-    JsonArray events = result.response().getAsJsonObject("payload").getAsJsonArray("events");
+    JsonObject events = result.response().getAsJsonObject("payload").getAsJsonObject("events");
     assertEquals(2, events.size());
 
-    JsonObject first = events.get(0).getAsJsonObject();
+    JsonObject first = events.getAsJsonObject(SECOND_EVENT);
     assertEquals("33333333-3333-3333-3333-333333333333", first.get("host").getAsString());
     assertEquals("2026-10-01T14:30:00", first.get("start").getAsString());
     assertEquals("ACADEMIC", first.get("category").getAsString());
 
-    JsonObject second = events.get(1).getAsJsonObject();
+    JsonObject second = events.getAsJsonObject(KNOWN_EVENT);
     assertEquals("22222222-2222-2222-2222-222222222222", second.get("host").getAsString());
     assertEquals("2026-09-15T18:00:00", second.get("start").getAsString());
     assertEquals("SOCIAL", second.get("category").getAsString());
@@ -168,19 +166,30 @@ class SubprocessResponderTest {
     Result result = run(batchRequest(KNOWN_EVENT));
     assertEquals(0, result.exitCode());
     assertEquals("ok", result.response().get("status").getAsString());
-    JsonArray events = result.response().getAsJsonObject("payload").getAsJsonArray("events");
+    JsonObject events = result.response().getAsJsonObject("payload").getAsJsonObject("events");
     assertEquals(1, events.size());
     assertEquals(
         "22222222-2222-2222-2222-222222222222",
-        events.get(0).getAsJsonObject().get("host").getAsString());
+        events.getAsJsonObject(KNOWN_EVENT).get("host").getAsString());
   }
 
   @Test
-  void batchOfNoEventsReturnsEmptyArrayAndExitsZero() throws Exception {
+  void batchWithRepeatedEventIdReturnsSingleEntry() throws Exception {
+    Result result = run(batchRequest(KNOWN_EVENT, KNOWN_EVENT));
+    assertEquals(0, result.exitCode());
+    assertEquals("ok", result.response().get("status").getAsString());
+    JsonObject events = result.response().getAsJsonObject("payload").getAsJsonObject("events");
+    // A repeated event ID collapses to one key in the response object.
+    assertEquals(1, events.size());
+    assertTrue(events.has(KNOWN_EVENT));
+  }
+
+  @Test
+  void batchOfNoEventsReturnsEmptyObjectAndExitsZero() throws Exception {
     Result result = run(batchRequest());
     assertEquals(0, result.exitCode());
     assertEquals("ok", result.response().get("status").getAsString());
-    JsonArray events = result.response().getAsJsonObject("payload").getAsJsonArray("events");
+    JsonObject events = result.response().getAsJsonObject("payload").getAsJsonObject("events");
     assertEquals(0, events.size());
   }
 

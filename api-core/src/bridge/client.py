@@ -82,7 +82,9 @@ def get_event_info(event_id: uuid.UUID) -> dict[str, str]:
     return event_properties
 
 
-def get_batch_event_info(event_ids: list[uuid.UUID]) -> list[dict[str, str]]:
+def get_batch_event_info(
+    event_ids: list[uuid.UUID],
+) -> dict[uuid.UUID, dict[str, str]]:
     """Fetch the properties of a given list of events from event-service, which
     is required to construct a series of ``badges.AttendedEvent`` objects.
 
@@ -91,7 +93,9 @@ def get_batch_event_info(event_ids: list[uuid.UUID]) -> list[dict[str, str]]:
             to fetch.
 
     Returns:
-        list[dict[str, str]]: The properties of the given events.
+        dict[uuid.UUID, dict[str, str]]: The properties of each requested event,
+            keyed by its event ID. A repeated event ID appears once. Same value
+            shape as ``get_event_info``.
 
     Raises:
         SubprocessError: If event-service is not built, or the responder returns
@@ -104,14 +108,14 @@ def get_batch_event_info(event_ids: list[uuid.UUID]) -> list[dict[str, str]]:
         "payload": {"eventIds": [str(event_id) for event_id in event_ids]},
     }
 
-    # The responder wraps the per-event info dicts in an ``events`` array (see
-    # the GET_BATCH_EVENT_INFO row of docs/subprocess-contract.md); unwrap it so
-    # callers get the list of event-info dicts directly, mirroring
-    # ``get_user_events``.
-    event_properties: list[dict[str, str]] = _call_responder(
+    # The responder keys the per-event info dicts by event-ID string under an
+    # ``events`` object (see the GET_BATCH_EVENT_INFO row of
+    # docs/subprocess-contract.md). Unwrap it and parse the keys back into UUIDs,
+    # mirroring how ``get_user_events`` parses the ids it returns.
+    events: dict[str, dict[str, str]] = _call_responder(
         request, classpath
     )["events"]
-    return event_properties
+    return {uuid.UUID(event_id): info for event_id, info in events.items()}
 
 
 def notify_badge_awarded(user_id: uuid.UUID, badge_name: str) -> None:

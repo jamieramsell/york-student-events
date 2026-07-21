@@ -96,19 +96,28 @@ class TestRoundTrip:
         with pytest.raises(SubprocessError, match="not found"):
             get_event_info("99999999-9999-9999-9999-999999999999")
 
-    def test_batch_returns_canned_info_in_request_order(self):
+    def test_batch_returns_canned_info_keyed_by_event_id(self):
         result = get_batch_event_info(
             [uuid.UUID(SECOND_EVENT_ID), uuid.UUID(KNOWN_EVENT_ID)]
         )
-        # Order follows the request, not the responder's internal map ordering.
-        assert result == [SECOND_EVENT_INFO, EXPECTED_EVENT_INFO]
+        assert result == {
+            uuid.UUID(SECOND_EVENT_ID): SECOND_EVENT_INFO,
+            uuid.UUID(KNOWN_EVENT_ID): EXPECTED_EVENT_INFO,
+        }
 
     def test_batch_single_event_matches_get_event_info(self):
-        [info] = get_batch_event_info([uuid.UUID(KNOWN_EVENT_ID)])
-        assert info == EXPECTED_EVENT_INFO == get_event_info(KNOWN_EVENT_ID)
+        result = get_batch_event_info([uuid.UUID(KNOWN_EVENT_ID)])
+        assert result[uuid.UUID(KNOWN_EVENT_ID)] == EXPECTED_EVENT_INFO
+        assert result[uuid.UUID(KNOWN_EVENT_ID)] == get_event_info(KNOWN_EVENT_ID)
+
+    def test_batch_repeated_event_id_appears_once(self):
+        result = get_batch_event_info(
+            [uuid.UUID(KNOWN_EVENT_ID), uuid.UUID(KNOWN_EVENT_ID)]
+        )
+        assert result == {uuid.UUID(KNOWN_EVENT_ID): EXPECTED_EVENT_INFO}
 
     def test_batch_empty_list_returns_empty(self):
-        assert get_batch_event_info([]) == []
+        assert get_batch_event_info([]) == {}
 
     def test_batch_with_any_unknown_event_raises_not_found(self):
         with pytest.raises(SubprocessError, match="not found"):

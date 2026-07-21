@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -76,8 +77,12 @@ public class SubprocessResponder {
   /** Payload of a successful {@code GET_EVENT_INFO} response. */
   private record EventInfoPayload(UUID host, String start, String category) {}
 
-  /** Payload of a successful {@code GET_BATCH_EVENT_INFO} response. */
-  private record BatchEventInfoPayload(List<EventInfoPayload> events) {}
+  /**
+   * Payload of a successful {@code GET_BATCH_EVENT_INFO} response: the per-event info keyed by
+   * event ID. Gson serialises the {@link UUID} keys to their string form, so this becomes a JSON
+   * object mapping each event ID to its {@link EventInfoPayload}.
+   */
+  private record BatchEventInfoPayload(Map<UUID, EventInfoPayload> events) {}
 
   /** Empty payload for a successful acknowledgement (e.g. a {@code BADGE_AWARDED} response). */
   private record EmptyPayload() {}
@@ -438,15 +443,19 @@ public class SubprocessResponder {
    *     purposes. Logic must be ripped out and swapped for code which contacts
    *     {@link StudentEventService} when persistence is configured.
    *
+   * <p>The response payload keys each event's info by its event ID (a
+   * {@link LinkedHashMap} preserves request order in the emitted JSON). A repeated event ID
+   * collapses to a single entry.
+   *
    * @param eventIds the list of IDs of the events to retrieve info about.
    * @return the JSON {@code ok} response envelope.
    *
    * @throws IllegalArgumentException if a given event ID is not recognised.
    */
   private static String getBatchEventInfo(List<UUID> eventIds) {
-    List<EventInfoPayload> info = new ArrayList<>();
+    Map<UUID, EventInfoPayload> info = new LinkedHashMap<>();
     for (UUID eventId : eventIds) {
-      info.add(getRawEventInfo(eventId));
+      info.put(eventId, getRawEventInfo(eventId));
     }
     BatchEventInfoPayload infoPayload = new BatchEventInfoPayload(info);
     return GSON.toJson(new OkResponse("ok", infoPayload));
