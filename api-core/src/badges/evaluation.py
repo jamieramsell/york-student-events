@@ -41,35 +41,42 @@ class EvaluationService:
         self.__friendship_service = friendship_service
         self.__badge_service = badge_service
 
+
     def __retrieve_event_info(
         self,
-        event_id: uuid.UUID
-    ) -> badges.AttendedEvent:
-        """Helper method which retrieves event info from event-service and parses
-        it into an ``AwardedEvent`` record.
+        event_ids: list[uuid.UUID]
+    ) -> list[badges.AttendedEvent]:
+        """Helper method which retrieves event info from event-service and
+        parses it into a list of ``AwardedEvent`` records.
 
         Args:
-            event_id: The event of the ID in question
+            event_id: A list of the IDs of the events to lookup
 
         Returns:
-            The ``AttendedEvent`` record of the given Event
+            The ``AttendedEvent`` records of the given Events
 
         Raises:
-            SubprocessError: if an error occurs with the subprocess, including if
-            the given event does not exist.
+            SubprocessError: if an error occurs with the subprocess, including
+            if a given event does not exist.
         """
-        event_data = bridge.get_event_info(event_id)
+        event_data = bridge.get_batch_event_info(event_ids)
 
-        host_id = uuid.UUID(event_data["host"])
-        category = event_data["category"]
-        start = datetime.datetime.fromisoformat(event_data["start"])
+        attended_events: list[badges.AttendedEvent] = []
 
-        attended_event = badges.AttendedEvent(event_id,
-                                              host_id,
-                                              frozenset(category),
-                                              start)
+        for event_id in event_data:
+            event = event_data[event_id]
+            host_id = uuid.UUID(event["host"])
+            category = event["category"]
+            start = datetime.datetime.fromisoformat(event["start"])
 
-        return attended_event
+            attended_event = badges.AttendedEvent(event_id,
+                                                 host_id,
+                                                 frozenset(category),
+                                                 start)
+            
+            attended_events.append(attended_event)
+
+        return attended_events
 
 
     def build_award_context(self, user_id: uuid.UUID) -> badges.AwardContext:
@@ -86,16 +93,9 @@ class EvaluationService:
             The assembled ``AwardContext`` snapshot for the user.
         """
         # Retrieve event data and construct AttendedEvent records
-        event_list = self.__attendance_service.get_attendances(user_id)
-        attended_events: list[badges.AttendedEvent] = []
-
-        for event in event_list:
-            event_id = event.event_id
-            attended_events.append(self.__retrieve_event_info(event_id))
-
-        attended_events: tuple[badges.AttendedEvent, ...] = tuple(
-            attended_events
-        )
+        attendance_list = self.__attendance_service.get_attendances(user_id)
+        events_list = [attendance.event_id for attendance in attendance_list]
+        attended_events = tuple(self.__retrieve_event_info(events_list))
 
         # Retrieve all other relevant data
         friend_count = len(self.__friendship_service.get_friends(user_id))

@@ -34,6 +34,14 @@ public enum RequestType {
   /** Request event information necessary to construct an AwardedBadge record. */
   GET_EVENT_INFO("GET_EVENT_INFO"),
 
+  /**
+   * Request records of information surrounding multiple events, necessary to construct an
+   * AwardedBadge record, in one single sweep.
+   *
+   * @see RequestType#GET_EVENT_INFO
+   */
+  GET_BATCH_EVENT_INFO("GET_BATCH_EVENT_INFO"),
+
   /** Notify event-service that a new badge has been awarded to a user. */
   BADGE_AWARDED("BADGE_AWARDED");
 

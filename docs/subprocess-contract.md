@@ -54,6 +54,7 @@ Each row lists the responder that owns the type, the request payload fields, and
 | `RECORD_ATTENDANCE` | api-core | `userId` (UUID), `eventId` (UUID) | *(empty — success signalled by the `ok` status)* |
 | `GET_RECOMMENDED_FRIENDS` | api-core | `userId` (UUID) | `friends`: array of user UUIDs |
 | `GET_EVENT_INFO` | event-service | `eventId` (UUID) | `host` (UUID), `start` (str, ISO-8601 formatted datetime), `category` (str) |
+| `GET_BATCH_EVENT_INFO` | event-service | `eventIds` (array of event UUIDs) | `events`: dict keyed by event IDs, values store event info (see payload returned by `GET_EVENT_INFO`)|
 | `BADGE_AWARDED` | event-service | `userId` (UUID), `badgeName` (string) | *(empty — success signalled by the `ok` status)* |
 
 > **Why `badgeName` and not `badgeId`?** `BADGE_AWARDED` is a fire-and-forget notification that lets event-service tell a student they earned a badge. Badges are owned by `api-core`, so event-service cannot resolve a badge UUID to anything displayable on its own; sending the human-readable name keeps the notification self-contained and mirrors the existing `AWARD_BADGE` type (the reverse direction), which is also keyed by `badgeName`. One request is sent per newly awarded badge.

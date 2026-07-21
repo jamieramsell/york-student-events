@@ -1,12 +1,15 @@
 package york.studentevents.subprocess;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,8 +30,9 @@ import york.studentevents.events.StudentEventService;
  * {@code docs/subprocess-contract.md}. A malformed request, an unknown or unsupported request
  * type, or an unknown user yields an {@code error} envelope and a non-zero exit status.
  *
- * <p>Only {@link RequestType#GET_USER_EVENTS}, {@link RequestType#GET_EVENT_INFO} and
- * {@link RequestType#BADGE_AWARDED} are currently supported: {@code event-service} owns event data
+ * <p>Only {@link RequestType#GET_USER_EVENTS}, {@link RequestType#GET_EVENT_INFO},
+ * {@link RequestType#GET_BATCH_EVENT_INFO} and {@link RequestType#BADGE_AWARDED} are currently
+ * supported: {@code event-service} owns event data
  * and is the party notified when {@code api-core} auto-awards a badge; badge and friend queries
  * belong to {@code api-core}.
  *
@@ -72,6 +76,13 @@ public class SubprocessResponder {
 
   /** Payload of a successful {@code GET_EVENT_INFO} response. */
   private record EventInfoPayload(UUID host, String start, String category) {}
+
+  /**
+   * Payload of a successful {@code GET_BATCH_EVENT_INFO} response: the per-event info keyed by
+   * event ID. Gson serialises the {@link UUID} keys to their string form, so this becomes a JSON
+   * object mapping each event ID to its {@link EventInfoPayload}.
+   */
+  private record BatchEventInfoPayload(Map<UUID, EventInfoPayload> events) {}
 
   /** Empty payload for a successful acknowledgement (e.g. a {@code BADGE_AWARDED} response). */
   private record EmptyPayload() {}
@@ -233,6 +244,10 @@ public class SubprocessResponder {
         UUID eventId = getEventId(envelope.payload());
         return getEventInfo(eventId);
       }
+      case GET_BATCH_EVENT_INFO -> {
+        List<UUID> eventIds = getBatchEventIds(envelope.payload());
+        return getBatchEventInfo(eventIds);
+      }
       default -> throw new IllegalArgumentException(
           "Unsupported requestType for event-service: " + envelope.requestType());
     }
@@ -311,6 +326,48 @@ public class SubprocessResponder {
   }
 
   /**
+   * Convenience function which retrieves the list of event IDs from a batch request payload.
+   *
+   * @param payload The request payload from which to retrieve the target events' IDs.
+   * @return The UUIDs of the target events, in payload order.
+   *
+   * @throws IllegalArgumentException if the payload is missing an eventIds field, the field is not
+   *     a JSON array, or any element is not a valid UUID.
+   *
+   * @see #validateEnvelope(com.google.gson.JsonObject)
+   */
+  private static List<UUID> getBatchEventIds(JsonObject payload) {
+    // Checks that the payload contains a value named 'eventIds', which is not null.
+    if (!payload.has("eventIds") || payload.get("eventIds").isJsonNull()) {
+      throw new IllegalArgumentException("Missing 'eventIds' field.");
+    }
+
+    // Try to parse the eventIds element of the payload into a List<JsonElement>
+    List<JsonElement> eventIds;
+    try {
+      eventIds = payload.get("eventIds").getAsJsonArray().asList();
+    } catch (IllegalStateException e) {
+      throw new IllegalArgumentException("'eventIds' field is not valid.");
+    }
+
+    // Try to parse the List<JsonElement> into a List<UUID>
+    List<UUID> eventIdList = new ArrayList<>();
+
+    for (JsonElement eventId : eventIds) {
+      UUID uuidEventId;
+      try {
+        uuidEventId = UUID.fromString(eventId.getAsString());
+      } catch (UnsupportedOperationException | IllegalArgumentException | IllegalStateException e) {
+        throw new IllegalArgumentException("'eventIds' field contains an ID which is not a valid"
+            + " UUID.");
+      }
+      eventIdList.add(uuidEventId);
+    }
+
+    return eventIdList;
+  }
+
+  /**
    * Convenience function which retrieves the badge's display name from a request payload.
    *
    * @param payload The request payload from which to retrieve the awarded badge's name.
@@ -363,7 +420,7 @@ public class SubprocessResponder {
   }
 
   /**
-   * Returns the information required about a given events as a JSON {@code ok} response envelope.
+   * Returns the information required about a given event as a JSON {@code ok} response envelope.
    *
    * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
    *     purposes. Logic must be ripped out and swapped for code which contacts
@@ -375,11 +432,52 @@ public class SubprocessResponder {
    * @throws IllegalArgumentException if the event ID is not recognised.
    */
   private static String getEventInfo(UUID eventId) {
+    EventInfoPayload info = getRawEventInfo(eventId);
+    return GSON.toJson(new OkResponse("ok", info));
+  }
+
+  /**
+   * Returns the information required about the given events as a JSON {@code ok} response envelope.
+   *
+   * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
+   *     purposes. Logic must be ripped out and swapped for code which contacts
+   *     {@link StudentEventService} when persistence is configured.
+   *
+   * <p>The response payload keys each event's info by its event ID (a
+   * {@link LinkedHashMap} preserves request order in the emitted JSON). A repeated event ID
+   * collapses to a single entry.
+   *
+   * @param eventIds the list of IDs of the events to retrieve info about.
+   * @return the JSON {@code ok} response envelope.
+   *
+   * @throws IllegalArgumentException if a given event ID is not recognised.
+   */
+  private static String getBatchEventInfo(List<UUID> eventIds) {
+    Map<UUID, EventInfoPayload> info = new LinkedHashMap<>();
+    for (UUID eventId : eventIds) {
+      info.put(eventId, getRawEventInfo(eventId));
+    }
+    BatchEventInfoPayload infoPayload = new BatchEventInfoPayload(info);
+    return GSON.toJson(new OkResponse("ok", infoPayload));
+  }
+
+  /**
+   * Private helper method to return information about a given event as an {@code EventInfoPayload}.
+   *
+   * <p>Called by both {@link getEventInfo} and {@link getBatchEventInfo} methods, which simply
+   * wrap the payload(s) in an {@link OkResponse}
+   *
+   * @param eventId the event to retrieve info about
+   * @return the payload of the event's info
+   *
+   * @throws IllegalArgumentException if the event ID is not recognised.
+   */
+  private static EventInfoPayload getRawEventInfo(UUID eventId) {
     EventInfoPayload info = CANNED_EVENT_INFO.get(eventId);
     if (info == null) {
       throw new IllegalArgumentException("Event " + eventId + " not found");
     }
-    return GSON.toJson(new OkResponse("ok", info));
+    return info;
   }
 
   /**
