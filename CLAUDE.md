@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**york-student-events** is a centralised event discovery and social platform for University of York students. It is still pre-release: the domain models and core business logic across both services are now implemented (badges, friend graph, matching; events, users, venues, cohorts, subscriptions), but there is no live HTTP layer or real persistence yet, controllers remain thin and unwired, and both services run against in-memory repositories.
+**york-student-events** is a centralised event discovery and social platform for University of York students. It is still pre-release: the domain models and core business logic across both services are now implemented (attendance, badges, friend graph, recommendations; events, users, venues, cohorts, subscriptions), but there is no live HTTP layer or real persistence yet, controllers remain thin and unwired, and both services run against in-memory repositories.
 
 ## Architecture
 
@@ -30,7 +30,7 @@ python -m pytest api-core/tests/
 cd event-service
 ./mvnw spring-boot:run        # run the service
 ./mvnw test                   # run tests
-./mvnw javadoc:javadoc        # generate Javadoc into target/reports/apidocs
+./mvnw javadoc:javadoc        # generate Javadoc into docs/apidocs/ (gitignored build output)
 ./mvnw verify                 # compile, test, and run Checkstyle (Google Java Style)
 ```
 
@@ -57,7 +57,7 @@ cd event-service
 
 ### Python (`api-core`)
 
-- **Files**: snake_case (e.g. `attendance.py`, `matching.py`)
+- **Files**: snake_case (e.g. `attendance_service.py`, `badge_service.py`)
 - **Functions / variables**: snake_case
 - **Interfaces**: prefix with `I` — e.g. `IRepository`, `IEntity` (mirrors the Java convention; defined as `abc.ABC` abstract base classes under `repositories/`)
 - **Packages**: each domain slice is a package whose `__init__.py` re-exports its public surface via `__all__` (e.g. `friends/`, `badges/`, `bridge/`, `repositories/`)
@@ -69,16 +69,17 @@ cd event-service
 
 The domain models and service-layer business logic are implemented across both services:
 - **event-service:** concrete `Event`, `User` (abstract, with `Student` / `Host`), `Venue`, and `Cohort` entities; their services and in-memory repositories (`AbstractInMemoryRepository` + per-entity subclasses); the subscription / Observer stack; and the Java side of the subprocess bridge.
-- **api-core:** the `friends` graph, `matching` recommendations, and the fully built `badges` slice — `Badge` / `AwardedBadge` entities, their in-memory repositories, a composable predicate DSL for award conditions (`predicates.py`: `IPredicate` + And/Or/Not combinators and `Min*` leaves, with JSON (de)serialisation via `predicate_from_dict`), and `badge_service.py` (create/award/revoke/query plus condition-driven `evaluate_badges`). `attendance.py` is still an empty stub.
+- **api-core:** the `friends` graph; the `recommendations` slice; the `attendance` slice (`Attendance` record, `AttendanceService`, `InMemoryAttendanceRepository`); the `activity` in-process publish/subscribe registry; and the fully built `badges` slice — `Badge` / `AwardedBadge` entities, their in-memory repositories, a composable predicate DSL for award conditions (`predicates.py`: `IPredicate` + And/Or/Not combinators and `Min*` leaves, with JSON (de)serialisation via `predicate_from_dict`), `badge_service.py` (create/award/revoke/query plus condition-driven `evaluate_badges`), and `EvaluationService`, which subscribes to `activity` to auto-award badges when a user's activity changes. `bootstrap.py` is the composition root that wires the whole graph via constructor injection.
 
 Controllers exist but are thin and unwired (e.g. `EventController` is `@Deprecated`, with no Spring MVC request mappings), so no HTTP endpoints are live yet. `docs/api-spec.yaml` documents the *intended* REST contract ahead of implementation.
 
 The primary established patterns are:
-- Repository pattern with in-memory implementations (`InMemoryEventRepository`, `InMemoryBadgeRepository`, …), injected as module-level `_repository` singletons on the Python side and via constructors on the Java side
+- Repository pattern with in-memory implementations (`InMemoryEventRepository`, `InMemoryBadgeRepository`, …), constructor-injected on both sides — via `bootstrap.py` on the Python side and via constructors on the Java side
 - Observer pattern for subscriptions (`IObserver` / `IObservable` / `SubscriptionService`)
+- In-process publish/subscribe (`activity`) decoupling state changes from their reactions (e.g. recording an attendance triggers badge evaluation)
 - Composite / specification-style predicates for badge award conditions
-- Subprocess bridge (JSON-over-stdio) for cross-service calls
-- Dependency injection to keep each layer truly separate
+- Subprocess bridge (JSON-over-stdio) for cross-service calls (`GET_USER_EVENTS`, `GET_EVENT_INFO`, `GET_BATCH_EVENT_INFO`, `BADGE_AWARDED`, …)
+- Dependency injection to keep each layer truly separate, with `bootstrap.py` as the api-core composition root
 - Spring Boot MVC structure (Controller → Service → Repository)
 
 CI runs on every PR (`build.yml` for the Java build/test/Checkstyle, `lint.yml` for `ruff` on `api-core`). No persistence layer or authentication exists yet; cross-service communication is limited to the per-call subprocess bridge (no long-running RPC or shared database).
