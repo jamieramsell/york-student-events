@@ -47,10 +47,10 @@ class EvaluationService:
         event_ids: list[uuid.UUID]
     ) -> list[badges.AttendedEvent]:
         """Helper method which retrieves event info from event-service and
-        parses it into a list of ``AwardedEvent`` records.
+        parses it into a list of ``AttendedEvent`` records.
 
         Args:
-            event_id: A list of the IDs of the events to lookup
+            event_ids: A list of the IDs of the events to lookup
 
         Returns:
             The ``AttendedEvent`` records of the given Events
