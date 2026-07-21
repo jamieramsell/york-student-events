@@ -189,14 +189,14 @@ class BadgeService:
 
 
     def get_user_badges(self, user_id: uuid.UUID) -> list[base.Badge]:
-        """Retrieves a list of IDs of the badges that the user has earned.
+        """Retrieves a list of the badges that the user has earned.
 
         Args:
             user_id: The ID of the target user.
 
         Returns:
-            A list of the IDs of the user's earned badges; will never be None,
-            but may be empty.
+            A list of the user's earned badges; will never be None, but may be
+            empty.
 
         Raises:
             ValueError: if the user has been awarded with a badge that does not
