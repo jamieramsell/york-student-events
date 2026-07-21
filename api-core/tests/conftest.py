@@ -115,6 +115,7 @@ def compose_services():
     test_badges.badge_repo = services.badge_repo
     test_badges.awarded_badge_repo = services.awarded_badge_repo
 
+    test_evaluation.attendance_service = services.attendance_service
     test_evaluation.friendship_service = services.friendship_service
     test_evaluation.badge_service = services.badge_service
     test_evaluation.evaluation_service = services.evaluation_service

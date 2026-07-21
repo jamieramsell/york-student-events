@@ -42,13 +42,14 @@ from friends import FriendshipService, InMemoryFriendshipRepository
 
 # Module-level defaults so the file is usable on its own; ``compose_services`` in
 # conftest.py swaps in a single, consistently wired graph (the same
-# ``friendship_service`` and ``badge_service`` the ``evaluation_service`` reads)
-# before every test.
+# ``attendance_service``, ``friendship_service`` and ``badge_service`` the
+# ``evaluation_service`` reads) before every test.
+attendance_service = AttendanceService(InMemoryAttendanceRepository())
 friendship_service = FriendshipService(InMemoryFriendshipRepository())
 awarded_badge_repo = InMemoryAwardedBadgeRepository()
 badge_service = BadgeService(InMemoryBadgeRepository(), awarded_badge_repo)
 evaluation_service = EvaluationService(
-    AttendanceService(InMemoryAttendanceRepository()),
+    attendance_service,
     friendship_service,
     badge_service,
 )
