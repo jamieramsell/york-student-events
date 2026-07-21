@@ -37,7 +37,7 @@ from badges import (
     InMemoryAwardedBadgeRepository,
     InMemoryBadgeRepository,
 )
-from badges.predicates import MinFriends
+from badges.predicates import MinEventsAttended, MinFriends
 from friends import FriendshipService, InMemoryFriendshipRepository
 
 # Module-level defaults so the file is usable on its own; ``compose_services`` in
@@ -108,6 +108,44 @@ class TestBuildAwardContext:
     def test_context_carries_the_requested_user_id(self):
         user_id = uuid.uuid4()
         assert evaluation_service.build_award_context(user_id).user_id == user_id
+
+
+# ---------------------------------------------------------------------------
+# Event-info translation across the bridge (regression: frozenset(category))
+# ---------------------------------------------------------------------------
+class TestAttendedEventCategories:
+    """The bridge sends a single category *string* per event (see the
+    GET_EVENT_INFO row of docs/subprocess-contract.md), but
+    ``AttendedEvent.categories`` is a set. Translating it with
+    ``frozenset(category)`` would iterate the string into a set of its
+    characters (``frozenset("SOCIAL") == {'S','O','C','I','A','L'}``), so the
+    event would never match a category-scoped predicate. These pin the single
+    string down as a one-element set.
+    """
+
+    def test_single_category_is_kept_as_a_one_element_set(self):
+        user = uuid.uuid4()
+        attendance_service.record_attendance(user, uuid.uuid4())
+
+        context = evaluation_service.build_award_context(user)
+
+        (attended_event,) = context.attended_events
+        # The whole category string, not its characters.
+        assert attended_event.categories == frozenset({"SOCIAL"})
+
+    def test_category_scoped_badge_awarded_from_a_real_attendance(self):
+        # End-to-end through the activity chain: attending a SOCIAL event must
+        # award a badge filtered to that category. With the frozenset bug the
+        # membership test ("SOCIAL" in {'S','O',...}) is always False, so the
+        # badge is never awarded and this fails.
+        badge = badge_service.create_badge(
+            "Socialite", None, MinEventsAttended(1, category="SOCIAL")
+        )
+        user = uuid.uuid4()
+
+        attendance_service.record_attendance(user, uuid.uuid4())
+
+        assert badge_service.has_badge(user, badge.id)
 
 
 # ---------------------------------------------------------------------------
