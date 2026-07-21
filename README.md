@@ -38,7 +38,7 @@ Beyond event discovery, the platform introduces a cohort-based social layer- thi
  
 ## Architecture
  
-The backend is to be split across two services:
+The backend is split across two services:
  
 | Service | Language | Responsibility |
 |---|---|---|
@@ -139,6 +139,7 @@ york-student-events/
 │
 ├── api-core/
 │   ├── src/
+│   │   ├── activity/               # in-process publish/subscribe registry
 │   │   ├── attendance/
 │   │   ├── badges/
 │   │   ├── bridge/                 # subprocess bridge to event-service
@@ -146,25 +147,28 @@ york-student-events/
 │   │   │   ├── client.py           # Python→Java: spawns SubprocessResponder
 │   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
-│   │   ├── matching/
-│   │   └── repositories/           # in-memory repository pattern (mirrors Java)
-│   │       ├── __init__.py
-│   │       └── base.py
+│   │   ├── recommendations/
+│   │   ├── repositories/           # in-memory repository pattern (mirrors Java)
+│   │   │   ├── __init__.py
+│   │   │   └── base.py
+│   │   └── bootstrap.py            # composition root: wires the service graph
 │   └── tests/
 │       ├── conftest.py
+│       ├── test_activity.py
 │       ├── test_attendance.py
 │       ├── test_badges.py
 │       ├── test_bridge_client.py
 │       ├── test_bridge_responder.py
 │       ├── test_bridge_integration.py
+│       ├── test_evaluation.py
 │       ├── test_friends.py
-│       └── test_matching.py
+│       ├── test_recommendations.py
+│       └── test_recommendations_integration.py
 │
 ├── docs/
 │   ├── api-spec.yaml
-│   ├── apidocs/                     # generated Javadoc (mvn package / javadoc:javadoc)
-│   └── docs/
-│       └── subprocess-contract.md   # Python↔Java JSON envelope contract
+│   ├── adr/                         # architecture decision records
+│   └── subprocess-contract.md       # Python↔Java JSON envelope contract
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
