@@ -20,20 +20,25 @@ Beyond event discovery, the platform introduces a cohort-based social layer- thi
  
 ## Features
  
-### Planned (future versions)
- 
+### Implemented (domain logic — no HTTP layer yet)
+
+The business logic for these is built and tested across both services; none is exposed over HTTP or backed by real persistence yet.
+
 - **Event management** — create, update, and browse events hosted by the university, student societies, private venues, or the city
-- **User accounts** — student-verified profiles with cohort metadata (year, department)
 - **Subscriptions** — subscribe to event hosts and venues; receive updates when new events are posted
 - **Attendance tracking** — mark attendance at events; data feeds into the badge system
 - **Badge system** — earn badges based on attendance milestones and event categories
 - **Friends system** — send and accept friend requests between student accounts
 - **Mutual-interest matching** — algorithm surfaces students with overlapping interests and attendance history
-- **Cohort networking** — filter and connect with students by year group and department
+- **User accounts** *(partial)* — polymorphic `Student` / `Host` model with cohort metadata; student verification and authentication are not yet implemented
+- **Cohort networking** *(partial)* — cohort model and membership exist; filtering and connecting students by year group and department is not yet complete
+
+### Planned (future versions)
+
 - **Web platform** — HTTP-served frontend client
 - **Friend network maps** — interactive maps of friend networks
 - **Chat system** — messaging with filtering and report/moderation tooling
-- **Push notifications** — notify users of updates from subscribed hosts and venues
+- **Push notifications** — notify users of updates from subscribed hosts and venues (only in-process Observer notifications exist today)
 ---
  
 ## Architecture
