@@ -69,9 +69,16 @@ class EvaluationService:
             category = event["category"]
             start = datetime.datetime.fromisoformat(event["start"])
 
+            # ``category`` is a single category string on the wire (see the
+            # GET_EVENT_INFO row of docs/subprocess-contract.md), but
+            # ``AttendedEvent.categories`` is a set. Wrap it as a one-element
+            # set -- ``frozenset([category])`` would iterate the string into a set
+            # of its characters. Once event-service exposes multiple categories
+            # this becomes ``frozenset(event["categories"])`` with no predicate
+            # change (see the multi-category migration issue).
             attended_event = badges.AttendedEvent(event_id,
                                                  host_id,
-                                                 frozenset(category),
+                                                 frozenset([category]),
                                                  start)
             
             attended_events.append(attended_event)
