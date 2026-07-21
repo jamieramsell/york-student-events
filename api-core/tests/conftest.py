@@ -42,8 +42,8 @@ def mock_bridge(request, monkeypatch):
     Several service paths reach across the bridge transitively: recording an
     attendance or accepting a friend request publishes an ``activity`` event,
     which the badges ``evaluation_listener`` answers by calling
-    ``bridge.get_event_info`` for each attended event and ``notify_badge_awarded``
-    for each newly awarded badge; ``recommendations`` calls
+    ``bridge.get_batch_event_info`` for the attended events and
+    ``notify_badge_awarded`` for each newly awarded badge; ``recommendations`` calls
     ``bridge.get_user_events``. Left unmocked, those spawn the real Java
     responder, which only recognises a few canned UUIDs and raises
     ``SubprocessError`` for the random ids these tests use. Patching every bridge
@@ -62,6 +62,13 @@ def mock_bridge(request, monkeypatch):
 
     monkeypatch.setattr(
         bridge, "get_event_info", lambda event_id: dict(_CANNED_EVENT_INFO)
+    )
+    monkeypatch.setattr(
+        bridge,
+        "get_batch_event_info",
+        lambda event_ids: {
+            event_id: dict(_CANNED_EVENT_INFO) for event_id in event_ids
+        },
     )
     monkeypatch.setattr(bridge, "get_user_events", lambda user_id: [])
     monkeypatch.setattr(
