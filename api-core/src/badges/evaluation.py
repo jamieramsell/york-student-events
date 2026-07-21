@@ -94,7 +94,7 @@ class EvaluationService:
         """
         # Retrieve event data and construct AttendedEvent records
         attendance_list = self.__attendance_service.get_attendances(user_id)
-        events_list = [attendance.event_id for attendance in attendance_list]
+        events_list = [record.event_id for record in attendance_list]
         attended_events = tuple(self.__retrieve_event_info(events_list))
 
         # Retrieve all other relevant data
