@@ -1,4 +1,4 @@
-from sql.schema import (
+from repositories.sql.schema import (
     metadata,
     friendships,
     badges,
