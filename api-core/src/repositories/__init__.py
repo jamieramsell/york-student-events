@@ -8,11 +8,11 @@ database-backed implementation can be dropped in without changing any caller.
 
 from repositories.base import IEntity, IRepository
 from repositories.inmemory import InMemoryRepository
-from repositories.sql import SqlAlchemyRepository
+from repositories import sql
 
 __all__ = [
     "IEntity",
     "IRepository",
     "InMemoryRepository",
-    "SqlAlchemyRepository"
+    "sql"
 ]
