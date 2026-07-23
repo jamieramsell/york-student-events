@@ -5,8 +5,10 @@ from repositories.sql.schema import (
     awarded_badges,
     attendance
 )
+from repositories.sql.sql import SqlAlchemyRepository
 
 __all__ = [
+    "SqlAlchemyRepository",
     "metadata",
     "friendships",
     "badges",
