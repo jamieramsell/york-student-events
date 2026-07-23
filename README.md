@@ -203,6 +203,37 @@ york-student-events/
  
 - Python 3.11+
 - Java 21+
+- Docker (for the local development database)
+
+### Database (local development)
+
+Both services share a single PostgreSQL instance with clear table ownership
+(event-service owns users, events, venues, cohorts; api-core owns friendships,
+badges, attendance). See [ADR-0002](docs/adr/0002-database-technology.md) for the
+rationale.
+
+First, create your local environment file from the template:
+
+```bash
+cp .env.example .env   # then edit credentials if you wish; .env is gitignored
+```
+
+Then start Postgres with a single command:
+
+```bash
+docker compose -f docker-compose.db.yml up -d
+```
+
+| Setting  | Default value           | Variable            |
+|----------|-------------------------|---------------------|
+| Host     | `localhost`             | `DB_HOST`           |
+| Port     | `5432`                  | `DB_PORT`           |
+| Database | `york_student_events`   | `DB_NAME` / `POSTGRES_DB`     |
+| User     | `yse`                   | `DB_USERNAME` / `POSTGRES_USER` |
+| Password | _(set in your `.env`)_  | `DB_PASSWORD` / `POSTGRES_PASSWORD` |
+
+Stop the database with `docker compose -f docker-compose.db.yml down`, or
+`down -v` to also wipe its data.
 
 ### Running api-core (Python)
 
