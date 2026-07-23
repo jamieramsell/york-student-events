@@ -40,11 +40,14 @@ class SqlAlchemyRepository(base.IRepository[base.K, base.V]):
         """The table this repository reads from and writes to."""
 
 
-    @property
-    def _primary_key_column(self) -> sqlalchemy.Column[typing.Any]:
-        """The single primary-key column, used to key by entity id."""
-        (pk,) = self._table.primary_key.columns
-        return pk
+    # This method is required as the keys of tables differ: some are formed of a
+    # single element, whereas others are composite for example, and each
+    # type of composite key can differ themselves.
+    @abc.abstractmethod
+    def _id_predicate(
+        self, entity_id: base.K
+    ) -> sqlalchemy.ColumnElement[bool]:
+        """A WHERE clause, selecting exactly the row identified by entity_id."""
     
 
     @abc.abstractmethod
@@ -58,33 +61,34 @@ class SqlAlchemyRepository(base.IRepository[base.K, base.V]):
 
 
     def save(self, entity: base.V) -> None:
-        pk = self._primary_key_column
-
         # Delete (if a record with the given id already exists) and insert back
         # into the table within one transaction, so that if the insertion fails,
         # the deletion is rolled back.
         with self._engine.begin() as conn:
-            conn.execute(self._table.delete().where(pk == entity.get_id()))
+            conn.execute(self._table.delete().where(
+                self._id_predicate(entity.get_id())
+            ))
+
             conn.execute(self._table.insert().values(self._to_row(entity)))
 
 
     def delete(self, entity_id: base.K) -> None:
-        pk = self._primary_key_column
-
         with self._engine.begin() as conn:
-            result = conn.execute(self._table.delete().where(pk == entity_id))
+            result = conn.execute(self._table.delete().where(
+                self._id_predicate(entity_id)
+            ))
+
             if result.rowcount == 0:
                 raise KeyError(entity_id)
 
 
     def find_by_id(self, entity_id: base.K) -> base.V | None:
-        pk = self._primary_key_column
-
         with self._engine.begin() as conn:
             row = conn.execute(
-                self._table.select().where(pk == entity_id)
+                self._table.select().where(self._id_predicate(entity_id))
             ).one_or_none()
-            return self._from_row(row) if row is not None else None
+
+        return self._from_row(row) if row is not None else None
 
 
     def find_all(self) -> list[base.V]:
