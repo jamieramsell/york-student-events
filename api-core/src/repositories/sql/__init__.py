@@ -35,6 +35,7 @@ from repositories.sql.schema import (
     attendance
 )
 from repositories.sql.sql import SqlAlchemyRepository
+from repositories.sql.engine import create_engine_from_env
 
 __all__ = [
     "SqlAlchemyRepository",
@@ -42,5 +43,6 @@ __all__ = [
     "friendships",
     "badges",
     "awarded_badges",
-    "attendance"
+    "attendance",
+    "create_engine_from_env"
 ]
