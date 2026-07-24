@@ -7,6 +7,7 @@ import sqlalchemy
 
 import attendance
 import badges
+import badges.predicates
 from repositories import sql
 
 
@@ -40,6 +41,18 @@ def _awarded_badge(user_id: uuid.UUID | None = None,
 
         # tz-aware UTC, like the canned repo
         datetime.datetime.now(datetime.timezone.utc),   
+    )
+
+
+def _badge(id: uuid.UUID | None = None) -> badges.Badge:
+    
+    id = id if id is not None else uuid.uuid4()
+    
+    return badges.Badge(
+        id,
+        "BadgeName",
+        "BadgeDesc",
+        badges.predicates.MinMessagesSent(5)
     )
 
 
@@ -78,6 +91,13 @@ def awarded_badge_repo(
     engine: sqlalchemy.Engine
 ) -> badges.SQLAlchemyAwardedBadgeRepository:
     return badges.SQLAlchemyAwardedBadgeRepository(engine)
+
+
+@pytest.fixture
+def badge_repo(
+    engine: sqlalchemy.Engine
+) -> badges.SQLAlchemyBadgeRepository:
+    return badges.SQLAlchemyBadgeRepository(engine)
 
 
 # ---------------------------------------------------------------------------
@@ -218,3 +238,16 @@ class TestAwardedBadgeMapping:
         assert lookup2 is not None
         assert lookup1.get_id() == record1.get_id()
         assert lookup2.get_id() == record2.get_id()
+
+
+class TestBadgeMapping:
+
+    def test_round_trip(self, badge_repo: badges.BadgeRepository):
+        badge_record = _badge()
+        badge_repo.save(badge_record)
+
+        lookup = badge_repo.find_by_id(badge_record.get_id())
+
+        # Ensure that the record was found
+        assert lookup is not None 
+        assert lookup == badge_record
