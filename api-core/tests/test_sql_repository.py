@@ -31,6 +31,7 @@ Run from the repo root:  ``python -m pytest api-core/tests/``
 from __future__ import annotations
 
 import dataclasses
+import datetime
 import uuid
 
 import pytest
@@ -62,6 +63,17 @@ _pairs = sqlalchemy.Table(
     sqlalchemy.Column("right", sqlalchemy.Uuid, primary_key=True),
     sqlalchemy.Column("label", sqlalchemy.String, nullable=False),
 )
+
+
+# Helper method constructs a new Attendance record
+def _attendance() -> attendance.Attendance:
+    return attendance.Attendance(
+        uuid.uuid4(),
+        uuid.uuid4(),
+
+        # tz-aware UTC, like the canned repo
+        datetime.datetime.now(datetime.timezone.utc),   
+    )
 
 
 @dataclasses.dataclass(frozen=True)
