@@ -11,7 +11,7 @@ the service-level operations callers use to drive attendance operations.
 from attendance.attendance_repository import (
     InMemoryAttendanceRepository,
     InMemoryCannedAttendanceRepository,
-    SQLAlchemyAttendanceRepository
+    SQLAlchemyAttendanceRepository,
 )
 from attendance.attendance_service import AttendanceRepository, AttendanceService
 from attendance.base import Attendance

@@ -7,9 +7,10 @@ This stands in for a database-backed repository during early development.
 from __future__ import annotations
 
 import datetime
-import sqlalchemy
 import typing
 import uuid
+
+import sqlalchemy
 
 import repositories
 import repositories.sql

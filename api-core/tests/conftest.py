@@ -15,11 +15,11 @@ repository singletons survive between tests, so state cannot leak.
 """
 
 import os
-import sqlalchemy
 import sys
 import typing
 
 import pytest
+import sqlalchemy
 
 _SRC = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -97,7 +97,9 @@ def repository_kwargs(request: pytest.FixtureRequest) -> dict[str, typing.Any]:
     if request.param == "memory":
         return {} # bootstrap falls through to its in-memory defaults
 
-    import attendance, badges, friends
+    import attendance
+    import badges
+    import friends
     from repositories import sql
 
     # Engine is only resolved in this branch

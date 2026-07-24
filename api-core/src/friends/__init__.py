@@ -15,7 +15,7 @@ from friends.base import Friendship, FriendshipStatus
 from friends.friendship_repository import (
     InMemoryCannedFriendshipRepository,
     InMemoryFriendshipRepository,
-    SQLAlchemyFriendshipRepository
+    SQLAlchemyFriendshipRepository,
 )
 from friends.friendship_service import FriendshipRepository, FriendshipService
 

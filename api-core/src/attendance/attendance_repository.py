@@ -6,9 +6,10 @@ the IDs of Attendance records. This stands in for a database-backed repository
 during early development.
 """
 import datetime
-import sqlalchemy
 import typing
 import uuid
+
+import sqlalchemy
 
 import repositories
 import repositories.sql

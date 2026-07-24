@@ -7,8 +7,9 @@ during early development.
 """
 from __future__ import annotations
 
-import sqlalchemy
 import typing
+
+import sqlalchemy
 
 import repositories
 import repositories.sql
