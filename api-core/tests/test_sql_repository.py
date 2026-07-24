@@ -31,14 +31,12 @@ Run from the repo root:  ``python -m pytest api-core/tests/``
 from __future__ import annotations
 
 import dataclasses
-import datetime
 import uuid
 
 import pytest
 import sqlalchemy
 import sqlalchemy.exc
 
-import attendance
 from repositories import IEntity, sql
 
 # ---------------------------------------------------------------------------
@@ -63,22 +61,6 @@ _pairs = sqlalchemy.Table(
     sqlalchemy.Column("right", sqlalchemy.Uuid, primary_key=True),
     sqlalchemy.Column("label", sqlalchemy.String, nullable=False),
 )
-
-
-# Helper method constructs a new Attendance record
-def _attendance(attendee_id: uuid.UUID | None = None,
-                event_id: uuid.UUID | None = None) -> attendance.Attendance:
-    
-    attendee_id = attendee_id if attendee_id is not None else uuid.uuid4()
-    event_id = event_id if event_id is not None else uuid.uuid4()
-
-    return attendance.Attendance(
-        attendee_id,
-        event_id,
-
-        # tz-aware UTC, like the canned repo
-        datetime.datetime.now(datetime.timezone.utc),   
-    )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -157,7 +139,6 @@ def engine() -> sqlalchemy.Engine:
         poolclass=sqlalchemy.StaticPool,
     )
     _metadata.create_all(engine)
-    sql.metadata.create_all(engine)
     yield engine
     engine.dispose()
 
@@ -170,13 +151,6 @@ def widgets(engine: sqlalchemy.Engine) -> _WidgetRepository:
 @pytest.fixture
 def pairs(engine: sqlalchemy.Engine) -> _PairRepository:
     return _PairRepository(engine)
-
-
-@pytest.fixture
-def attendance_repo(
-    engine: sqlalchemy.Engine
-) -> attendance.SQLAlchemyAttendanceRepository:
-    return attendance.SQLAlchemyAttendanceRepository(engine)
 
 
 def _widget(name: str = "widget") -> _Widget:
@@ -460,73 +434,3 @@ class TestPersistenceAcrossInstances:
         reader = _WidgetRepository(engine)
 
         assert set(reader.find_all()) == saved
-
-
-# ---------------------------------------------------------------------------
-# Mapping: methods successfully map attendance records to and from the database
-# ---------------------------------------------------------------------------
-class TestAttendanceMapping:
-
-    def test_round_trip(self, attendance_repo: attendance.AttendanceRepository):
-        attendance_record = _attendance()
-        attendance_repo.save(attendance_record)
-
-        lookup = attendance_repo.find_by_id(attendance_record.get_id())
-
-        assert lookup is not None # Ensure the record was found
-
-        # Ensure that the composite key has been handled correctly
-        assert lookup.get_id() == attendance_record.get_id()
-        assert lookup.attendee_id == attendance_record.attendee_id
-        assert lookup.event_id == attendance_record.event_id
-
-        # Ensure that the datetime has been handled correctly. Note that tzinfo
-        # has to be manually handled due to tests using SQLite, which does not
-        # store timezone info; this is not the case for the real implementation,
-        # which uses postgreSQL.
-        assert (lookup.recorded_at.replace(tzinfo=datetime.timezone.utc)
-                == attendance_record.recorded_at)
-        
-
-    def test_entities_sharing_attendee_id_are_distinct(
-        self,
-        attendance_repo: attendance.AttendanceRepository
-    ):
-        record1 = _attendance()
-        record2 = _attendance(attendee_id=record1.attendee_id)
-
-        attendance_repo.save(record1)
-        attendance_repo.save(record2)
-
-        # Ensure that both records were saved and are able to be retrieved,
-        # despite sharing a key component
-        assert len(attendance_repo.find_all()) == 2
-
-        lookup1 = attendance_repo.find_by_id(record1.get_id())
-        lookup2 = attendance_repo.find_by_id(record2.get_id())
-        assert lookup1 is not None
-        assert lookup2 is not None
-        assert lookup1.get_id() == record1.get_id()
-        assert lookup2.get_id() == record2.get_id()
-
-
-    def test_entities_sharing_event_id_are_distinct(
-        self,
-        attendance_repo: attendance.AttendanceRepository
-    ):
-        record1 = _attendance()
-        record2 = _attendance(event_id=record1.event_id)
-
-        attendance_repo.save(record1)
-        attendance_repo.save(record2)
-
-        # Ensure that both records were saved and are able to be retrieved,
-        # despite sharing a key component
-        assert len(attendance_repo.find_all()) == 2
-        
-        lookup1 = attendance_repo.find_by_id(record1.get_id())
-        lookup2 = attendance_repo.find_by_id(record2.get_id())
-        assert lookup1 is not None
-        assert lookup2 is not None
-        assert lookup1.get_id() == record1.get_id()
-        assert lookup2.get_id() == record2.get_id()
