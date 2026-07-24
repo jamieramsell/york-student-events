@@ -20,11 +20,49 @@ See Also:
 
 from __future__ import annotations
 
+import datetime
+
 import sqlalchemy
 
 # One registry for every api-core table; handed to Alembic as target_metadata.
 metadata = sqlalchemy.MetaData()
 
+
+# Type decorator for datetime values which guarantees timezone-aware UTC
+class UtcDateTime(sqlalchemy.types.TypeDecorator[datetime.datetime]):
+    """A DateTime that guarantees timezone-aware UTC on both read and write.
+
+    SQLite has no tz-aware column type and returns naive datetimes; this
+    reattaches UTC on read so the domain layer always sees aware values,
+    matching Postgres timestamptz. Writes are normalised to UTC so the stored
+    wall-clock is unambiguous.
+    """
+    impl = sqlalchemy.DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(
+        self,
+        value: datetime.datetime | None,
+        dialect: sqlalchemy.Dialect
+    ) -> datetime.datetime | None:
+        if value is not None:
+            if value.tzinfo is None:
+                raise ValueError("value (the datetime provided) must be"
+                                 + " timezone aware.")
+            
+            value = value.astimezone(datetime.timezone.utc)
+
+        return value
+
+    def process_result_value(
+        self,
+        value: datetime.datetime | None,
+        dialect: sqlalchemy.Dialect
+    ) -> datetime.datetime | None:
+        if value is not None and value.tzinfo is None:
+            value = value.replace(tzinfo=datetime.timezone.utc)
+        return value
+    
 
 # A pending or accepted link between two users. The (user_id, friend_id) pair is
 # the composite key, whose order-independence (a Friendship's id is a
@@ -34,9 +72,7 @@ friendships = sqlalchemy.Table(
     metadata,
     sqlalchemy.Column("user_id", sqlalchemy.Uuid, primary_key=True),
     sqlalchemy.Column("friend_id", sqlalchemy.Uuid, primary_key=True),
-    sqlalchemy.Column(
-        "created_at", sqlalchemy.DateTime(timezone=True), nullable=False
-    ),
+    sqlalchemy.Column("created_at", UtcDateTime, nullable=False),
     # Stores the FriendshipStatus value ("pending" / "accepted").
     sqlalchemy.Column("status", sqlalchemy.String(16), nullable=False),
 )
@@ -69,9 +105,7 @@ awarded_badges = sqlalchemy.Table(
         sqlalchemy.ForeignKey("badges.id"),
         primary_key=True,
     ),
-    sqlalchemy.Column(
-        "awarded_at", sqlalchemy.DateTime(timezone=True), nullable=False
-    ),
+    sqlalchemy.Column("awarded_at", UtcDateTime, nullable=False),
     # Application-supplied; defaults to 1 on the entity.
     sqlalchemy.Column("times_awarded", sqlalchemy.Integer, nullable=False),
 )
@@ -84,7 +118,5 @@ attendance = sqlalchemy.Table(
     metadata,
     sqlalchemy.Column("attendee_id", sqlalchemy.Uuid, primary_key=True),
     sqlalchemy.Column("event_id", sqlalchemy.Uuid, primary_key=True),
-    sqlalchemy.Column(
-        "recorded_at", sqlalchemy.DateTime(timezone=True), nullable=False
-    ),
+    sqlalchemy.Column("recorded_at", UtcDateTime, nullable=False),
 )

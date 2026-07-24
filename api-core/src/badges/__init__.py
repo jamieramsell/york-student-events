@@ -17,8 +17,11 @@ The composable predicate vocabulary (``IPredicate`` and its combinators/leaves,
 plus ``predicate_from_dict``) is intentionally left behind ``badges.predicates``
 rather than re-exported here.
 """
-from badges.awarded_badge_repository import InMemoryAwardedBadgeRepository
-from badges.badge_repository import InMemoryBadgeRepository
+from badges.awarded_badge_repository import (
+    InMemoryAwardedBadgeRepository,
+    SQLAlchemyAwardedBadgeRepository,
+)
+from badges.badge_repository import InMemoryBadgeRepository, SQLAlchemyBadgeRepository
 from badges.badge_service import (
     AwardedBadgeRepository,
     BadgeRepository,
@@ -38,5 +41,7 @@ __all__ = [
     "BadgeService",
     "EvaluationService",
     "InMemoryAwardedBadgeRepository",
-    "InMemoryBadgeRepository"
+    "InMemoryBadgeRepository",
+    "SQLAlchemyAwardedBadgeRepository",
+    "SQLAlchemyBadgeRepository"
 ]

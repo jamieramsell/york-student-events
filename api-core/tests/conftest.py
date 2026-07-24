@@ -16,8 +16,10 @@ repository singletons survive between tests, so state cannot leak.
 
 import os
 import sys
+import typing
 
 import pytest
+import sqlalchemy
 
 _SRC = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -33,6 +35,18 @@ _CANNED_EVENT_INFO = {
     "start": "2026-09-15T18:00:00",
     "category": "SOCIAL",
 }
+
+# Helper method to construct an SQLite engine, used instead of postgreSQL, for
+# testing purposes only.
+@pytest.fixture
+def sqlite_engine():
+    engine = sqlalchemy.create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=sqlalchemy.StaticPool,
+    )
+    yield engine
+    engine.dispose()
 
 
 @pytest.fixture(autouse=True)
@@ -77,8 +91,34 @@ def mock_bridge(request, monkeypatch):
     yield
 
 
+@pytest.fixture(params=["memory", "sql"])
+def repository_kwargs(request: pytest.FixtureRequest) -> dict[str, typing.Any]:
+    """Repositories to compose the graph over, once per backend."""
+    if request.param == "memory":
+        return {} # bootstrap falls through to its in-memory defaults
+
+    import attendance
+    import badges
+    import friends
+    from repositories import sql
+
+    # Engine is only resolved in this branch
+    engine = request.getfixturevalue("sqlite_engine") 
+    sql.metadata.create_all(engine)
+    return {
+        "attendance_repository":
+            attendance.SQLAlchemyAttendanceRepository(engine),
+        "friendship_repository":
+            friends.SQLAlchemyFriendshipRepository(engine),
+        "badge_repository":
+            badges.SQLAlchemyBadgeRepository(engine),
+        "awarded_badge_repository":
+            badges.SQLAlchemyAwardedBadgeRepository(engine),
+    }
+
+
 @pytest.fixture(autouse=True)
-def compose_services():
+def compose_services(repository_kwargs: dict[str, typing.Any]):
     """Build a fresh, isolated service graph and expose it to the test modules.
 
     This is the test suite's composition root. Rather than assembling the graph
@@ -101,7 +141,7 @@ def compose_services():
 
     # Fresh graph, over bare repositories (never the canned variants) so the
     # unit suite starts from empty state.
-    services = bootstrap.bootstrap(register=False)
+    services = bootstrap.bootstrap(register=False, **repository_kwargs)
 
     # Publish the instances (and the underlying repositories the tests assert
     # against) onto each test module's globals.
