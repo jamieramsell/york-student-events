@@ -6,7 +6,7 @@ Welcome! This guide takes a new contributor from a fresh checkout to a green tes
 
 ## 1. Prerequisites
 
-- **Python 3.11+** — the repo pins **3.13.14** (see [`.python-version`](.python-version)); [pyenv](https://github.com/pyenv/pyenv) picks this up automatically. Confirm `python --version` resolves to 3.11+ (on some systems the pyenv-managed interpreter is `python`, while `python3` is an older system build).
+- **Python 3.12+** — the repo pins **3.13.14** (see [`.python-version`](.python-version)); [pyenv](https://github.com/pyenv/pyenv) picks this up automatically. Confirm `python --version` resolves to 3.12+ (on some systems the pyenv-managed interpreter is `python`, while `python3` is an older system build).
 - **Java 21+ (JDK)** — needed to build/run `event-service` *and* to run the Python↔Java bridge integration tests. Confirm with `java --version`.
 - **No third-party Python packages yet.** The `api-core` suite is standard-library only, so there is no `pip install` step. (This changes in **M5**, when the persistence layer introduces a `requirements.txt`.)
 

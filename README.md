@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
 [![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
-[![Python](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org)
+[![Python](https://img.shields.io/badge/python-3.12+-yellow.svg)](https://www.python.org)
 [![Java](https://img.shields.io/badge/java-21+-orange.svg)](https://openjdk.org)
  
 ---
@@ -201,7 +201,7 @@ york-student-events/
  
 ### Prerequisites
  
-- Python 3.11+
+- Python 3.12+
 - Java 21+
 - Docker (for the local development database)
 

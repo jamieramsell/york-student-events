@@ -10,7 +10,7 @@ Two backend services:
 
 | Service | Language / Stack | Responsibility |
 |---|---|---|
-| `api-core` | Python 3.11+ | Attendance tracking, badges, friend graph, interest matching |
+| `api-core` | Python 3.12+ | Attendance tracking, badges, friend graph, interest matching |
 | `event-service` | Java 21 / Spring Boot 3.x | Users, events, venues, subscriptions |
 
 No frontend exists yet. A shared PostgreSQL database is configured for the project (M5), though both services still default to in-memory repositories while the database-backed repositories are wired in.
