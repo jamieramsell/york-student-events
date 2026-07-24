@@ -66,10 +66,15 @@ _pairs = sqlalchemy.Table(
 
 
 # Helper method constructs a new Attendance record
-def _attendance() -> attendance.Attendance:
+def _attendance(attendee_id: uuid.UUID | None = None,
+                event_id: uuid.UUID | None = None) -> attendance.Attendance:
+    
+    attendee_id = attendee_id if attendee_id is not None else uuid.uuid4()
+    event_id = event_id if event_id is not None else uuid.uuid4()
+
     return attendance.Attendance(
-        uuid.uuid4(),
-        uuid.uuid4(),
+        attendee_id,
+        event_id,
 
         # tz-aware UTC, like the canned repo
         datetime.datetime.now(datetime.timezone.utc),   
