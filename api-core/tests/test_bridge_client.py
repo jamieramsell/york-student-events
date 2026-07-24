@@ -11,6 +11,7 @@ import json
 import os
 import subprocess
 import uuid
+from typing import ClassVar
 from unittest import mock
 
 import pytest
@@ -104,9 +105,11 @@ class TestCallResponder:
         proc.kill.assert_called_once()
 
     def test_missing_java_raises(self):
-        with mock.patch("bridge.client.subprocess.Popen", side_effect=FileNotFoundError):
-            with pytest.raises(SubprocessError, match="Could not launch java"):
-                client._call_responder({}, "cp")
+        with (
+            mock.patch("bridge.client.subprocess.Popen", side_effect=FileNotFoundError),
+            pytest.raises(SubprocessError, match="Could not launch java"),
+        ):
+            client._call_responder({}, "cp")
 
 
 class TestResolveClasspath:
@@ -184,12 +187,12 @@ class TestGetEventInfo:
 
 class TestGetBatchEventInfo:
     # Two canned events, each with the same payload shape get_event_info returns.
-    _INFO_A = {
+    _INFO_A: ClassVar[dict[str, str]] = {
         "host": "22222222-2222-2222-2222-222222222222",
         "start": "2026-09-15T18:00:00",
         "category": "SOCIAL",
     }
-    _INFO_B = {
+    _INFO_B: ClassVar[dict[str, str]] = {
         "host": "33333333-3333-3333-3333-333333333333",
         "start": "2026-10-01T14:30:00",
         "category": "ACADEMIC",
@@ -289,9 +292,11 @@ class TestGetBatchEventInfo:
         # without ever launching java.
         monkeypatch.setattr(client, "_CLASSES_DIR", tmp_path / "classes")
         monkeypatch.setattr(client, "_CLASSPATH_FILE", tmp_path / "cp.txt")
-        with mock.patch("bridge.client.subprocess.Popen") as popen:
-            with pytest.raises(SubprocessError, match="not built"):
-                get_batch_event_info([uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")])
+        with (
+            mock.patch("bridge.client.subprocess.Popen") as popen,
+            pytest.raises(SubprocessError, match="not built"),
+        ):
+            get_batch_event_info([uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")])
         popen.assert_not_called()
 
 

@@ -5,12 +5,12 @@ Provides ``InMemoryAttendanceRepository``, a dictionary-backed implementation of
 the IDs of Attendance records. This stands in for a database-backed repository
 during early development.
 """
-
 import datetime
 import uuid
 
-import attendance.base as base
 import repositories
+from attendance import base
+
 
 class InMemoryAttendanceRepository(
     repositories.InMemoryRepository[base.AttendanceId, base.Attendance]
@@ -53,6 +53,8 @@ class InMemoryCannedAttendanceRepository(InMemoryAttendanceRepository):
         super().__init__()
         self.save(
             base.Attendance(
-                CANNED_ATTENDEE_ID, CANNED_EVENT_ID, datetime.datetime.now()
+                CANNED_ATTENDEE_ID,
+                CANNED_EVENT_ID,
+                datetime.datetime.now(datetime.timezone.utc),
             )
         )

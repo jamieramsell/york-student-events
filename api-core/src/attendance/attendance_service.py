@@ -6,12 +6,12 @@ whether a student attended a given event or which students attended it.
 Orchestrates the ``Attendance`` domain model from ``base`` with the in-memory
 repository, keeping persistence details out of callers.
 """
+import datetime
+import uuid
 
 import activity
-import attendance.base as base
-import datetime
 import repositories
-import uuid
+from attendance import base
 
 type AttendanceRepository = repositories.IRepository[base.AttendanceId,
                                                      base.Attendance]
@@ -53,7 +53,7 @@ class AttendanceService:
             raise ValueError("The user's attendance has already been recorded.")
 
         attendance_record = base.Attendance(
-            attendee_id, event_id, datetime.datetime.now()
+            attendee_id, event_id, datetime.datetime.now(datetime.timezone.utc)
         )
         self.__attendance_repository.save(attendance_record)
 

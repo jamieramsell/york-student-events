@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
 [![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
-[![Python](https://img.shields.io/badge/python-3.11+-yellow.svg)](https://www.python.org)
+[![Python](https://img.shields.io/badge/python-3.12+-yellow.svg)](https://www.python.org)
 [![Java](https://img.shields.io/badge/java-21+-orange.svg)](https://openjdk.org)
  
 ---
@@ -201,7 +201,7 @@ york-student-events/
  
 ### Prerequisites
  
-- Python 3.11+
+- Python 3.12+
 - Java 21+
 - Docker (for the local development database)
 
@@ -238,9 +238,37 @@ Stop the database with `docker compose -f docker-compose.db.yml down`, or
 ### Running api-core (Python)
 
 ```bash
-# From the repo root — no requirements file yet
+# Install dependencies (SQLAlchemy Core, psycopg, Alembic)
+pip install -r api-core/requirements.txt
+
+# Run the tests (from the repo root; these use in-memory SQLite, no database needed)
 python -m pytest api-core/tests/
 ```
+
+api-core reads its connection URL from `DATABASE_URL` (already in `.env.example`)
+and manages its schema with Alembic. With the database running (see above) and
+your `.env` exported, create the tables and verify connectivity:
+
+```bash
+set -a; . .env; set +a       # export DATABASE_URL
+cd api-core
+alembic upgrade head         # create the friendships / badges / awarded_badges / attendance tables
+python scripts/check_db.py   # smoke test: connect, write and read back a row → prints OK
+```
+
+When you change the schema in `repositories/sql/schema.py`, generate a migration
+for it and review the generated file before applying it:
+
+```bash
+cd api-core
+alembic revision --autogenerate -m "describe the change"   # writes a new file under alembic/versions/
+# open the generated migration and check its upgrade()/downgrade(), then:
+alembic upgrade head                                       # apply it
+```
+
+Autogenerate reliably detects added and dropped tables and columns, but renames,
+type changes, and `CHECK` constraints usually need hand-editing — always review
+the generated migration.
 
 ### Running event-service (Java / Maven)
 

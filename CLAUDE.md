@@ -10,10 +10,10 @@ Two backend services:
 
 | Service | Language / Stack | Responsibility |
 |---|---|---|
-| `api-core` | Python 3.11+ | Attendance tracking, badges, friend graph, interest matching |
+| `api-core` | Python 3.12+ | Attendance tracking, badges, friend graph, interest matching |
 | `event-service` | Java 21 / Spring Boot 3.x | Users, events, venues, subscriptions |
 
-No frontend exists yet. No database; both services use in-memory repositories.
+No frontend exists yet. A shared PostgreSQL database is configured for the project (M5), though both services still default to in-memory repositories while the database-backed repositories are wired in.
 
 The two services talk to each other over a **subprocess bridge** — a JSON-over-stdio contract where one service spawns the other as a child process per call. api-core's `bridge/client.py` spawns the Java `SubprocessResponder`; api-core's `bridge/responder.py` answers requests issued by event-service. The envelope contract is documented in `docs/subprocess-contract.md`. Stdlib/standard-library only, in keeping with the no-dependencies convention.
 
@@ -21,9 +21,30 @@ The two services talk to each other over a **subprocess bridge** — a JSON-over
 
 ### api-core (Python)
 ```bash
-# From repo root — no requirements file yet
+# Install dependencies (SQLAlchemy Core, psycopg, Alembic — see api-core/requirements.txt)
+pip install -r api-core/requirements.txt
+
+# Run the tests (from repo root)
 python -m pytest api-core/tests/
 ```
+
+**Persistence (M5).** api-core persists to the shared PostgreSQL database via SQLAlchemy Core (with psycopg as the production driver); the test suite runs against in-memory SQLite. The connection URL is read from the `DATABASE_URL` environment variable (see `.env.example`), never hardcoded. Alembic owns the schema — the api-core-side equivalent of event-service's Flyway:
+```bash
+docker compose -f docker-compose.db.yml up -d    # start the local Postgres
+set -a; . .env; set +a                           # export DATABASE_URL (no dotenv dependency)
+cd api-core
+alembic upgrade head                             # create the friendships / badges / awarded_badges / attendance tables
+python scripts/check_db.py                       # smoke test: connect, write and read back a row → prints OK
+```
+
+When you change the schema in `repositories/sql/schema.py`, generate a migration for it and **review the generated file before applying it**:
+```bash
+cd api-core
+alembic revision --autogenerate -m "describe the change"   # writes a new file under alembic/versions/
+# open the generated migration and sanity-check its upgrade() / downgrade()
+alembic upgrade head                                        # apply it
+```
+Autogenerate is a starting point, not gospel: it detects added/dropped tables and columns reliably, but column renames, type changes, and `CHECK` constraints usually need hand-editing.
 
 ### event-service (Java / Maven)
 ```bash
@@ -63,7 +84,7 @@ cd event-service
 - **Packages**: each domain slice is a package whose `__init__.py` re-exports its public surface via `__all__` (e.g. `friends/`, `badges/`, `bridge/`, `repositories/`)
 - **Test files**: prefixed `test_` and co-located in `api-core/tests/` (e.g. `test_attendance.py`)
 - **Test runner**: pytest — run from repo root with `python -m pytest api-core/tests/`
-- No third-party dependencies yet; avoid adding any without a `requirements.txt`
+- Third-party dependencies are pinned in `api-core/requirements.txt` (currently SQLAlchemy Core, psycopg, and Alembic, added for the M5 persistence layer); don't add new ones without recording them there
 
 ## Current State
 
@@ -82,4 +103,4 @@ The primary established patterns are:
 - Dependency injection to keep each layer truly separate, with `bootstrap.py` as the api-core composition root
 - Spring Boot MVC structure (Controller → Service → Repository)
 
-CI runs on every PR (`build.yml` for the Java build/test/Checkstyle, `lint.yml` for `ruff` on `api-core`). No persistence layer or authentication exists yet; cross-service communication is limited to the per-call subprocess bridge (no long-running RPC or shared database).
+CI runs on every PR (`build.yml` for the Java build/test/Checkstyle, `lint.yml` for `ruff` on `api-core`). A shared PostgreSQL database is configured (M5) and api-core's persistence layer — the SQLAlchemy Core repository backend (`repositories/sql/`), the shared table schema, and Alembic migrations — is being stood up; the services still default to in-memory repositories until the database-backed repositories are wired into their composition roots. No authentication exists yet; cross-service communication is limited to the per-call subprocess bridge (no long-running RPC).

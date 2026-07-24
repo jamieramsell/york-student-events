@@ -69,6 +69,7 @@ def _event_service_built():
             cwd=_EVENT_SERVICE,
             capture_output=True,
             text=True,
+            check=False,
         )
         if (
             result.returncode != 0

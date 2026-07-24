@@ -12,7 +12,6 @@ Several handlers are still stubs returning canned data (tracked in #164);
 
 Stdlib only, in keeping with the project's no-dependencies convention.
 """
-
 import collections.abc
 import json
 import os
@@ -27,11 +26,11 @@ _SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-import bootstrap  # noqa: E402  (imported after the sys.path bootstrap)
-from attendance import (  # noqa: E402  (after the sys.path bootstrap)
+import bootstrap
+from attendance import (
     InMemoryCannedAttendanceRepository,
 )
-from friends import (  # noqa: E402  (after the sys.path bootstrap)
+from friends import (
     InMemoryCannedFriendshipRepository,
 )
 
@@ -170,7 +169,9 @@ def main():
                 "error": "Incorrectly formatted json."
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — deliberate catch-all: any handler
+            # failure must be turned into an error envelope rather than crashing
+            # the subprocess and breaking the stdio contract with event-service.
             response = {
                 "status": "error",
                 "error": str(e)

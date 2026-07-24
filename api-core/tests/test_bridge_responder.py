@@ -70,6 +70,7 @@ def _run(request_line: str) -> subprocess.CompletedProcess:
         text=True,
         capture_output=True,
         timeout=30,
+        check=False,
     )
 
 

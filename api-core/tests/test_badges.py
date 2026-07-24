@@ -41,11 +41,11 @@ import uuid
 
 import pytest
 
-import badges.base as base
 from badges import (
     BadgeService,
     InMemoryAwardedBadgeRepository,
     InMemoryBadgeRepository,
+    base,
 )
 from badges.predicates import (
     AndPredicate,
@@ -63,8 +63,8 @@ from badges.predicates import (
 
 _HOST = uuid.UUID("11111111-1111-1111-1111-111111111111")
 _HOST_B = uuid.UUID("22222222-2222-2222-2222-222222222222")
-_START = datetime.datetime(2026, 10, 31, 20, 0)
-_END = datetime.datetime(2026, 11, 1, 6, 0)
+_START = datetime.datetime(2026, 10, 31, 20, 0, tzinfo=datetime.timezone.utc)
+_END = datetime.datetime(2026, 11, 1, 6, 0, tzinfo=datetime.timezone.utc)
 
 # Module-level defaults so the file is usable on its own; ``compose_services`` in
 # conftest.py swaps in a fresh, isolated service (and its repositories) before
@@ -75,7 +75,7 @@ badge_service = BadgeService(badge_repo, awarded_badge_repo)
 
 # A fixed origin the behavioural tests place facts relative to, in minutes, so
 # each test reads as an offset timeline rather than a wall of datetimes.
-_T0 = datetime.datetime(2026, 1, 1, 12, 0)
+_T0 = datetime.datetime(2026, 1, 1, 12, 0, tzinfo=datetime.timezone.utc)
 
 
 def _event(offset_minutes=0, host_id=_HOST, categories=("music",)):
@@ -832,7 +832,9 @@ class TestBadgeService:
         # broken invariant the getter surfaces rather than silently skips.
         user = uuid.uuid4()
         awarded_badge_repo.save(
-            base.AwardedBadge(user, uuid.uuid4(), datetime.datetime.now())
+            base.AwardedBadge(
+                user, uuid.uuid4(), datetime.datetime.now(datetime.timezone.utc)
+            )
         )
 
         with pytest.raises(ValueError):

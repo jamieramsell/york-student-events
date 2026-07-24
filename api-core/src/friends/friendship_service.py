@@ -5,13 +5,12 @@ removing friend requests, and querying a user's friends or whether two users are
 friends. Orchestrates the ``Friendship`` domain model from ``base`` with the
 in-memory repository, keeping persistence details out of callers.
 """
+import datetime
+import uuid
 
 import activity
-import friends.base as base
-import datetime
-import friends.connections as connections
 import repositories
-import uuid
+from friends import base, connections
 
 type FriendshipRepository = repositories.IRepository[base.FriendshipId,
                                                      base.Friendship]
@@ -57,7 +56,7 @@ class FriendshipService:
                              + " users, and has either been accepted, or is"
                              + " still pending.")
 
-        time = datetime.datetime.now()
+        time = datetime.datetime.now(datetime.timezone.utc)
         status = base.FriendshipStatus.PENDING
         friendship = base.Friendship(user_id, friend_id, time, status)
 

@@ -1,7 +1,8 @@
 import dataclasses
 import datetime
-import repositories
 import uuid
+
+import repositories
 
 # Ordered (attendee_id, event_id) pair representing the ID of an Attendance
 # record

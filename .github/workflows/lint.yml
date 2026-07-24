@@ -9,6 +9,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - run: pip3 install ruff
+          python-version: '3.12'
+      # Pin ruff so its default rule set can't shift under us between runs
+      # (an unpinned upgrade to 0.16.0 silently widened the defaults). Bump
+      # deliberately, alongside any fixes the new version demands.
+      - run: pip3 install ruff==0.16.0
       - run: python3 -m ruff check api-core/
