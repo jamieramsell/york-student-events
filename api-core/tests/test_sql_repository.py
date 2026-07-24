@@ -139,6 +139,7 @@ def engine() -> sqlalchemy.Engine:
         poolclass=sqlalchemy.StaticPool,
     )
     _metadata.create_all(engine)
+    sql.metadata.create_all(engine)
     yield engine
     engine.dispose()
 
