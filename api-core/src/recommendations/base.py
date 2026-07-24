@@ -113,8 +113,8 @@ class RecommendationsService:
 
             # Remove events from the set if the user has already signed up to
             # them
-            friend_events = set(event for event in friend_events
-                                if event not in events_already_registered)
+            friend_events = {event for event in friend_events
+                             if event not in events_already_registered}
 
             recommended_events.update(friend_events)
 
