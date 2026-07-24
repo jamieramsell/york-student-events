@@ -1,5 +1,7 @@
 import os
+
 import sqlalchemy
+
 
 def create_engine_from_env(var: str = "DATABASE_URL") -> sqlalchemy.Engine:
     """Utility function which retrieves the URL pointed at by an env var and

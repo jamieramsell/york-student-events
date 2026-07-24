@@ -15,9 +15,12 @@ See Also:
 from __future__ import annotations
 
 import abc
-import repositories.base as base
-import sqlalchemy
 import typing
+
+import sqlalchemy
+
+import repositories.base as base
+
 
 class SqlAlchemyRepository(base.IRepository[base.K, base.V]):
     """Abstract ``Engine``-backed repository built on SQLAlchemy Core.

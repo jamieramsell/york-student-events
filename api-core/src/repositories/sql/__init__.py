@@ -27,22 +27,22 @@ See Also:
     repositories.inmemory.InMemoryRepository
 """
 
+from repositories.sql.engine import create_engine_from_env
 from repositories.sql.schema import (
-    metadata,
-    friendships,
-    badges,
+    attendance,
     awarded_badges,
-    attendance
+    badges,
+    friendships,
+    metadata,
 )
 from repositories.sql.sql import SqlAlchemyRepository
-from repositories.sql.engine import create_engine_from_env
 
 __all__ = [
-    "SqlAlchemyRepository",
-    "metadata",
-    "friendships",
-    "badges",
-    "awarded_badges",
     "attendance",
-    "create_engine_from_env"
+    "awarded_badges",
+    "badges",
+    "create_engine_from_env",
+    "friendships",
+    "metadata",
+    "SqlAlchemyRepository"
 ]

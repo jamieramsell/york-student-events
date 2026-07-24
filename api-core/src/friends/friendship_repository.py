@@ -4,13 +4,14 @@ Provides ``InMemoryFriendshipRepository``, a dictionary-backed implementation of
 ``repositories.IRepository`` keyed by the frozenset IDs of Friendship objects.
 This stands in for a database-backed repository during early development.
 """
-
 from __future__ import annotations
+
 import datetime
 import uuid
 
-import friends.base as base
 import repositories
+
+import friends.base as base
 
 
 class InMemoryFriendshipRepository(

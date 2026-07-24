@@ -8,21 +8,17 @@ backend later.
 The public surface is the ``Attendance`` entity, the in-memory repository, and
 the service-level operations callers use to drive attendance operations.
 """
-
-from attendance.base import Attendance
 from attendance.attendance_repository import (
     InMemoryAttendanceRepository,
-    InMemoryCannedAttendanceRepository
+    InMemoryCannedAttendanceRepository,
 )
-from attendance.attendance_service import (
-    AttendanceService,
-    AttendanceRepository
-)
+from attendance.attendance_service import AttendanceRepository, AttendanceService
+from attendance.base import Attendance
 
 __all__ = [
     "Attendance",
-    "InMemoryAttendanceRepository",
-    "InMemoryCannedAttendanceRepository",
+    "AttendanceRepository",
     "AttendanceService",
-    "AttendanceRepository"
+    "InMemoryAttendanceRepository",
+    "InMemoryCannedAttendanceRepository"    
 ]

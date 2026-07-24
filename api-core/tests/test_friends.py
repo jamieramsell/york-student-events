@@ -17,9 +17,8 @@ import dataclasses
 import datetime
 import uuid
 
-import pytest
-
 import activity
+import pytest
 import repositories
 from friends import FriendshipService
 from friends.base import Friendship, FriendshipStatus, _generate_id

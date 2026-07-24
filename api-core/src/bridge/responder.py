@@ -12,7 +12,6 @@ Several handlers are still stubs returning canned data (tracked in #164);
 
 Stdlib only, in keeping with the project's no-dependencies convention.
 """
-
 import collections.abc
 import json
 import os

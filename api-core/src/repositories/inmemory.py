@@ -1,5 +1,6 @@
 import repositories.base as base
 
+
 class InMemoryRepository(base.IRepository[base.K, base.V]):
     """General-purpose, dictionary backed repository for storing and retrieving
     entities.

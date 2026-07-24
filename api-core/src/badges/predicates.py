@@ -35,7 +35,6 @@ its result is independent of the award window, every evaluation would re-satisfy
 it and re-award the badge. Pair such a leaf with a time-bounded condition, or
 reserve it only for one-shot badges.
 """
-
 from __future__ import annotations
 
 import abc

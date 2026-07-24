@@ -5,13 +5,14 @@ removing friend requests, and querying a user's friends or whether two users are
 friends. Orchestrates the ``Friendship`` domain model from ``base`` with the
 in-memory repository, keeping persistence details out of callers.
 """
+import datetime
+import uuid
 
 import activity
-import friends.base as base
-import datetime
-import friends.connections as connections
 import repositories
-import uuid
+
+import friends.base as base
+import friends.connections as connections
 
 type FriendshipRepository = repositories.IRepository[base.FriendshipId,
                                                      base.Friendship]

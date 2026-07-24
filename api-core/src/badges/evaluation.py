@@ -5,17 +5,18 @@ subscribes a listener that re-evaluates a user's badges whenever another slice
 (e.g. ``friends``) publishes a change for that user, without ``badges`` needing
 to import those slices directly.
 """
-
 from __future__ import annotations
+
+import datetime
+import logging
+import uuid
 
 import activity
 import attendance
-import badges
 import bridge
-import datetime
 import friends
-import logging
-import uuid
+
+import badges
 
 _logger = logging.getLogger(__name__)
 

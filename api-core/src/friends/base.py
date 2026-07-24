@@ -6,12 +6,12 @@ the two user IDs it relates. This is the lowest layer of the friends package: it
 depends only on the generic ``repositories`` abstraction and is consumed by both
 the repository and service layers.
 """
-
 import dataclasses
 import datetime
 import enum
-import repositories
 import uuid
+
+import repositories
 
 # Type alias for FriendshipId, a key formed by a frozenset of uuid.UUIDs
 type FriendshipId = frozenset[uuid.UUID]

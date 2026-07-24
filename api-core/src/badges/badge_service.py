@@ -7,12 +7,13 @@ badges from an ``AwardContext``. Orchestrates the ``Badge`` / ``AwardedBadge``
 domain models from ``base`` with their in-memory repositories, keeping
 persistence details out of callers.
 """
+import datetime
+import uuid
+
+import repositories
 
 import badges.base as base
 import badges.predicates as predicates
-import datetime
-import repositories
-import uuid
 
 type BadgeRepository = repositories.IRepository[uuid.UUID, base.Badge]
 type AwardedBadgeRepository = repositories.IRepository[base.AwardId,

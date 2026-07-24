@@ -17,16 +17,16 @@ Stdlib only, in keeping with the project's no-dependencies convention.
 
 from bridge.client import (
     SubprocessError,
-    get_user_events,
-    get_event_info,
     get_batch_event_info,
+    get_event_info,
+    get_user_events,
     notify_badge_awarded,
 )
 
 __all__ = [
-    "SubprocessError",
-    "get_user_events",
-    "get_event_info",
     "get_batch_event_info",
+    "get_event_info",
+    "get_user_events",
     "notify_badge_awarded",
+    "SubprocessError"
 ]

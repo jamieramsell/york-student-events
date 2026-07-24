@@ -5,12 +5,13 @@ Provides ``InMemoryAttendanceRepository``, a dictionary-backed implementation of
 the IDs of Attendance records. This stands in for a database-backed repository
 during early development.
 """
-
 import datetime
 import uuid
 
-import attendance.base as base
 import repositories
+
+import attendance.base as base
+
 
 class InMemoryAttendanceRepository(
     repositories.InMemoryRepository[base.AttendanceId, base.Attendance]

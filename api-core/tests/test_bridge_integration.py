@@ -13,7 +13,6 @@ import uuid
 from pathlib import Path
 
 import pytest
-
 from bridge import client
 from bridge.client import (
     SubprocessError,

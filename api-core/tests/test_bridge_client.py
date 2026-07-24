@@ -14,7 +14,6 @@ import uuid
 from unittest import mock
 
 import pytest
-
 from bridge import client
 from bridge.client import (
     SubprocessError,

@@ -1,7 +1,8 @@
-import bridge
 import collections
-import friends
 import uuid
+
+import bridge
+import friends
 
 
 def _iterate_over_graph_layers(

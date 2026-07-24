@@ -39,9 +39,8 @@ import datetime
 import json
 import uuid
 
-import pytest
-
 import badges.base as base
+import pytest
 from badges import (
     BadgeService,
     InMemoryAwardedBadgeRepository,

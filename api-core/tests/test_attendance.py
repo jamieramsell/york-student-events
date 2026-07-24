@@ -19,7 +19,6 @@ import datetime
 import uuid
 
 import pytest
-
 from attendance import AttendanceService, InMemoryAttendanceRepository
 from attendance.base import Attendance
 

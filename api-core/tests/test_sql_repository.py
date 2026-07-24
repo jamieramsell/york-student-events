@@ -36,7 +36,6 @@ import uuid
 import pytest
 import sqlalchemy
 import sqlalchemy.exc
-
 from repositories import IEntity, sql
 
 # ---------------------------------------------------------------------------
