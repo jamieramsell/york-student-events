@@ -17,6 +17,7 @@ repository singletons survive between tests, so state cannot leak.
 import os
 import sqlalchemy
 import sys
+import typing
 
 import pytest
 
@@ -90,8 +91,32 @@ def mock_bridge(request, monkeypatch):
     yield
 
 
+@pytest.fixture(params=["memory", "sql"])
+def repository_kwargs(request: pytest.FixtureRequest) -> dict[str, typing.Any]:
+    """Repositories to compose the graph over, once per backend."""
+    if request.param == "memory":
+        return {} # bootstrap falls through to its in-memory defaults
+
+    import attendance, badges, friends
+    from repositories import sql
+
+    # Engine is only resolved in this branch
+    engine = request.getfixturevalue("sqlite_engine") 
+    sql.metadata.create_all(engine)
+    return {
+        "attendance_repository":
+            attendance.SQLAlchemyAttendanceRepository(engine),
+        "friendship_repository":
+            friends.SQLAlchemyFriendshipRepository(engine),
+        "badge_repository":
+            badges.SQLAlchemyBadgeRepository(engine),
+        "awarded_badge_repository":
+            badges.SQLAlchemyAwardedBadgeRepository(engine),
+    }
+
+
 @pytest.fixture(autouse=True)
-def compose_services():
+def compose_services(repository_kwargs: dict[str, typing.Any]):
     """Build a fresh, isolated service graph and expose it to the test modules.
 
     This is the test suite's composition root. Rather than assembling the graph
@@ -114,7 +139,7 @@ def compose_services():
 
     # Fresh graph, over bare repositories (never the canned variants) so the
     # unit suite starts from empty state.
-    services = bootstrap.bootstrap(register=False)
+    services = bootstrap.bootstrap(register=False, **repository_kwargs)
 
     # Publish the instances (and the underlying repositories the tests assert
     # against) onto each test module's globals.
