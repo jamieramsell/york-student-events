@@ -73,6 +73,13 @@ def attendance_repo(
     return attendance.SQLAlchemyAttendanceRepository(engine)
 
 
+@pytest.fixture
+def awarded_badge_repo(
+    engine: sqlalchemy.Engine
+) -> badges.SQLAlchemyAwardedBadgeRepository:
+    return badges.SQLAlchemyAwardedBadgeRepository(engine)
+
+
 # ---------------------------------------------------------------------------
 # Mapping: methods successfully map specific records to and from the database
 # ---------------------------------------------------------------------------
