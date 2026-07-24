@@ -9,8 +9,7 @@ from __future__ import annotations
 import uuid
 
 import repositories
-
-import badges.base as base
+from badges import base
 
 
 class InMemoryBadgeRepository(

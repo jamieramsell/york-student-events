@@ -10,8 +10,7 @@ import datetime
 import uuid
 
 import repositories
-
-import friends.base as base
+from friends import base
 
 
 class InMemoryFriendshipRepository(
@@ -63,7 +62,7 @@ class InMemoryCannedFriendshipRepository(InMemoryFriendshipRepository):
 
     def __init__(self):
         super().__init__()
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(datetime.timezone.utc)
         accepted = base.FriendshipStatus.ACCEPTED
         self.save(
             base.Friendship(

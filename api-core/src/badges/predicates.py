@@ -67,7 +67,7 @@ def _register(tag: str) -> typing.Callable[[_P], _P]:
 
 
 @dataclasses.dataclass(frozen = True)
-class AttendedEvent():
+class AttendedEvent:
     """An immutable record of a single event that a user attended.
 
     Captures just the facts that the award predicates need to reason about an
@@ -89,7 +89,7 @@ class AttendedEvent():
 
 
 @dataclasses.dataclass(frozen = True)
-class AwardContext():
+class AwardContext:
     """An immutable snapshot of one user's raw activity facts.
 
     - Holds everything that the award predicates evaluate against for a single
@@ -586,7 +586,9 @@ class MinEventsInRollingWindow(IPredicate):
         if self.host_id is not None and self.host_id != event.host_id:
             return False
 
-        if self.category is not None and self.category not in event.categories:
+        # The sequential guard clauses read more clearly than a single negated
+        # boolean expression as more restrictions are added.
+        if self.category is not None and self.category not in event.categories:  # noqa: SIM103
             return False
 
         # If this point is reached, then the current event meets all

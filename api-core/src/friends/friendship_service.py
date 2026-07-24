@@ -10,9 +10,7 @@ import uuid
 
 import activity
 import repositories
-
-import friends.base as base
-import friends.connections as connections
+from friends import base, connections
 
 type FriendshipRepository = repositories.IRepository[base.FriendshipId,
                                                      base.Friendship]
@@ -58,7 +56,7 @@ class FriendshipService:
                              + " users, and has either been accepted, or is"
                              + " still pending.")
 
-        time = datetime.datetime.now()
+        time = datetime.datetime.now(datetime.timezone.utc)
         status = base.FriendshipStatus.PENDING
         friendship = base.Friendship(user_id, friend_id, time, status)
 

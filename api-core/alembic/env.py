@@ -24,7 +24,7 @@ _SRC = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-import repositories.sql as sql  # noqa: E402  (import after sys.path is set)
+from repositories import sql
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -13,6 +13,7 @@ import uuid
 from pathlib import Path
 
 import pytest
+
 from bridge import client
 from bridge.client import (
     SubprocessError,
@@ -68,6 +69,7 @@ def _event_service_built():
             cwd=_EVENT_SERVICE,
             capture_output=True,
             text=True,
+            check=False,
         )
         if (
             result.returncode != 0

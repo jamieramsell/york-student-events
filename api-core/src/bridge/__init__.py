@@ -24,9 +24,9 @@ from bridge.client import (
 )
 
 __all__ = [
+    "SubprocessError",
     "get_batch_event_info",
     "get_event_info",
     "get_user_events",
-    "notify_badge_awarded",
-    "SubprocessError"
+    "notify_badge_awarded"
 ]

@@ -8,8 +8,7 @@ during early development.
 from __future__ import annotations
 
 import repositories
-
-import badges.base as base
+from badges import base
 
 
 class InMemoryAwardedBadgeRepository(

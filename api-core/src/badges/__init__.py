@@ -29,14 +29,14 @@ from badges.evaluation import EvaluationService
 from badges.predicates import AttendedEvent, AwardContext
 
 __all__ = [
-    "Badge",
-    "AwardedBadge",
-    "AwardContext",
     "AttendedEvent",
-    "InMemoryBadgeRepository",
-    "InMemoryAwardedBadgeRepository",
-    "BadgeService",
-    "BadgeRepository", 
+    "AwardContext",
+    "AwardedBadge",
     "AwardedBadgeRepository",
-    "EvaluationService"
+    "Badge",
+    "BadgeRepository",
+    "BadgeService",
+    "EvaluationService",
+    "InMemoryAwardedBadgeRepository",
+    "InMemoryBadgeRepository"
 ]

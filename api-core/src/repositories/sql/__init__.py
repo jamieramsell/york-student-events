@@ -38,11 +38,11 @@ from repositories.sql.schema import (
 from repositories.sql.sql import SqlAlchemyRepository
 
 __all__ = [
+    "SqlAlchemyRepository",
     "attendance",
     "awarded_badges",
     "badges",
     "create_engine_from_env",
     "friendships",
-    "metadata",
-    "SqlAlchemyRepository"
+    "metadata"
 ]

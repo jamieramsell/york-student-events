@@ -11,6 +11,6 @@ from repositories.inmemory import InMemoryRepository
 
 __all__ = [
     "IEntity",
-    "InMemoryRepository",
-    "IRepository"
+    "IRepository",
+    "InMemoryRepository"
 ]

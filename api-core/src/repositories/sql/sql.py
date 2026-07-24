@@ -19,7 +19,7 @@ import typing
 
 import sqlalchemy
 
-import repositories.base as base
+from repositories import base
 
 
 class SqlAlchemyRepository(base.IRepository[base.K, base.V]):

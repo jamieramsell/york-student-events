@@ -9,8 +9,7 @@ import datetime
 import uuid
 
 import repositories
-
-import attendance.base as base
+from attendance import base
 
 
 class InMemoryAttendanceRepository(
@@ -54,6 +53,8 @@ class InMemoryCannedAttendanceRepository(InMemoryAttendanceRepository):
         super().__init__()
         self.save(
             base.Attendance(
-                CANNED_ATTENDEE_ID, CANNED_EVENT_ID, datetime.datetime.now()
+                CANNED_ATTENDEE_ID,
+                CANNED_EVENT_ID,
+                datetime.datetime.now(datetime.timezone.utc),
             )
         )

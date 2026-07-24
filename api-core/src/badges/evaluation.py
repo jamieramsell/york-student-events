@@ -13,10 +13,9 @@ import uuid
 
 import activity
 import attendance
+import badges
 import bridge
 import friends
-
-import badges
 
 _logger = logging.getLogger(__name__)
 

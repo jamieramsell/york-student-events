@@ -10,8 +10,7 @@ import datetime
 import uuid
 
 import repositories
-
-import badges.predicates as predicates
+from badges import predicates
 
 
 @dataclasses.dataclass(frozen = True, eq = False)

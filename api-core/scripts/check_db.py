@@ -25,7 +25,7 @@ _SRC = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-import repositories.sql as sql  # noqa: E402  (import after sys.path is set)
+from repositories import sql
 
 
 def main() -> int:
@@ -43,7 +43,7 @@ def main() -> int:
             sql.attendance.insert().values(
                 attendee_id=attendee_id,
                 event_id=event_id,
-                recorded_at=datetime.datetime.now(datetime.timezone.utc),
+                recorded_at=datetime.datetime.now(datetime.UTC),
             )
         )
 
