@@ -8,6 +8,7 @@ import sqlalchemy
 import attendance
 import badges
 import badges.predicates
+import friends
 from repositories import sql
 
 
@@ -56,6 +57,22 @@ def _badge(id: uuid.UUID | None = None) -> badges.Badge:
     )
 
 
+def _friendship(user_id: uuid.UUID | None = None,
+                friend_id: uuid.UUID | None = None) -> friends.Friendship:
+    
+    user_id = user_id if user_id is not None else uuid.uuid4()
+    friend_id = friend_id if friend_id is not None else uuid.uuid4()
+
+    return friends.Friendship(
+        user_id=user_id,
+        friend_id=friend_id,
+        friendship_status=friends.FriendshipStatus.ACCEPTED,
+
+        # tz-aware UTC, like the canned repo
+        created_at=datetime.datetime.now(datetime.timezone.utc)
+    )
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -98,6 +115,13 @@ def badge_repo(
     engine: sqlalchemy.Engine
 ) -> badges.SQLAlchemyBadgeRepository:
     return badges.SQLAlchemyBadgeRepository(engine)
+
+
+@pytest.fixture
+def friendship_repo(
+    engine: sqlalchemy.Engine
+) -> friends.SQLAlchemyFriendshipRepository:
+    return friends.SQLAlchemyFriendshipRepository(engine)
 
 
 # ---------------------------------------------------------------------------
@@ -251,3 +275,144 @@ class TestBadgeMapping:
         # Ensure that the record was found
         assert lookup is not None 
         assert lookup == badge_record
+
+
+class TestFriendshipMapping:
+
+    def test_round_trip(
+        self,
+        friendship_repo: friends.FriendshipRepository
+    ):
+        friendship_record = _friendship()
+        friendship_repo.save(friendship_record)
+
+        lookup = friendship_repo.find_by_id(friendship_record.get_id())
+
+        assert lookup is not None # Ensure the record was found
+
+        # Ensure that the composite key has been handled correctly
+        assert lookup.get_id() == friendship_record.get_id()
+        assert lookup.user_id == friendship_record.user_id
+        assert lookup.friend_id == friendship_record.friend_id
+
+        # Ensure that the datetime has been handled correctly. Note that tzinfo
+        # has to be manually handled due to tests using SQLite, which does not
+        # store timezone info; this is not the case for the real implementation,
+        # which uses postgreSQL. This is why we cannot simply just check that
+        # the two records are equal.
+        assert (lookup.created_at.replace(tzinfo=datetime.timezone.utc)
+                == friendship_record.created_at)
+        
+        # Ensure that the friendship status has been correctly handled
+        assert lookup.friendship_status == friendship_record.friendship_status
+        
+
+    def test_entities_sharing_user_id_are_distinct(
+        self,
+        friendship_repo: friends.FriendshipRepository
+    ):
+        record1 = _friendship()
+        record2 = _friendship(user_id=record1.user_id)
+
+        friendship_repo.save(record1)
+        friendship_repo.save(record2)
+
+        # Ensure that both records were saved and are able to be retrieved,
+        # despite sharing a key component
+        assert len(friendship_repo.find_all()) == 2
+
+        lookup1 = friendship_repo.find_by_id(record1.get_id())
+        lookup2 = friendship_repo.find_by_id(record2.get_id())
+        assert lookup1 is not None
+        assert lookup2 is not None
+        assert lookup1.get_id() == record1.get_id()
+        assert lookup2.get_id() == record2.get_id()
+
+
+    def test_entities_sharing_friend_id_are_distinct(
+        self,
+        friendship_repo: friends.FriendshipRepository
+    ):
+        record1 = _friendship()
+        record2 = _friendship(friend_id=record1.friend_id)
+
+        friendship_repo.save(record1)
+        friendship_repo.save(record2)
+
+        # Ensure that both records were saved and are able to be retrieved,
+        # despite sharing a key component
+        assert len(friendship_repo.find_all()) == 2
+
+        lookup1 = friendship_repo.find_by_id(record1.get_id())
+        lookup2 = friendship_repo.find_by_id(record2.get_id())
+        assert lookup1 is not None
+        assert lookup2 is not None
+        assert lookup1.get_id() == record1.get_id()
+        assert lookup2.get_id() == record2.get_id()
+
+    
+    def test_entities_where_record1_friend_equals_record2_user_are_distinct(
+        self,
+        friendship_repo: friends.FriendshipRepository
+    ):
+        record1 = _friendship()
+        record2 = _friendship(user_id=record1.friend_id)
+
+        friendship_repo.save(record1)
+        friendship_repo.save(record2)
+
+        # Ensure that both records were saved and are able to be retrieved,
+        # despite sharing a key component
+        assert len(friendship_repo.find_all()) == 2
+
+        lookup1 = friendship_repo.find_by_id(record1.get_id())
+        lookup2 = friendship_repo.find_by_id(record2.get_id())
+        assert lookup1 is not None
+        assert lookup2 is not None
+        assert lookup1.get_id() == record1.get_id()
+        assert lookup2.get_id() == record2.get_id()
+
+
+    def test_entities_where_record1_user_equals_record2_friend_are_distinct(
+        self,
+        friendship_repo: friends.FriendshipRepository
+    ):
+        record1 = _friendship()
+        record2 = _friendship(friend_id=record1.user_id)
+
+        friendship_repo.save(record1)
+        friendship_repo.save(record2)
+
+        # Ensure that both records were saved and are able to be retrieved,
+        # despite sharing a key component
+        assert len(friendship_repo.find_all()) == 2
+
+        lookup1 = friendship_repo.find_by_id(record1.get_id())
+        lookup2 = friendship_repo.find_by_id(record2.get_id())
+        assert lookup1 is not None
+        assert lookup2 is not None
+        assert lookup1.get_id() == record1.get_id()
+        assert lookup2.get_id() == record2.get_id()
+
+    def test_entities_where_user_and_friend_are_reversed_are_not_distinct(
+        self,
+        friendship_repo: friends.FriendshipRepository
+    ):
+        record1 = _friendship()
+        record2 = _friendship(user_id=record1.friend_id,
+                              friend_id=record1.user_id)
+
+        friendship_repo.save(record1)
+        friendship_repo.save(record2)
+
+        # Ensure that only one record was saved and is able to be retrieved,
+        # despite key components being reversed
+        assert len(friendship_repo.find_all()) == 1
+
+        lookup1 = friendship_repo.find_by_id(record1.get_id())
+        lookup2 = friendship_repo.find_by_id(record2.get_id())
+        assert lookup1 is not None
+        assert lookup2 is not None
+        assert lookup1.get_id() == record1.get_id()
+        assert lookup2.get_id() == record2.get_id()
+        assert lookup1 == lookup2
