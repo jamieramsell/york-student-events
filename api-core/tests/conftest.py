@@ -15,6 +15,7 @@ repository singletons survive between tests, so state cannot leak.
 """
 
 import os
+import sqlalchemy
 import sys
 
 import pytest
@@ -33,6 +34,18 @@ _CANNED_EVENT_INFO = {
     "start": "2026-09-15T18:00:00",
     "category": "SOCIAL",
 }
+
+# Helper method to construct an SQLite engine, used instead of postgreSQL, for
+# testing purposes only.
+@pytest.fixture
+def sqlite_engine():
+    engine = sqlalchemy.create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=sqlalchemy.StaticPool,
+    )
+    yield engine
+    engine.dispose()
 
 
 @pytest.fixture(autouse=True)

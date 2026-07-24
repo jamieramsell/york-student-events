@@ -77,7 +77,7 @@ def _friendship(user_id: uuid.UUID | None = None,
 # Fixtures
 # ---------------------------------------------------------------------------
 @pytest.fixture
-def engine():
+def engine(sqlite_engine: sqlalchemy.Engine):
     """A fresh, shared in-memory SQLite engine with the real tables linked.
 
     ``StaticPool`` keeps every connection pointed at the same in-memory
@@ -86,14 +86,8 @@ def engine():
     same engine.
     """
 
-    engine = sqlalchemy.create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=sqlalchemy.StaticPool,
-    )
-    sql.metadata.create_all(engine)
-    yield engine
-    engine.dispose()
+    sql.metadata.create_all(sqlite_engine)  # the real schema
+    return sqlite_engine
 
 
 @pytest.fixture

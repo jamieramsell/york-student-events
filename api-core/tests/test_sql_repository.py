@@ -125,7 +125,7 @@ class _PairRepository(sql.SqlAlchemyRepository[_PairId, _Pair]):
 # Fixtures
 # ---------------------------------------------------------------------------
 @pytest.fixture
-def engine() -> sqlalchemy.Engine:
+def engine(sqlite_engine: sqlalchemy.Engine):
     """A fresh, shared in-memory SQLite engine with the test tables created.
 
     ``StaticPool`` keeps every connection pointed at the same in-memory database,
@@ -133,14 +133,8 @@ def engine() -> sqlalchemy.Engine:
     next — and to a second repository instance built on the same engine.
     """
 
-    engine = sqlalchemy.create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=sqlalchemy.StaticPool,
-    )
-    _metadata.create_all(engine)
-    yield engine
-    engine.dispose()
+    _metadata.create_all(sqlite_engine)
+    return sqlite_engine
 
 
 @pytest.fixture
