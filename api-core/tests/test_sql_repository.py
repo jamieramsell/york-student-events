@@ -37,6 +37,7 @@ import pytest
 import sqlalchemy
 import sqlalchemy.exc
 
+import attendance
 from repositories import IEntity, sql
 
 # ---------------------------------------------------------------------------
@@ -152,6 +153,13 @@ def widgets(engine: sqlalchemy.Engine) -> _WidgetRepository:
 @pytest.fixture
 def pairs(engine: sqlalchemy.Engine) -> _PairRepository:
     return _PairRepository(engine)
+
+
+@pytest.fixture
+def attendance_repo(
+    engine: sqlalchemy.Engine
+) -> attendance.SQLAlchemyAttendanceRepository:
+    return attendance.SQLAlchemyAttendanceRepository(engine)
 
 
 def _widget(name: str = "widget") -> _Widget:
