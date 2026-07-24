@@ -129,19 +129,10 @@ class TestAttendanceMapping:
 
         lookup = attendance_repo.find_by_id(attendance_record.get_id())
 
-        assert lookup is not None # Ensure the record was found
-
-        # Ensure that the composite key has been handled correctly
-        assert lookup.get_id() == attendance_record.get_id()
-        assert lookup.attendee_id == attendance_record.attendee_id
-        assert lookup.event_id == attendance_record.event_id
-
-        # Ensure that the datetime has been handled correctly. Note that tzinfo
-        # has to be manually handled due to tests using SQLite, which does not
-        # store timezone info; this is not the case for the real implementation,
-        # which uses postgreSQL.
-        assert (lookup.recorded_at.replace(tzinfo=datetime.timezone.utc)
-                == attendance_record.recorded_at)
+        # Ensure the record was found and has been handled correctly during
+        # save and find
+        assert lookup is not None 
+        assert lookup == attendance_record
         
 
     def test_entities_sharing_attendee_id_are_distinct(
@@ -199,19 +190,10 @@ class TestAwardedBadgeMapping:
 
         lookup = awarded_badge_repo.find_by_id(award_record.get_id())
 
-        assert lookup is not None # Ensure the record was found
-
-        # Ensure that the composite key has been handled correctly
-        assert lookup.get_id() == award_record.get_id()
-        assert lookup.user_id == award_record.user_id
-        assert lookup.badge_id == award_record.badge_id
-
-        # Ensure that the datetime has been handled correctly. Note that tzinfo
-        # has to be manually handled due to tests using SQLite, which does not
-        # store timezone info; this is not the case for the real implementation,
-        # which uses postgreSQL.
-        assert (lookup.awarded_at.replace(tzinfo=datetime.timezone.utc)
-                == award_record.awarded_at)
+        # Ensure the record was found and has been handled correctly during
+        # save and find
+        assert lookup is not None 
+        assert lookup == award_record
         
 
     def test_entities_sharing_user_id_are_distinct(
@@ -282,23 +264,10 @@ class TestFriendshipMapping:
 
         lookup = friendship_repo.find_by_id(friendship_record.get_id())
 
-        assert lookup is not None # Ensure the record was found
-
-        # Ensure that the composite key has been handled correctly
-        assert lookup.get_id() == friendship_record.get_id()
-        assert lookup.user_id == friendship_record.user_id
-        assert lookup.friend_id == friendship_record.friend_id
-
-        # Ensure that the datetime has been handled correctly. Note that tzinfo
-        # has to be manually handled due to tests using SQLite, which does not
-        # store timezone info; this is not the case for the real implementation,
-        # which uses postgreSQL. This is why we cannot simply just check that
-        # the two records are equal.
-        assert (lookup.created_at.replace(tzinfo=datetime.timezone.utc)
-                == friendship_record.created_at)
-        
-        # Ensure that the friendship status has been correctly handled
-        assert lookup.friendship_status == friendship_record.friendship_status
+        # Ensure the record was found and has been handled correctly during
+        # save and find
+        assert lookup is not None 
+        assert lookup == friendship_record
         
 
     def test_entities_sharing_user_id_are_distinct(
