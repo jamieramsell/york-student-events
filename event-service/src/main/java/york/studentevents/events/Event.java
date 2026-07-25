@@ -1,18 +1,35 @@
 package york.studentevents.events;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 /** Concrete implementation of {@link IEvent} representing a social event. */
+@Entity
 public class Event implements IEvent {
   
+  @Id
   private UUID id;
+
+  @Column(nullable = false)
   private String title;
+
   private String description;
+
   private LocalDateTime startDateTime;
+
   private LocalDateTime endDateTime;
+
   private String location;
+
   private Integer capacity;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
   private EventCategory category;
 
   /**
