@@ -1,13 +1,23 @@
 package york.studentevents.venues;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import java.util.UUID;
 
 /** Represents a venue at which events can be held, identified by name, address, and capacity. */
+@Entity
 public class Venue implements IVenue {
 
+  @Id
   private UUID id;
+
+  @Column(nullable = false)
   private String name;
+
+  @Column(nullable = false)
   private String address;
+
   private Integer capacity;
 
   /**
