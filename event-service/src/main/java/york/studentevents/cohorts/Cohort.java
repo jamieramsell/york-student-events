@@ -10,12 +10,12 @@ import java.util.UUID;
  * <p>A cohort maintains the set of member user IDs belonging to it.
  */
 public class Cohort implements ICohort {
-  private final UUID id;
+  private UUID id;
   private String name;
   private String department;
   private int academicYear;
   private int yearGroup;
-  private final Set<UUID> members;
+  private Set<UUID> members;
 
   /**
    * Creates a {@code Cohort} with the given details.
@@ -69,6 +69,9 @@ public class Cohort implements ICohort {
     this.id = id;
     this.members = new HashSet<>();
   }
+
+  /** No-args constructor for JPA use only. */
+  protected Cohort() {}
 
   private void setName(String name) {
     if (name == null || name.isBlank()) {

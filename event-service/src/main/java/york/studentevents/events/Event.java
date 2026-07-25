@@ -81,6 +81,9 @@ public class Event implements IEvent {
     this(UUID.randomUUID(), title, category);
   }
 
+  /** No-args constructor for JPA use only. */
+  protected Event() {}
+
   // Getters //
 
   @Override

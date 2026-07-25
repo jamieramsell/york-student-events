@@ -7,7 +7,7 @@ import java.util.UUID;
 /** Represents a user of the platform. */
 public abstract class User implements IUser {
   
-  protected final UUID id;
+  protected UUID id;
   protected String username;
   protected String email;
   private Set<UUID> events = new HashSet<>(); // storage only, no public accessor
@@ -37,6 +37,9 @@ public abstract class User implements IUser {
     setUsername(username);
     setEmail(email);
   }
+
+  /** No-args constructor for JPA use only. */
+  protected User() {}
 
   @Override
   public UUID getId() {
