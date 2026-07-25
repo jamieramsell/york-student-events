@@ -37,7 +37,7 @@ public class Cohort implements ICohort {
       joinColumns = @JoinColumn(name = "cohort_id")
   )
   @Column(name = "member_id")
-  private Set<UUID> members;
+  private Set<UUID> members = new HashSet<>();
 
   /**
    * Creates a {@code Cohort} with the given details.
