@@ -1,9 +1,13 @@
 package york.studentevents.users;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import java.util.Set;
 import java.util.UUID;
 
 /** Represents a Host user of the platform, including their profile details, and hosted events. */
+@Entity
+@DiscriminatorValue("HOST")
 public class Host extends User implements IHost {
 
   /** Creates a {@code Host} with the given details.
