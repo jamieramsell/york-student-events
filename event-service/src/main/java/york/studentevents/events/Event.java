@@ -139,7 +139,7 @@ public class Event implements IEvent {
   }
 
   @Override
-  public EventCategory getCategory() { // todo: implement categories
+  public EventCategory getCategory() {
     return category;
   }
 
