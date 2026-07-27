@@ -22,11 +22,19 @@ public interface IEvent extends IEntity {
   /** Returns the date and time at which this event ends. */
   LocalDateTime getEndDateTime();
 
-  /** Returns the ID of the venue which is hosting the event. */
+  /** Returns the ID of the venue which is hosting the event.
+   *
+   * <p>Note that validation that the given venue exists must be handled by the EventService. This
+   *     validation is not handled within the Event domain itself.
+   */
   UUID getVenue(); 
 
   /**
    * Returns the maximum number of attendees for this event, or {@code null} if there is no limit.
+   *
+   * <p>Note that validation that the capacity of the event does not exceed that of its venue must
+   *     be handled by the EventService. This validation is not handled within the Event domain
+   *     itself.
    */
   Integer getCapacity();
 
@@ -56,7 +64,7 @@ public interface IEvent extends IEntity {
   /**
    * Sets the start and end date/time for this event.
    *
-   * <p>An event can only be assigned a date and time once it has been given a location.
+   * <p>An event can only be assigned a date and time once it has been given a venue.
    *
    * <p>A start and end time of {@code null} will simply remove the event's current datetime, if it
    *     already has one.
@@ -73,9 +81,9 @@ public interface IEvent extends IEntity {
   /**
    * Sets the venue of this event.
    *
-   * <p>Note that validation that the capacity of the event does not exceed that of its venue must
-   *     be handled by the EventService. This validation is not handled within the Event domain
-   *     itself.
+   * <p>Note that validation that the given venue exists, and that the capacity of the event does
+   *     not exceed that of its venue, must be handled by the EventService. This validation is not
+   *     handled within the Event domain itself.
    *
    * @param venueId the ID of the venue where the event takes place
    * @throws IllegalStateException if trying to remove the location when the event has already been
