@@ -24,7 +24,7 @@ public class Event implements IEvent {
 
   private LocalDateTime endDateTime;
 
-  private String location;
+  private UUID venueId;
 
   private Integer capacity;
 
@@ -129,8 +129,8 @@ public class Event implements IEvent {
   }
 
   @Override
-  public String getLocation() { // todo: implement venues
-    return location;
+  public UUID getVenue() {
+    return venueId;
   } 
   
   @Override
@@ -162,8 +162,8 @@ public class Event implements IEvent {
   public void setDateTime(LocalDateTime startDateTime, LocalDateTime endDateTime) {
 
     // Validation
-    if (this.location == null) {
-      throw new IllegalStateException("The event must have a location in order to assign a date and"
+    if (this.venueId == null) {
+      throw new IllegalStateException("The event must have a venue in order to assign a date and"
           + " time");
     } else if (startDateTime.compareTo(endDateTime) >= 0) {
       throw new IllegalArgumentException("startDateTime must be before endDateTime");
@@ -177,22 +177,15 @@ public class Event implements IEvent {
   }
 
   @Override
-  public void setLocation(String location) { // todo: implement venues
-    if ((startDateTime != null || endDateTime != null) && location == null) {
-      throw new IllegalStateException("location cannot be null if the event has already been"
+  public void setVenue(UUID venueId) {
+    if ((startDateTime != null || endDateTime != null) && venueId == null) {
+      throw new IllegalStateException("venueId cannot be null if the event has already been"
           + " assigned a date and time. First remove the date and time of the event in order to"
-          + " remove its location.");
+          + " remove its venue.");
     }
-    this.location = location;
+    this.venueId = venueId;
   } 
 
-  /**
-   * Sets the maximum number of attendees for this event.
-   *
-   * @param capacity the attendee cap, or {@code null} for an unlimited event
-   *
-   * @throws IllegalArgumentException if {@code capacity} is less than one.
-   */
   @Override
   public void setCapacity(Integer capacity) {
     if (capacity != null && capacity < 1) {
@@ -219,7 +212,7 @@ public class Event implements IEvent {
         + "\nDescription: " + description
         + "\nStarts at: " + startDateTime
         + "\nEnds at: " + endDateTime
-        + "\nLocation: " + location
+        + "\nVenue ID: " + venueId
         + "\nMaximum attendees: " + capacity;
     return stringOutput;
   }
