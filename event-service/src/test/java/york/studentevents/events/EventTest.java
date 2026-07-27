@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -124,8 +125,8 @@ class EventTest {
   }
 
   @Test
-  void getLocation_initiallyNull() {
-    assertNull(event.getLocation());
+  void getVenue_initiallyNull() {
+    assertNull(event.getVenue());
   }
 
   // --- UUID uniqueness ---
@@ -174,37 +175,37 @@ class EventTest {
     assertNull(event.getDescription());
   }
 
-  // --- setLocation ---
+  // --- setVenue ---
 
   @Test
-  void setLocation_withValidLocation_updatesLocation() {
-    event.setLocation("The Courtyard");
-    assertEquals("The Courtyard", event.getLocation());
+  void setVenue_withValidLocation_updatesLocation() {
+    event.setVenue(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"));
+    assertEquals("632b4764-69e7-4ef6-9645-2789919c29ac", event.getVenue());
   }
 
   @Test
-  void setLocation_withNull_whenNoDateTimeSet_setsNull() {
-    event.setLocation("The Courtyard");
-    event.setLocation(null);
-    assertNull(event.getLocation());
+  void setVenue_withNull_whenNoDateTimeSet_setsNull() {
+    event.setVenue(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"));
+    event.setVenue(null);
+    assertNull(event.getVenue());
   }
 
   @Test
-  void setLocation_withNull_whenDateTimeAlreadySet_throwsIllegalStateException() {
-    event.setLocation("The Courtyard");
+  void setVenue_withNull_whenDateTimeAlreadySet_throwsIllegalStateException() {
+    event.setVenue(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"));
     event.setDateTime(
         LocalDateTime.of(2026, 8, 1, 18, 0),
         LocalDateTime.of(2026, 8, 1, 22, 0));
-    assertThrows(IllegalStateException.class, () -> event.setLocation(null));
+    assertThrows(IllegalStateException.class, () -> event.setVenue(null));
   }
 
   // --- setDateTime ---
 
   @Test
-  void setDateTime_whenLocationSet_updatesDateTimes() {
+  void setDateTime_whenVenueSet_updatesDateTimes() {
     LocalDateTime start = LocalDateTime.of(2026, 8, 1, 18, 0);
     LocalDateTime end = LocalDateTime.of(2026, 8, 1, 22, 0);
-    event.setLocation("The Courtyard");
+    event.setVenue(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"));
 
     event.setDateTime(start, end);
 
@@ -221,7 +222,7 @@ class EventTest {
 
   @Test
   void setDateTime_withStartAfterEnd_throwsIllegalArgumentException() {
-    event.setLocation("The Courtyard");
+    event.setVenue(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"));
     LocalDateTime start = LocalDateTime.of(2026, 8, 1, 22, 0);
     LocalDateTime end = LocalDateTime.of(2026, 8, 1, 18, 0);
     assertThrows(IllegalArgumentException.class, () -> event.setDateTime(start, end));
@@ -229,14 +230,14 @@ class EventTest {
 
   @Test
   void setDateTime_withStartEqualToEnd_throwsIllegalArgumentException() {
-    event.setLocation("The Courtyard");
+    event.setVenue(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"));
     LocalDateTime same = LocalDateTime.of(2026, 8, 1, 18, 0);
     assertThrows(IllegalArgumentException.class, () -> event.setDateTime(same, same));
   }
 
   @Test
   void setDateTime_withStartInPast_throwsIllegalArgumentException() {
-    event.setLocation("The Courtyard");
+    event.setVenue(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"));
     LocalDateTime past = LocalDateTime.of(2020, 1, 1, 12, 0);
     LocalDateTime end = LocalDateTime.of(2020, 1, 1, 14, 0);
     assertThrows(IllegalArgumentException.class, () -> event.setDateTime(past, end));
