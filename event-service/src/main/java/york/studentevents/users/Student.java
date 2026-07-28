@@ -1,5 +1,7 @@
 package york.studentevents.users;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import java.util.Set;
 import java.util.UUID;
 
@@ -7,9 +9,11 @@ import java.util.UUID;
  * Represents a Student user of the platform, including their profile details, cohort, and
  * registered events.
  */
+@Entity
+@DiscriminatorValue("STUDENT")
 public class Student extends User implements IStudent {
   
-  private UUID cohort;
+  private UUID cohort; // Must be nullable within the JPA entity as hosts do not have a cohort.
 
   /** Creates a {@code Student} with the given details.
    *

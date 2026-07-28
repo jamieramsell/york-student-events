@@ -1,15 +1,41 @@
 package york.studentevents.users;
 
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 /** Represents a user of the platform. */
+@Entity
+@Table(name = "users")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "user_type")
 public abstract class User implements IUser {
   
-  protected final UUID id;
+  @Id
+  protected UUID id;
+
+  @Column(nullable = false)
   protected String username;
+
+  @Column(nullable = false)
   protected String email;
+
+  @ElementCollection
+  @CollectionTable(
+      name = "user_events",
+      joinColumns = @JoinColumn(name = "user_id")
+  )
+  @Column(name = "event_id")
   private Set<UUID> events = new HashSet<>(); // storage only, no public accessor
 
   /** Creates a {@code User} with the given details.
@@ -37,6 +63,9 @@ public abstract class User implements IUser {
     setUsername(username);
     setEmail(email);
   }
+
+  /** No-args constructor for JPA use only. */
+  protected User() {}
 
   @Override
   public UUID getId() {
