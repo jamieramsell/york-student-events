@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -390,6 +391,138 @@ class EventServiceTest {
         () -> service.deleteEvent(UUID.randomUUID()));
   }
 
+  // --- getEventsByCategory ---
+
+  @Test
+  void getEventsByCategory_returnsEventsInSingleCategory() {
+    IEvent music = savedEvent(EventCategory.MUSIC);
+    savedEvent(EventCategory.SPORTS);
+    savedEvent(EventCategory.ACADEMIC);
+
+    List<IEvent> results = service.getEventsByCategory(Set.of(EventCategory.MUSIC));
+
+    assertEquals(List.of(music), results);
+  }
+
+  @Test
+  void getEventsByCategory_matchesAnyOfTheGivenCategories() {
+    final IEvent music = savedEvent(EventCategory.MUSIC);
+    final IEvent sports = savedEvent(EventCategory.SPORTS);
+    savedEvent(EventCategory.ACADEMIC);
+
+    List<IEvent> results =
+        service.getEventsByCategory(Set.of(EventCategory.MUSIC, EventCategory.SPORTS));
+
+    assertEquals(2, results.size());
+    assertTrue(results.contains(music));
+    assertTrue(results.contains(sports));
+  }
+
+  @Test
+  void getEventsByCategory_whenNoEventMatches_returnsEmptyList() {
+    savedEvent(EventCategory.MUSIC);
+    savedEvent(EventCategory.SPORTS);
+
+    assertTrue(service.getEventsByCategory(Set.of(EventCategory.NIGHTLIFE)).isEmpty());
+  }
+
+  @Test
+  void getEventsByCategory_withEmptyCategorySet_returnsEmptyList() {
+    savedEvent(EventCategory.MUSIC);
+
+    assertTrue(service.getEventsByCategory(Set.of()).isEmpty());
+  }
+
+  @Test
+  void getEventsByCategory_whenNoEventsSaved_returnsEmptyList() {
+    assertTrue(service.getEventsByCategory(Set.of(EventCategory.MUSIC)).isEmpty());
+  }
+
+  // --- getEventsByDateTime ---
+
+  @Test
+  void getEventsByDateTime_withBothBoundsNull_returnsAllEvents() {
+    LocalDateTime base = LocalDateTime.now().plusDays(1);
+    IEvent first = savedScheduledEvent(base, base.plusHours(1));
+    IEvent second = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
+
+    List<IEvent> results = service.getEventsByDateTime(null, null);
+
+    assertEquals(2, results.size());
+    assertTrue(results.contains(first));
+    assertTrue(results.contains(second));
+  }
+
+  @Test
+  void getEventsByDateTime_withBothBoundsNull_includesUnscheduledEvents() {
+    IEvent unscheduled = savedEvent(EventCategory.MUSIC); // no start/end datetime
+
+    List<IEvent> results = service.getEventsByDateTime(null, null);
+
+    assertTrue(results.contains(unscheduled));
+  }
+
+  @Test
+  void getEventsByDateTime_withStartBoundOnly_returnsEventsStartingAtOrAfterIt() {
+    LocalDateTime base = LocalDateTime.now().plusDays(1);
+    savedScheduledEvent(base.plusHours(1), base.plusHours(2)); // starts before bound
+    IEvent later = savedScheduledEvent(base.plusHours(5), base.plusHours(6));
+
+    List<IEvent> results = service.getEventsByDateTime(base.plusHours(3), null);
+
+    assertEquals(List.of(later), results);
+  }
+
+  @Test
+  void getEventsByDateTime_withEndBoundOnly_returnsEventsEndingAtOrBeforeIt() {
+    LocalDateTime base = LocalDateTime.now().plusDays(1);
+    IEvent earlier = savedScheduledEvent(base.plusHours(1), base.plusHours(2));
+    savedScheduledEvent(base.plusHours(5), base.plusHours(6)); // ends after bound
+
+    List<IEvent> results = service.getEventsByDateTime(null, base.plusHours(4));
+
+    assertEquals(List.of(earlier), results);
+  }
+
+  @Test
+  void getEventsByDateTime_withBothBounds_returnsOnlyEventsWhollyWithinTheWindow() {
+    LocalDateTime base = LocalDateTime.now().plusDays(1);
+    IEvent within = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
+    savedScheduledEvent(base.plusMinutes(30), base.plusMinutes(45)); // starts before window
+    savedScheduledEvent(base.plusHours(5), base.plusHours(6)); // ends after window
+
+    List<IEvent> results = service.getEventsByDateTime(base.plusHours(1), base.plusHours(4));
+
+    assertEquals(List.of(within), results);
+  }
+
+  @Test
+  void getEventsByDateTime_startBoundIsInclusive() {
+    LocalDateTime base = LocalDateTime.now().plusDays(1);
+    IEvent onBoundary = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
+
+    List<IEvent> results = service.getEventsByDateTime(base.plusHours(2), null);
+
+    assertEquals(List.of(onBoundary), results);
+  }
+
+  @Test
+  void getEventsByDateTime_endBoundIsInclusive() {
+    LocalDateTime base = LocalDateTime.now().plusDays(1);
+    IEvent onBoundary = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
+
+    List<IEvent> results = service.getEventsByDateTime(null, base.plusHours(3));
+
+    assertEquals(List.of(onBoundary), results);
+  }
+
+  @Test
+  void getEventsByDateTime_whenNoEventsSaved_returnsEmptyList() {
+    LocalDateTime base = LocalDateTime.now().plusDays(1);
+
+    assertTrue(service.getEventsByDateTime(base, base.plusHours(1)).isEmpty());
+  }
+
   // --- helpers ---
 
   private IEvent savedEvent() {
@@ -398,8 +531,22 @@ class EventServiceTest {
     return event;
   }
 
+  private IEvent savedEvent(EventCategory category) {
+    IEvent event = new Event("Original Title", category);
+    repository.save(event);
+    return event;
+  }
+
   private IEvent savedEventWithCapacity(int capacity) {
     IEvent event = new Event("Original Title", capacity, EventCategory.MUSIC);
+    repository.save(event);
+    return event;
+  }
+
+  private IEvent savedScheduledEvent(LocalDateTime start, LocalDateTime end) {
+    IEvent event = new Event("Original Title", EventCategory.MUSIC);
+    event.setLocation("Central Hall");
+    event.setDateTime(start, end);
     repository.save(event);
     return event;
   }
