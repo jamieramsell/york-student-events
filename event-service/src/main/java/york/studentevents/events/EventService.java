@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import york.studentevents.exceptions.EventNotFoundException;
 
 /**
@@ -221,6 +223,55 @@ public class EventService {
         .stream()
         .filter(isRelevant)
         .toList();
+  }
+
+  /**
+   * Retrieves all events which take place between two specified points in time. These two
+   * boundaries are inclusive, so an event which starts on the {@code start} boundary for example
+   * will be retrieved.
+   *
+   * <p>The datetime boundaries are nullable, meaning you can have a bound which an event must start
+   *     at or after, without a restriction on when the event must finish, and vice versa.
+   *
+   * @param start The (optional) beginning of the time window
+   * @param end The (optional) end of the time window
+   * @return All events which lie between the given points in time, inclusive.
+   */
+  public List<IEvent> getEventsByDateTime(LocalDateTime start, LocalDateTime end) {
+    return getAllEvents()
+        .stream()
+        .filter(event -> eventFallsBetween(event, start, end))
+        .toList();
+  }
+
+  /**
+   * Helper method which checks whether a given event lies wholly between two points in time. This
+   * check is inclusive of either boundary.
+   *
+   * <p>{@code start} and {@code end} are nullable, which can be used if wanting to check whether an
+   *     event takes place before or after a given point, without enforcing a bound on the other
+   *     side.
+   *
+   * @param event The event to check
+   * @param start The (optional) beginning of the time window
+   * @param end The (optional) end of the time window
+   * @return Whether or not the event falls between the two specified points in time
+   */
+  private boolean eventFallsBetween(IEvent event, LocalDateTime start, LocalDateTime end) {
+    if (start != null) {
+      if (!(event.getStartDateTime().isAfter(start) || event.getStartDateTime().isEqual(start))) {
+        return false;
+      }
+    }
+
+    if (end != null) {
+      if (!(event.getEndDateTime().isBefore(end) || event.getEndDateTime().isEqual(end))) {
+        return false;
+      }
+    }
+
+    // If this point is reached, then the event does lie within the two points (inclusively)
+    return true;
   }
 
   /**
