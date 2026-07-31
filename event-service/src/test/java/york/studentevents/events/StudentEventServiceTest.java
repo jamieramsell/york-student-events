@@ -32,6 +32,7 @@ class StudentEventServiceTest {
   private InMemoryUserRepository userRepository;
   private InMemoryEventRepository eventRepository;
   private RecordingSubscriptionService subscriptionService;
+  private EventService eventService;
   private StudentEventService service;
 
   @BeforeEach
@@ -39,7 +40,10 @@ class StudentEventServiceTest {
     userRepository = new InMemoryUserRepository();
     eventRepository = new InMemoryEventRepository();
     subscriptionService = new RecordingSubscriptionService();
-    service = new StudentEventService(eventRepository, userRepository, subscriptionService);
+    eventService = new EventService(eventRepository);
+    service = new StudentEventService(
+        eventRepository, userRepository, subscriptionService, eventService
+    );
   }
 
   // --- registerForEvent ---
