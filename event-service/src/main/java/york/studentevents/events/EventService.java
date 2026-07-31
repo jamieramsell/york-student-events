@@ -259,13 +259,23 @@ public class EventService {
    */
   private boolean eventFallsBetween(IEvent event, LocalDateTime start, LocalDateTime end) {
     if (start != null) {
-      if (!(event.getStartDateTime().isAfter(start) || event.getStartDateTime().isEqual(start))) {
+      if (event.getStartDateTime() == null) {
+        return false;
+      } else if (
+            !(event.getStartDateTime().isAfter(start)
+            || event.getStartDateTime().isEqual(start))
+      ) {
         return false;
       }
     }
 
     if (end != null) {
-      if (!(event.getEndDateTime().isBefore(end) || event.getEndDateTime().isEqual(end))) {
+      if (event.getEndDateTime() == null) {
+        return false;
+      } else if (
+          !(event.getEndDateTime().isBefore(end)
+          || event.getEndDateTime().isEqual(end))
+      ) {
         return false;
       }
     }
