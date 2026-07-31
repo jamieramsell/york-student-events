@@ -56,10 +56,15 @@ public interface IEvent extends IEntity {
    *
    * <p>An event can only be assigned a date and time once it has been given a location.
    *
-   * @param startDateTime when the event begins; must not be {@code null}
-   * @param endDateTime when the event ends; must not be {@code null} and must be after
-   *     {@code startDateTime}
+   * <p>A start and end time of {@code null} will simply remove the event's current datetime, if it
+   *     already has one.
+   *
+   * @param startDateTime when the event begins
+   * @param endDateTime when the event ends; must not be {@code null} if a {@code startDateTime} has
+   *     been provided, and must occur after {@code startDateTime}
    * @throws IllegalStateException if no location has been assigned to the event.
+   * @throws IllegalArgumentException if {@code endDateTime} is before {@code startDateTime}, or if
+   *     an {@code endDateTime} has been provided when {@code startDateTime == null}.
    */
   void setDateTime(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
