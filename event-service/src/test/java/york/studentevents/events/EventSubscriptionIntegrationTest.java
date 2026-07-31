@@ -38,6 +38,7 @@ class EventSubscriptionIntegrationTest {
   private InMemoryUserRepository userRepository;
   private InMemoryEventRepository eventRepository;
   private SubscriptionService subscriptionService;
+  private EventService eventService;
   private StudentEventService service;
 
   private Logger observerLogger;
@@ -48,7 +49,10 @@ class EventSubscriptionIntegrationTest {
     userRepository = new InMemoryUserRepository();
     eventRepository = new InMemoryEventRepository();
     subscriptionService = new SubscriptionService(new InMemorySubscriptionRepository());
-    service = new StudentEventService(eventRepository, userRepository, subscriptionService);
+    eventService = new EventService(eventRepository);
+    service = new StudentEventService(
+        eventRepository, userRepository, subscriptionService, eventService
+    );
 
     observerLogger =
         (Logger) LoggerFactory.getLogger(york.studentevents.subscriptions.UserEventObserver.class);

@@ -161,15 +161,28 @@ public class Event implements IEvent {
   @Override
   public void setDateTime(LocalDateTime startDateTime, LocalDateTime endDateTime) {
 
-    // Validation
-    if (this.location == null) {
-      throw new IllegalStateException("The event must have a location in order to assign a date and"
-          + " time");
-    } else if (startDateTime.compareTo(endDateTime) >= 0) {
-      throw new IllegalArgumentException("startDateTime must be before endDateTime");
-    } else if (LocalDateTime.now().compareTo(startDateTime) >= 0) {
-      throw new IllegalArgumentException("The event must start in the future (startDateTime cannot"
-          + " be in the past)");
+    // Check that either both OR neither times have been provided: you cannot only give one.
+    if (
+        (startDateTime != null && endDateTime == null)
+        || (endDateTime != null && startDateTime == null)
+    ) {
+      throw new IllegalArgumentException("You must either provide both a startDateTime as well as"
+          + " an endDateTime, or provide neither. An event cannot start but not end, nor can it"
+          + " end without having started.");
+    } 
+    
+    // If times have been provided, validate that a location has been assigned, and that the timings
+    // are correctly ordered.
+    if (startDateTime != null && endDateTime != null) {
+      if (this.location == null) {
+        throw new IllegalStateException("The event must have a location in order to assign a date"
+            + " and time");
+      } else if (startDateTime != null && startDateTime.compareTo(endDateTime) >= 0) {
+        throw new IllegalArgumentException("startDateTime must be before endDateTime");
+      } else if (LocalDateTime.now().compareTo(startDateTime) >= 0) {
+        throw new IllegalArgumentException("The event must start in the future (startDateTime"
+            + " cannot be in the past)");
+      }
     }
 
     this.startDateTime = startDateTime;
