@@ -207,6 +207,23 @@ public class EventService {
   }
 
   /**
+   * Retrieves all events which fall under any of the given set of categories.
+   *
+   * @param categories The set of categories to retrieve
+   * @return a {@link List} of all events; never {@code null}, but may be empty if no events have
+   *     been saved
+   *
+   * @see EventCategory
+   */
+  public List<IEvent> getEventsByCategory(Set<EventCategory> categories) {
+    Predicate<IEvent> isRelevant = (IEvent event) -> categories.contains(event.getCategory());
+    return getAllEvents()
+        .stream()
+        .filter(isRelevant)
+        .toList();
+  }
+
+  /**
    * Deletes an event from the injected EventRepository.
    *
    * @param eventId the event's ID
