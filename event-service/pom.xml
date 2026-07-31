@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.14</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>york</groupId>
 	<artifactId>studentevents</artifactId>
 	<version>0.5.0</version>
-	<name/>
-	<description/>
-	<url/>
+	<name />
+	<description />
+	<url />
 	<licenses>
-		<license/>
+		<license />
 	</licenses>
 	<developers>
-		<developer/>
+		<developer />
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection />
+		<developerConnection />
+		<tag />
+		<url />
 	</scm>
 	<properties>
 		<java.version>21</java.version>
@@ -60,6 +61,16 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.10.1</version>
@@ -73,70 +84,79 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<systemPropertyVariables>
-					<project.root>${project.basedir}/..</project.root>
+						<project.root>${project.basedir}/..</project.root>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 
-			<!-- Generate Javadoc into the repo-root docs/ folder during `package`. The
-            javadoc report goal always writes into an `apidocs` subdirectory of
-            outputDirectory, so the HTML lands in docs/apidocs/ (the pom lives in
-            event-service/, hence ../docs). -->
+			<!-- Generate Javadoc into the repo-root docs/ folder during
+			`package`. The javadoc report goal always writes into an `apidocs`
+			subdirectory of outputDirectory, so the HTML lands in docs/apidocs/
+			(the pom lives in event-service/, hence ../docs).-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
-				<outputDirectory>${project.basedir}/../docs</outputDirectory>
-				<!-- Disable doclint entirely. Javadoc only *generates* the docs here;
-	            it does not enforce its own (non-GJSG) rules. Style conformance is
-	            owned solely by the maven-checkstyle-plugin via google_checks.xml. -->
-				<doclint>none</doclint>
+					<outputDirectory>${project.basedir}/../docs</outputDirectory>
+					<!-- Disable doclint entirely. Javadoc only *generates* the
+					docs here; it does not enforce its own (non-GJSG) rules.
+					Style conformance is owned solely by the
+					maven-checkstyle-plugin via google_checks.xml.-->
+					<doclint>none</doclint>
 				</configuration>
 				<executions>
-				<execution>
-					<id>generate-javadoc</id>
-					<phase>package</phase>
-					<goals>
-					<goal>javadoc</goal>
-					</goals>
-				</execution>
+					<execution>
+						<id>generate-javadoc</id>
+						<phase>package</phase>
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+					</execution>
 				</executions>
 			</plugin>
 
-			<!-- Enforce the Google Java Style Guide during `verify`. The google_checks.xml
-            config ships inside the Checkstyle jar, so no local config file is needed.
-            Google's checks are emitted at severity "warning", so violationSeverity is
-            lowered to warning to make any style violation fail the build. -->
+			<!-- Enforce the Google Java Style Guide during `verify`. The
+			google_checks.xml config ships inside the Checkstyle jar, so no
+			local config file is needed. Google's checks are emitted at severity
+			"warning", so violationSeverity is lowered to warning to make any
+			style violation fail the build.-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.4.0</version>
 				<dependencies>
-				<dependency>
-					<groupId>com.puppycrawl.tools</groupId>
-					<artifactId>checkstyle</artifactId>
-					<version>${checkstyle.version}</version>
-				</dependency>
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>${checkstyle.version}</version>
+					</dependency>
 				</dependencies>
 				<configuration>
-				<configLocation>google_checks.xml</configLocation>
-				<!-- Layer project-specific suppressions over google_checks.xml. The expression name is
-					the property google_checks' bundled SuppressionFilter reads for its file path. -->
-				<suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
-				<suppressionsFileExpression>org.checkstyle.google.suppressionfilter.config</suppressionsFileExpression>
-				<includeTestSourceDirectory>true</includeTestSourceDirectory>
-				<failOnViolation>true</failOnViolation>
-				<violationSeverity>warning</violationSeverity>
+					<configLocation>google_checks.xml</configLocation>
+					<!-- Layer project-specific suppressions over
+					google_checks.xml. The expression name is the property
+					google_checks' bundled SuppressionFilter reads for its file
+					path.-->
+					<suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+					<suppressionsFileExpression>org.checkstyle.google.suppressionfilter.config</suppressionsFileExpression>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<failOnViolation>true</failOnViolation>
+					<violationSeverity>warning</violationSeverity>
 				</configuration>
 				<executions>
-				<execution>
-					<id>checkstyle-check</id>
-					<phase>verify</phase>
-					<goals>
-					<goal>check</goal>
-					</goals>
-				</execution>
+					<execution>
+						<id>checkstyle-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
 			</plugin>
 
 			<plugin>
@@ -144,7 +164,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<systemPropertyVariables>
-					<project.root>${project.basedir}/..</project.root>
+						<project.root>${project.basedir}/..</project.root>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
@@ -154,14 +174,14 @@
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
-					<id>write-classpath</id>
-					<phase>compile</phase>
-					<goals>
-						<goal>build-classpath</goal>
-					</goals>
-					<configuration>
-						<outputFile>${project.build.directory}/cp.txt</outputFile>
-					</configuration>
+						<id>write-classpath</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>build-classpath</goal>
+						</goals>
+						<configuration>
+							<outputFile>${project.build.directory}/cp.txt</outputFile>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

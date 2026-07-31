@@ -34,10 +34,12 @@ Use the bundled Maven wrapper (`./mvnw`) — never a system `mvn` — from the `
 
 ```bash
 cd event-service
-./mvnw spring-boot:run     # run the service
-./mvnw test                # unit tests
+./mvnw spring-boot:run     # run the service (needs the Postgres database — see below)
+./mvnw test                # unit tests (H2 in-memory, no database needed)
 ./mvnw verify              # compile + test + Checkstyle (Google Java Style)
 ```
+
+> 🐘 **`spring-boot:run` needs the database.** As of M5, event-service connects to Postgres on startup, and Flyway applies its migrations before the app boots. Start the database and export your `.env` first — see [Database (local development)](README.md#database-local-development) in the README. `./mvnw test` and `./mvnw verify` use an in-memory H2 database, so they need no database setup.
 
 > ⚠️ **CI runs Checkstyle.** `./mvnw test` on its own will *not* catch style violations, but CI (and `./mvnw verify`) will. Run `./mvnw verify` before you push so your PR doesn't fail on formatting.
 
