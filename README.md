@@ -207,10 +207,7 @@ york-student-events/
 
 ### Database (local development)
 
-Both services share a single PostgreSQL instance with clear table ownership
-(event-service owns users, events, venues, cohorts; api-core owns friendships,
-badges, attendance). See [ADR-0002](docs/adr/0002-database-technology.md) for the
-rationale.
+Both services share a single PostgreSQL instance with clear table ownership (event-service owns users, events, venues, cohorts; api-core owns friendships, badges, attendance). Each service owns and migrates its own tables (event-service with Flyway, api-core with Alembic) as described under their run sections below. See [ADR-0002](docs/adr/0002-database-technology.md) for the rationale.
 
 First, create your local environment file from the template:
 
@@ -235,6 +232,8 @@ docker compose -f docker-compose.db.yml up -d
 Stop the database with `docker compose -f docker-compose.db.yml down`, or
 `down -v` to also wipe its data.
 
+> **Port `5432` already in use?** Set `POSTGRES_PORT` and `DB_PORT` to a free port (e.g. `5433`) in your `.env`, and change the port in `DB_URL` and `DATABASE_URL` to match, as all four must agree. Note that postgres bakes the port into the container on the first `up`, so if the container already exists, recreate it by running `down -v`, followed by `up -d`.
+
 ### Running api-core (Python)
 
 ```bash
@@ -245,9 +244,7 @@ pip install -r api-core/requirements.txt
 python -m pytest api-core/tests/
 ```
 
-api-core reads its connection URL from `DATABASE_URL` (already in `.env.example`)
-and manages its schema with Alembic. With the database running (see above) and
-your `.env` exported, create the tables and verify connectivity:
+api-core reads its connection URL from `DATABASE_URL` (already in `.env.example`) and manages its schema with Alembic. With the database running (see above) and your `.env` exported, create the tables and verify connectivity:
 
 ```bash
 set -a; . .env; set +a       # export DATABASE_URL
@@ -266,18 +263,39 @@ alembic revision --autogenerate -m "describe the change"   # writes a new file u
 alembic upgrade head                                       # apply it
 ```
 
-Autogenerate reliably detects added and dropped tables and columns, but renames,
-type changes, and `CHECK` constraints usually need hand-editing — always review
-the generated migration.
+Autogenerate reliably detects added and dropped tables and columns, but renames, type changes, and `CHECK` constraints usually need hand-editing, so you must always review the generated migration for missing details.
 
 ### Running event-service (Java / Maven)
 
+`./mvnw test` and `./mvnw verify` run against an in-memory H2 database and need no setup. **Running the service** connects to Postgres, so start the database (see [Database (local development)](#database-local-development) above) and export your `.env` first:
+
 ```bash
+set -a; . ./.env; set +a      # export DB_URL / DB_USERNAME / DB_PASSWORD
 cd event-service
-./mvnw spring-boot:run        # run the service
-./mvnw test                   # run tests
+./mvnw spring-boot:run        # run the service (needs Postgres running)
+./mvnw test                   # run tests (H2 in-memory, no database needed)
 ./mvnw javadoc:javadoc        # generate Javadoc into docs/apidocs/
 ```
+
+> On zsh, source the file as `. ./.env` (with the `./`). A bare `. .env` makes zsh search `$PATH` rather than the current directory and fails with `no such file or directory`.
+
+#### Database schema (Flyway migrations)
+
+event-service owns its tables (users, events, venues, cohorts, and their membership join tables), and manages them with **Flyway**, the Java-side counterpart to api-core's Alembic. Migration scripts live in [`event-service/src/main/resources/db/migration`](event-service/src/main/resources/db/migration) and follow Flyway's `V{n}__description.sql` naming.
+
+Flyway applies any pending migrations **automatically on startup**, before Hibernate validates the entities against the resulting schema (`spring.jpa.hibernate.ddl-auto=validate`). The migration SQL is therefore the single source of truth for the schema; the JPA entities must agree with it, not the other way around. Test runs are an exception, as they use an in-memory H2 database, meaning they don't need an external Postgres.
+
+To change the schema, hand-write the next migration (Flyway has no autogenerate, unlike Alembic) as a new `V{n+1}__….sql` file, where it will be applied on the next startup. Confirm what has run by reading Flyway's history table:
+
+```bash
+docker exec york-student-events-db \
+  psql -U yse -d york_student_events \
+  -c "SELECT version, description, success FROM flyway_schema_history;"
+```
+
+Once a migration has been applied to any database, **never edit it**. Flyway records a checksum, and a changed file fails validation on the next run, therefore you must add a new migration instead. Note that a migration you are still drafting locally, which hasn't yet applied anywhere, is still fine to edit.
+
+The Flyway Maven plugin (`./mvnw flyway:info`, `flyway:migrate`) is also available for driving migrations outside the app. Unlike the runtime, it does **not** read `application.properties`, so pass the connection explicitly via the `FLYWAY_URL` / `FLYWAY_USER` / `FLYWAY_PASSWORD` environment variables (or `-Dflyway.url=…` flags).
  
 ---
  
@@ -298,8 +316,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 Contributions are welcome from University of York students and staff. Please open an issue before submitting a pull request so the proposed change can be discussed first.
 
-This project uses a milestone-based branching model. Work flows from short-lived
-development branches up through per-milestone stable branches into `main`:
+This project uses a milestone-based branching model. Work flows from short-lived development branches up through per-milestone stable branches into `main`:
 
 ```
 <milestone>/<label>/<name>  ──PR──▶  stable-<milestone>  ──PR──▶  main
@@ -307,28 +324,22 @@ development branches up through per-milestone stable branches into `main`:
 
 ### Branching
 
-- **Development branches** — `<milestone>/<label>/<name>`, where `<label>` is a
-  Conventional Commit type (`feat`, `fix`, `refactor`, `docs`, `chore`, …). Version
-  milestones replace dots with hyphens (`v1.0.0` → `v1-0-0`).
+- **Development branches** — `<milestone>/<label>/<name>`, where `<label>` is a Conventional Commit type (`feat`, `fix`, `refactor`, `docs`, `chore`, …). Version milestones replace dots with hyphens (`v1.0.0` → `v1-0-0`).
   - `m1/feat/irepository` — defining the `IRepository` interface in milestone M1
   - `v1-0-0/refactor/consoleview` — refactoring the console view in milestone v1.0.0
-- **Stable branches** — `stable-<milestone>` (e.g. `stable-m1`, `stable-v1-0-0`).
-  Development branches are merged here via pull request once ready.
-- **`main`** — a completed milestone is merged from its stable branch into `main`
-  via a further pull request.
+- **Stable branches** — `stable-<milestone>` (e.g. `stable-m1`, `stable-v1-0-0`). Development branches are merged here via pull request once ready.
+- **`main`** — a completed milestone is merged from its stable branch into `main` via a further pull request.
  
 ### Pull requests
 
 1. Open an issue describing the change before starting work.
 2. Branch from the relevant stable branch using the naming convention above.
-3. Open a pull request targeting the appropriate branch (development → `stable-<milestone>`;
-   completed milestone → `main`).
+3. Open a pull request targeting the appropriate branch (development → `stable-<milestone>`; completed milestone → `main`).
 4. Every pull request must pass the automated checks (build, test, lint) before it can be merged.
 
 ### Commits & versioning
 
-- **[Conventional Commits](https://www.conventionalcommits.org/)** (`feat:`, `fix:`,
-  `refactor:`, `chore:`, `docs:`, …).
+- **[Conventional Commits](https://www.conventionalcommits.org/)** (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, …).
 - **Breaking changes** are flagged with `!` (e.g. `feat!:`, `fix!:`). A breaking change must have a corresponding issue opened first.
 - Releases follow **[Semantic Versioning](https://semver.org/)**.
 
