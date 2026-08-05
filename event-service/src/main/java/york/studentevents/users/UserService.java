@@ -105,7 +105,7 @@ public class UserService {
    * Retrieves all Users of the given type (e.g. all Students)
    *
    * @param type The type of users to retrieve
-   * @return a {@link List} of all events; never {@code null}, but may be empty if no users of the
+   * @return a {@link List} of all Users; never {@code null}, but may be empty if no users of the
    *     given type have been saved
    *
    * @see IUser.UserType
