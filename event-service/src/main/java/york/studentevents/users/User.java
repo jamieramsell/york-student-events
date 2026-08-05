@@ -48,8 +48,8 @@ public abstract class User implements IUser {
    * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
    * @throws IllegalArgumentException if a given parameter is null, blank, or empty.
    */
-  protected User(String username, String email, String password) {
-    this(UUID.randomUUID(), username, email, password);
+  protected User(String username, String email, String passwordHash) {
+    this(UUID.randomUUID(), username, email, passwordHash);
   }
 
   /** Creates a {@code User} with the given details.
@@ -60,7 +60,7 @@ public abstract class User implements IUser {
    * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
    * @throws IllegalArgumentException if a given parameter is null, blank, or empty.
    */
-  protected User(UUID id, String username, String email, String password) {
+  protected User(UUID id, String username, String email, String passwordHash) {
     if (id == null) {
       throw new IllegalArgumentException("User ID cannot be null");
     }
