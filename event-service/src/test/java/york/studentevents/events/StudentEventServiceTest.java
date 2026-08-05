@@ -201,13 +201,13 @@ class StudentEventServiceTest {
 
   private Student newStudent() {
     Student student =
-        new Student("student", "student@york.ac.uk", UUID.randomUUID(), new HashSet<>());
+        new Student("student", "student@york.ac.uk", "hash", new HashSet<>());
     userRepository.save(student);
     return student;
   }
 
   private Host newHost() {
-    Host host = new Host("host", "host@york.ac.uk", new HashSet<>());
+    Host host = new Host("host", "host@york.ac.uk", "hash", new HashSet<>());
     userRepository.save(host);
     return host;
   }
