@@ -197,15 +197,18 @@ public class UserService {
    */
   public IUser updateUserEmail(UUID id, String email) {
     try {
-      getUserByEmail(email);
-      throw new IllegalArgumentException("The given email has already been registered to an"
-          + " account.");
+      IUser existing = getUserByEmail(email);
+      if (!existing.getId().equals(id)) {
+        throw new IllegalArgumentException("The given email has already been registered to an"
+            + " account.");
+      }
     } catch (UserNotFoundException e) {
-      IUser user = getUserById(id);
-      user.setEmail(email);
-      repository.save(user);
-      return user;
+      // No account holds this email yet, so it is free to assign to the target user.
     }
+    IUser user = getUserById(id);
+    user.setEmail(email);
+    repository.save(user);
+    return user;
   }
 
 }
