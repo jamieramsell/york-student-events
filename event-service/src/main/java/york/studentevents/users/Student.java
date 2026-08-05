@@ -19,12 +19,19 @@ public class Student extends User implements IStudent {
    *
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
+   * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
    * @param cohort the user's cohort; no validation is performed
    * @param registeredEvents the user's registered events; no validation is performed
-   * @throws IllegalArgumentException if the username or email is invalid
+   * @throws IllegalArgumentException if the username, email, or passwordHash is invalid
    */
-  public Student(String username, String email, UUID cohort, Set<UUID> registeredEvents) {
-    this(UUID.randomUUID(), username, email, cohort, registeredEvents);
+  public Student(
+      String username,
+      String email,
+      String passwordHash, 
+      UUID cohort,
+      Set<UUID> registeredEvents
+  ) {
+    this(UUID.randomUUID(), username, email, passwordHash, cohort, registeredEvents);
   }
 
   /** Creates a {@code Student} with the given details.
@@ -32,6 +39,7 @@ public class Student extends User implements IStudent {
    * @param id the user's ID; must not be {@code null}.
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
+   * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
    * @param cohort the user's cohort; no validation is performed
    * @param registeredEvents the user's registered events; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
@@ -39,10 +47,11 @@ public class Student extends User implements IStudent {
   protected Student(UUID id, 
       String username, 
       String email, 
+      String passwordHash,
       UUID cohort, 
       Set<UUID> registeredEvents
   ) {
-    super(id, username, email);
+    super(id, username, email, passwordHash);
     setCohort(cohort);
     setRegisteredEvents(registeredEvents);
   }

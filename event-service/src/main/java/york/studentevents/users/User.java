@@ -30,6 +30,9 @@ public abstract class User implements IUser {
   @Column(nullable = false)
   protected String email;
 
+  @Column(nullable = false)
+  protected String passwordHash;
+
   @ElementCollection
   @CollectionTable(
       name = "user_events",
@@ -42,10 +45,11 @@ public abstract class User implements IUser {
    *
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
-   * @throws IllegalArgumentException if the username or email is invalid
+   * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
+   * @throws IllegalArgumentException if a given parameter is null, blank, or empty.
    */
-  protected User(String username, String email) {
-    this(UUID.randomUUID(), username, email);
+  protected User(String username, String email, String password) {
+    this(UUID.randomUUID(), username, email, password);
   }
 
   /** Creates a {@code User} with the given details.
@@ -53,9 +57,10 @@ public abstract class User implements IUser {
    * @param id the user's ID; must not be {@code null}.
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
-   * @throws IllegalArgumentException if the username or email is invalid
+   * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
+   * @throws IllegalArgumentException if a given parameter is null, blank, or empty.
    */
-  protected User(UUID id, String username, String email) {
+  protected User(UUID id, String username, String email, String password) {
     if (id == null) {
       throw new IllegalArgumentException("User ID cannot be null");
     }
@@ -98,6 +103,16 @@ public abstract class User implements IUser {
       throw new IllegalArgumentException("email provided is not valid");
     }
     this.email = email;
+  }
+
+  @Override
+  public String getPasswordHash() {
+    return passwordHash;
+  }
+
+  @Override
+  public void setPasswordHash(String passwordHash) {
+    this.passwordHash = passwordHash;
   }
 
   /** Returns a string representation for debugging purposes. */
