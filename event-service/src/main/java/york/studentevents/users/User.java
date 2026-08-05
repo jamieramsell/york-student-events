@@ -67,7 +67,7 @@ public abstract class User implements IUser {
     this.id = id;
     setUsername(username);
     setEmail(email);
-    this.passwordHash = passwordHash;
+    setPasswordHash(passwordHash);
   }
 
   /** No-args constructor for JPA use only. */
@@ -113,6 +113,7 @@ public abstract class User implements IUser {
 
   @Override
   public void setPasswordHash(String passwordHash) {
+    // TODO: Add validation alongside auth features
     this.passwordHash = passwordHash;
   }
 
