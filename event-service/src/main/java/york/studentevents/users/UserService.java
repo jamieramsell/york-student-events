@@ -6,7 +6,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
-import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotFoundException;
 
 /**
@@ -143,7 +142,7 @@ public class UserService {
     try {
       repository.delete(userId);
     } catch (NoSuchElementException e) {
-      throw new EventNotFoundException();
+      throw new UserNotFoundException();
     }
   }
 
