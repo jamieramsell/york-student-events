@@ -68,10 +68,11 @@ public class Student extends User implements IStudent {
   @Override
   public String toString() {
     return String.format(
-        "Student[id=%s, username='%s', email='%s', cohort=%s, registeredEvents=%s]",
+        "Student[id=%s, username='%s', email='%s', passwordHash='%s', registeredEvents=%s]",
         id,
         username,
         email,
+        passwordHash,
         getEvents()
     );
   }

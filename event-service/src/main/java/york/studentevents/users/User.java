@@ -120,10 +120,11 @@ public abstract class User implements IUser {
   @Override
   public String toString() {
     return String.format(
-        "User[id=%s, username='%s', email='%s']",
+        "User[id=%s, username='%s', email='%s', passwordHash='%s']",
         id,
         username,
-        email
+        email,
+        passwordHash
     );
   }
 

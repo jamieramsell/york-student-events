@@ -61,10 +61,11 @@ public class Host extends User implements IHost {
   @Override
   public String toString() {
     return String.format(
-        "Host[id=%s, username='%s', email='%s', hostedEvents=%s]",
+        "Host[id=%s, username='%s', email='%s', passwordHash='%s' hostedEvents=%s]",
         id,
         username,
         email,
+        passwordHash,
         getEvents()
     );
   }
