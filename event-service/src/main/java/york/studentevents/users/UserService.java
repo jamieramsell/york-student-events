@@ -3,7 +3,6 @@ package york.studentevents.users;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 import york.studentevents.exceptions.UserNotFoundException;
@@ -47,11 +46,7 @@ public class UserService {
     if (userId == null) {
       throw new IllegalArgumentException("userId cannot be null");
     }
-    Optional<IUser> optionalUser = repository.findByID(userId);
-    if (optionalUser.isEmpty()) {
-      throw new UserNotFoundException();
-    }
-    return optionalUser.get();
+    return repository.findByID(userId).orElseThrow(UserNotFoundException::new);
   }
 
   /**
@@ -68,16 +63,11 @@ public class UserService {
     }
     Predicate<IUser> usernameMatches = user -> user.getUsername().equals(username);
 
-    Optional<IUser> optionalUser = repository.findAll()
+    return repository.findAll()
         .stream()
         .filter(usernameMatches)
-        .findFirst();
-
-    try {
-      return optionalUser.get();
-    } catch (NoSuchElementException e) {
-      throw new UserNotFoundException();
-    }
+        .findFirst()
+        .orElseThrow(UserNotFoundException::new);
   }
 
   /**
@@ -94,16 +84,11 @@ public class UserService {
     }
     Predicate<IUser> emailMatches = user -> user.getEmail().equals(email);
 
-    Optional<IUser> optionalUser = repository.findAll()
+    return repository.findAll()
         .stream()
         .filter(emailMatches)
-        .findFirst();
-
-    try {
-      return optionalUser.get();
-    } catch (NoSuchElementException e) {
-      throw new UserNotFoundException();
-    }
+        .findFirst()
+        .orElseThrow(UserNotFoundException::new);
   }
 
   /**
