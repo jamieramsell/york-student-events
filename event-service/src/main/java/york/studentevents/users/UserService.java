@@ -19,7 +19,7 @@ import york.studentevents.exceptions.UserNotFoundException;
  */
 public class UserService {
 
-  IUserRepository repository;
+  private final IUserRepository repository;
 
   /**
    * Constructs a {@code UserService} backed by the given repository.
