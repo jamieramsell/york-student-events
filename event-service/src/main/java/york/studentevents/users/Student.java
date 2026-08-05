@@ -13,14 +13,11 @@ import java.util.UUID;
 @DiscriminatorValue("STUDENT")
 public class Student extends User implements IStudent {
   
-  private UUID cohort; // Must be nullable within the JPA entity as hosts do not have a cohort.
-
   /** Creates a {@code Student} with the given details.
    *
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
    * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
-   * @param cohort the user's cohort; no validation is performed
    * @param registeredEvents the user's registered events; no validation is performed
    * @throws IllegalArgumentException if the username, email, or passwordHash is invalid
    */
@@ -28,10 +25,9 @@ public class Student extends User implements IStudent {
       String username,
       String email,
       String passwordHash, 
-      UUID cohort,
       Set<UUID> registeredEvents
   ) {
-    this(UUID.randomUUID(), username, email, passwordHash, cohort, registeredEvents);
+    this(UUID.randomUUID(), username, email, passwordHash, registeredEvents);
   }
 
   /** Creates a {@code Student} with the given details.
@@ -40,7 +36,6 @@ public class Student extends User implements IStudent {
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
    * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
-   * @param cohort the user's cohort; no validation is performed
    * @param registeredEvents the user's registered events; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
    */
@@ -48,22 +43,10 @@ public class Student extends User implements IStudent {
       String username, 
       String email, 
       String passwordHash,
-      UUID cohort, 
       Set<UUID> registeredEvents
   ) {
     super(id, username, email, passwordHash);
-    setCohort(cohort);
     setRegisteredEvents(registeredEvents);
-  }
-
-  @Override
-  public UUID getCohort() {
-    return cohort;
-  }
-
-  @Override
-  public void setCohort(UUID cohort) {
-    this.cohort = cohort;
   }
 
   @Override
@@ -89,7 +72,6 @@ public class Student extends User implements IStudent {
         id,
         username,
         email,
-        cohort,
         getEvents()
     );
   }
