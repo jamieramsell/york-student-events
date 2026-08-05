@@ -157,7 +157,7 @@ class UserServiceTest {
   }
 
   @Test
-  void createStudent_storesAPasswordHash() {
+  void createStudent_storesPasswordHash() {
     IStudent student = service.createStudent("alice", "alice@york.ac.uk", "pw");
 
     // The hash need not equal the plaintext, but a non-null hash must be persisted so the
@@ -191,7 +191,7 @@ class UserServiceTest {
   }
 
   @Test
-  void createHost_storesAPasswordHash() {
+  void createHost_storesPasswordHash() {
     IHost host = service.createHost("su", "su@york.ac.uk", "pw");
 
     assertNotNull(host.getPasswordHash());
