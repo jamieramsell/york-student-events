@@ -111,37 +111,37 @@ class VenueServiceTest {
     assertTrue(service.getAllVenues().isEmpty());
   }
 
-  // --- updateVenueTitle ---
+  // --- updateVenueName ---
 
   @Test
-  void updateVenueTitle_updatesAndPersistsName() {
+  void updateVenueName_updatesAndPersistsName() {
     IVenue venue = savedVenue();
 
-    service.updateVenueTitle(venue.getId(), "New Name");
+    service.updateVenueName(venue.getId(), "New Name");
 
     assertEquals("New Name", service.getVenue(venue.getId()).getName());
   }
 
   @Test
-  void updateVenueTitle_withNullName_throwsIllegalArgumentException() {
+  void updateVenueName_withNullName_throwsIllegalArgumentException() {
     IVenue venue = savedVenue();
 
     assertThrows(IllegalArgumentException.class,
-        () -> service.updateVenueTitle(venue.getId(), null));
+        () -> service.updateVenueName(venue.getId(), null));
   }
 
   @Test
-  void updateVenueTitle_withBlankName_throwsIllegalArgumentException() {
+  void updateVenueName_withBlankName_throwsIllegalArgumentException() {
     IVenue venue = savedVenue();
 
     assertThrows(IllegalArgumentException.class,
-        () -> service.updateVenueTitle(venue.getId(), "   "));
+        () -> service.updateVenueName(venue.getId(), "   "));
   }
 
   @Test
-  void updateVenueTitle_whenVenueDoesNotExist_throwsVenueNotFoundException() {
+  void updateVenueName_whenVenueDoesNotExist_throwsVenueNotFoundException() {
     assertThrows(VenueNotFoundException.class,
-        () -> service.updateVenueTitle(UUID.randomUUID(), "New Name"));
+        () -> service.updateVenueName(UUID.randomUUID(), "New Name"));
   }
 
   // --- updateVenueAddress ---

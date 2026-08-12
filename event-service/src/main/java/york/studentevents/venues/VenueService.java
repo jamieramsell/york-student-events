@@ -82,7 +82,7 @@ public class VenueService {
    * @throws VenueNotFoundException if an Venue with the given ID could not be found.
    * @throws IllegalArgumentException if name is null or empty.
    */
-  public IVenue updateVenueTitle(UUID id, String name) {
+  public IVenue updateVenueName(UUID id, String name) {
     IVenue venue = getVenue(id);
     venue.setName(name);
     repository.save(venue);
