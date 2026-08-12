@@ -183,7 +183,7 @@ public class VenueService {
       }
     }
 
-    // If this point is reached, then the event does lie within the two points (inclusively)
+    // If this point is reached, then the venue does lie within the two points (inclusively)
     return true;
   }
 
