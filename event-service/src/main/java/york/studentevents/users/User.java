@@ -30,6 +30,9 @@ public abstract class User implements IUser {
   @Column(nullable = false)
   protected String email;
 
+  @Column(nullable = false)
+  protected String passwordHash;
+
   @ElementCollection
   @CollectionTable(
       name = "user_events",
@@ -42,10 +45,11 @@ public abstract class User implements IUser {
    *
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
-   * @throws IllegalArgumentException if the username or email is invalid
+   * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
+   * @throws IllegalArgumentException if a given parameter is null, blank, or empty.
    */
-  protected User(String username, String email) {
-    this(UUID.randomUUID(), username, email);
+  protected User(String username, String email, String passwordHash) {
+    this(UUID.randomUUID(), username, email, passwordHash);
   }
 
   /** Creates a {@code User} with the given details.
@@ -53,15 +57,17 @@ public abstract class User implements IUser {
    * @param id the user's ID; must not be {@code null}.
    * @param username the user's username; must not be {@code null}, blank, or empty.
    * @param email the user's email; must not be {@code null}, blank, or empty.
-   * @throws IllegalArgumentException if the username or email is invalid
+   * @param passwordHash the user's password hash; must not be {@code null}, blank, or empty.
+   * @throws IllegalArgumentException if a given parameter is null, blank, or empty.
    */
-  protected User(UUID id, String username, String email) {
+  protected User(UUID id, String username, String email, String passwordHash) {
     if (id == null) {
       throw new IllegalArgumentException("User ID cannot be null");
     }
     this.id = id;
     setUsername(username);
     setEmail(email);
+    setPasswordHash(passwordHash);
   }
 
   /** No-args constructor for JPA use only. */
@@ -100,14 +106,26 @@ public abstract class User implements IUser {
     this.email = email;
   }
 
+  @Override
+  public String getPasswordHash() {
+    return passwordHash;
+  }
+
+  @Override
+  public void setPasswordHash(String passwordHash) {
+    // TODO: Add validation alongside auth features
+    this.passwordHash = passwordHash;
+  }
+
   /** Returns a string representation for debugging purposes. */
   @Override
   public String toString() {
-    return String.format(
-        "User[id=%s, username='%s', email='%s']",
+    return String.format( // TODO: Remove password hash from string output prior to release
+        "User[id=%s, username='%s', email='%s', passwordHash='%s']",
         id,
         username,
-        email
+        email,
+        passwordHash
     );
   }
 

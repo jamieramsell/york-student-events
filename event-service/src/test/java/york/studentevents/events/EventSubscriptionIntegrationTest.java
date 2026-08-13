@@ -11,7 +11,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +37,7 @@ class EventSubscriptionIntegrationTest {
   private InMemoryUserRepository userRepository;
   private InMemoryEventRepository eventRepository;
   private SubscriptionService subscriptionService;
+  private EventService eventService;
   private StudentEventService service;
 
   private Logger observerLogger;
@@ -48,7 +48,10 @@ class EventSubscriptionIntegrationTest {
     userRepository = new InMemoryUserRepository();
     eventRepository = new InMemoryEventRepository();
     subscriptionService = new SubscriptionService(new InMemorySubscriptionRepository());
-    service = new StudentEventService(eventRepository, userRepository, subscriptionService);
+    eventService = new EventService(eventRepository);
+    service = new StudentEventService(
+        eventRepository, userRepository, subscriptionService, eventService
+    );
 
     observerLogger =
         (Logger) LoggerFactory.getLogger(york.studentevents.subscriptions.UserEventObserver.class);
@@ -177,7 +180,7 @@ class EventSubscriptionIntegrationTest {
 
   @Test
   void hostCannotRegisterOrBeSubscribed() {
-    Host host = new Host("host", "host@york.ac.uk", new HashSet<>());
+    Host host = new Host("host", "host@york.ac.uk", "hash", new HashSet<>());
     userRepository.save(host);
     Event event = newEvent(5);
 
@@ -190,7 +193,7 @@ class EventSubscriptionIntegrationTest {
 
   private Student newStudent() {
     Student student =
-        new Student("student", "student@york.ac.uk", UUID.randomUUID(), new HashSet<>());
+        new Student("student", "student@york.ac.uk", "hash", new HashSet<>());
     userRepository.save(student);
     return student;
   }
