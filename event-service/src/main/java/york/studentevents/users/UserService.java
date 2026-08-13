@@ -111,6 +111,9 @@ public class UserService {
    * @see IUser.UserType
    */
   public List<IUser> getUsersByType(IUser.UserType type) {
+    if (type == null) {
+      throw new IllegalArgumentException("type cannot be null");
+    }
     return repository.findAll()
         .stream()
         .filter(user -> user.getType().equals(type))

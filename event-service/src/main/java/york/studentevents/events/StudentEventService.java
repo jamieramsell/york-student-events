@@ -53,6 +53,14 @@ public class StudentEventService {
       SubscriptionService subscriptionService,
       EventService eventService
   ) {
+    if (
+        eventRepository == null
+        || userRepository == null
+        || subscriptionService == null
+        || eventService == null
+    ) {
+      throw new IllegalArgumentException("Injected repositories and services cannot be null");
+    }
     this.eventRepository = eventRepository;
     this.userRepository = userRepository;
     this.subscriptionService = subscriptionService;
