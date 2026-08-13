@@ -146,9 +146,9 @@ public class EventService {
   /**
    * Retrieves an Event record, and updates its location field.
    *
-   * <p>Note that passing a {@code null} location will both the location, as well as the event's
-   *     start and end timings, as an event must have a location in order to have assigned start /
-   *     end timings.
+   * <p>Note that passing a {@code null} location will remove both the event's location, as well as
+   *     its start and end timings. An event must have a location in order to have been assigned
+   *     start / end timings.
    *
    * @param id The ID of the target event.
    * @param location The (optional) new event location.

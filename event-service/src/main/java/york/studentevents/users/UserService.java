@@ -24,7 +24,7 @@ public class UserService {
   /**
    * Constructs a {@code UserService} backed by the given repository.
    *
-   * @param repositoryInjection the repository used to store and retrieve events; must not be
+   * @param repositoryInjection the repository used to store and retrieve Users; must not be
    *     {@code null}
    */
   public UserService(IUserRepository repositoryInjection) {
@@ -104,7 +104,7 @@ public class UserService {
   /**
    * Retrieves all Users of the given type (e.g. all Students)
    *
-   * @param type The type of users to retrieve
+   * @param type The type of users to retrieve; must not be {@code null}.
    * @return a {@link List} of all Users; never {@code null}, but may be empty if no users of the
    *     given type have been saved
    *
