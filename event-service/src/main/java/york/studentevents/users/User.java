@@ -120,7 +120,7 @@ public abstract class User implements IUser {
   /** Returns a string representation for debugging purposes. */
   @Override
   public String toString() {
-    return String.format(
+    return String.format( // TODO: Remove password hash from string output prior to release
         "User[id=%s, username='%s', email='%s', passwordHash='%s']",
         id,
         username,

@@ -60,7 +60,7 @@ public class Host extends User implements IHost {
   /** Returns a string representation for debugging purposes. */
   @Override
   public String toString() {
-    return String.format(
+    return String.format( // TODO: Remove password hash from string output prior to release
         "Host[id=%s, username='%s', email='%s', passwordHash='%s' hostedEvents=%s]",
         id,
         username,
