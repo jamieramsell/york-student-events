@@ -2,7 +2,6 @@ package york.studentevents.events;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-
 import york.studentevents.repository.IEntity;
 
 /** Represents a social event that can be attended by students. */
