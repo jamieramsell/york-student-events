@@ -144,8 +144,12 @@ public class EventService {
   }
 
   /**
-   * Retrieves an Event record, and updates its location field.
+   * Utility method which retrieves an Event record, and updates its Venue field.
    *
+   * <p>This method does not verify the existence or capacity of a given Venue and will forcefully
+   *     override its value; <b>any caller trying to assign a new Venue to an event should always
+   *     route through the {@link EventCapacityService}</b>.
+   * 
    * <p>Note that passing a {@code null} location will remove both the event's location, as well as
    *     its start and end timings. An event must have a location in order to have been assigned
    *     start / end timings.
@@ -156,17 +160,23 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
-  public IEvent updateEventLocation(UUID id, String location) {
-    IEvent event = getEvent(id);
-    event.setDateTime(null, null);
-    event.setLocation(location);
+  IEvent updateEventVenue(UUID eventId, UUID venueId) {
+    IEvent event = getEvent(eventId);
+    if (venueId == null) {
+      event.setDateTime(null, null);
+    }
+    event.setVenue(venueId);
     eventRepository.save(event);
     return event;
   }
 
   /**
-   * Retrieves an Event record, and updates its capacity field.
+   * Utility method which retrieves an Event record, and updates its capacity field.
    *
+   * <p>This method does not verify the capacity of the given Event and will forcefully override its
+   *     value; <b>any caller trying to assign a new capacity to an event should always route
+   *     through the {@link EventCapacityService}</b>.
+   * 
    * <p>Passing a {@code null} capacity will remove its prescribed maximum capacity.
    *
    * @param id The ID of the target event.
@@ -175,7 +185,7 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
-  public IEvent updateEventCapacity(UUID id, Integer capacity) {
+  IEvent updateEventCapacity(UUID id, Integer capacity) {
     IEvent event = getEvent(id);
     event.setCapacity(capacity);
     eventRepository.save(event);
