@@ -73,9 +73,10 @@ public class EventCapacityService {
     IVenue venue = venueService.getVenue(venueId);
     int attendees = studentEventService.countRegisteredStudents(eventId);
 
-    if (attendees > venue.getCapacity()) {
+      if (venue.getCapacity() != null && attendees > venue.getCapacity()) {
       throw new IllegalStateException("The given Event has more attendees enrolled than the"
         + " capacity of the Venue. To assign this Venue, you must first unassign some Students.");
+      }
     }
     
     return eventService.updateEventVenue(eventId, venueId);
