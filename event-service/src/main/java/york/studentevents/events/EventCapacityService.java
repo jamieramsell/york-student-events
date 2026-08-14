@@ -70,15 +70,19 @@ public class EventCapacityService {
    */
   public IEvent updateEventVenue(UUID eventId, UUID venueId) {
     eventService.getEvent(eventId); // Validate event existence first
-    IVenue venue = venueService.getVenue(venueId);
-    int attendees = studentEventService.countRegisteredStudents(eventId);
+
+    // If a venue ID is provided, validate that the venue exists, and that the event's capacity <=
+    // that of the venue.
+    if (venueId != null) { 
+      IVenue venue = venueService.getVenue(venueId);
+      int attendees = studentEventService.countRegisteredStudents(eventId);
 
       if (venue.getCapacity() != null && attendees > venue.getCapacity()) {
-      throw new IllegalStateException("The given Event has more attendees enrolled than the"
-        + " capacity of the Venue. To assign this Venue, you must first unassign some Students.");
+        throw new IllegalStateException("The given Event has more attendees enrolled than the"
+          + " capacity of the Venue. To assign this Venue, you must first unassign some Students.");
       }
     }
-    
+
     return eventService.updateEventVenue(eventId, venueId);
   }
 
