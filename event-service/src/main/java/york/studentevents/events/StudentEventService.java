@@ -186,6 +186,27 @@ public class StudentEventService {
     subscriptionService.unsubscribe(userId, eventId, SubscriptionSource.EXPLICIT);
   }
 
+  /** Counts the number of students currently registered for the given event.
+   *
+   * @param eventId the Event's ID; must not be null
+   * @return the number of Students signed up to attend the Event.
+   * @throws EventNotFoundException if the given event does not exist.
+   */
+  public int countRegisteredStudents(UUID eventId) {
+    eventService.getEvent(eventId); // Validate that the event actually exists
+    
+    Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
+    Predicate<IStudent> isStudentRegisteredForEvent =
+        student -> student.getRegisteredEvents().contains(eventId);
+
+    List<IUser> users = userRepository.findAll();
+    return (int) users.stream()
+        .filter(isUserStudent)
+        .map(user -> (IStudent) user)
+        .filter(isStudentRegisteredForEvent)
+        .count();
+  }
+
   // Utility Methods //
 
   /**
@@ -235,20 +256,6 @@ public class StudentEventService {
     if (countRegisteredStudents(eventId) == thresholdCount) {
       subscriptionService.publish(eventId, NotificationType.CAPACITY_WARNING);
     }
-  }
-
-  /** Counts the students currently registered for the given event. */
-  private int countRegisteredStudents(UUID eventId) {
-    Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
-    Predicate<IStudent> isStudentRegisteredForEvent =
-        student -> student.getRegisteredEvents().contains(eventId);
-
-    List<IUser> users = userRepository.findAll();
-    return (int) users.stream()
-        .filter(isUserStudent)
-        .map(user -> (IStudent) user)
-        .filter(isStudentRegisteredForEvent)
-        .count();
   }
 
   /**

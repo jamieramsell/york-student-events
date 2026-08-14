@@ -21,19 +21,19 @@ import york.studentevents.exceptions.EventNotFoundException;
  */
 public class EventService {
 
-  private IEventRepository repository;
+  private IEventRepository eventRepository;
 
   /**
    * Constructs an {@code EventService} backed by the given repository.
    *
-   * @param repositoryInjection the repository used to store and retrieve events; must not be
+   * @param eventRepository the repository used to store and retrieve events; must not be
    *     {@code null}
    */
-  public EventService(IEventRepository repositoryInjection) {
-    if (repositoryInjection == null) {
-      throw new IllegalArgumentException("repositoryInjection must not be null");
+  public EventService(IEventRepository eventRepository) {
+    if (eventRepository == null) {
+      throw new IllegalArgumentException("Injected eventRepository must not be null");
     }
-    this.repository = repositoryInjection;
+    this.eventRepository = eventRepository;
   }
 
   /**
@@ -44,7 +44,7 @@ public class EventService {
    * @throws EventNotFoundException if the given event does not exist
    */
   public IEvent getEvent(UUID eventId) {
-    Optional<IEvent> optionalEvent = repository.findByID(eventId);
+    Optional<IEvent> optionalEvent = eventRepository.findByID(eventId);
     if (optionalEvent.isEmpty()) {
       throw new EventNotFoundException();
     }
@@ -71,7 +71,7 @@ public class EventService {
       event = new Event(title, capacity, category);
     }
 
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -88,7 +88,7 @@ public class EventService {
   public IEvent updateEventTitle(UUID id, String title) {
     IEvent event = getEvent(id);
     event.setTitle(title);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -106,7 +106,7 @@ public class EventService {
   public IEvent updateEventDescription(UUID id, String description) {
     IEvent event = getEvent(id);
     event.setDescription(description);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -139,13 +139,17 @@ public class EventService {
   ) {
     IEvent event = getEvent(id);
     event.setDateTime(startDateTime, endDateTime);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
   /**
-   * Retrieves an Event record, and updates its location field.
+   * Utility method which retrieves an Event record, and updates its Venue field.
    *
+   * <p>This method does not verify the existence or capacity of a given Venue and will forcefully
+   *     override its value; <b>any caller trying to assign a new Venue to an event should always
+   *     route through the {@link EventCapacityService}</b>.
+   * 
    * <p>Note that passing a {@code null} location will remove both the event's location, as well as
    *     its start and end timings. An event must have a location in order to have been assigned
    *     start / end timings.
@@ -156,17 +160,23 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
-  public IEvent updateEventLocation(UUID id, String location) {
-    IEvent event = getEvent(id);
-    event.setDateTime(null, null);
-    event.setLocation(location);
-    repository.save(event);
+  IEvent updateEventVenue(UUID eventId, UUID venueId) {
+    IEvent event = getEvent(eventId);
+    if (venueId == null) {
+      event.setDateTime(null, null);
+    }
+    event.setVenue(venueId);
+    eventRepository.save(event);
     return event;
   }
 
   /**
-   * Retrieves an Event record, and updates its capacity field.
+   * Utility method which retrieves an Event record, and updates its capacity field.
    *
+   * <p>This method does not verify the capacity of the given Event and will forcefully override its
+   *     value; <b>any caller trying to assign a new capacity to an event should always route
+   *     through the {@link EventCapacityService}</b>.
+   * 
    * <p>Passing a {@code null} capacity will remove its prescribed maximum capacity.
    *
    * @param id The ID of the target event.
@@ -175,10 +185,10 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
-  public IEvent updateEventCapacity(UUID id, Integer capacity) {
+  IEvent updateEventCapacity(UUID id, Integer capacity) {
     IEvent event = getEvent(id);
     event.setCapacity(capacity);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -194,7 +204,7 @@ public class EventService {
   public IEvent updateEventCategory(UUID id, EventCategory category) {
     IEvent event = getEvent(id);
     event.setCategory(category);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -205,7 +215,7 @@ public class EventService {
    *     been saved
    */
   public List<IEvent> getAllEvents() {
-    return repository.findAll();
+    return eventRepository.findAll();
   }
 
   /**
@@ -292,7 +302,7 @@ public class EventService {
    */
   public void deleteEvent(UUID eventId) {
     try {
-      repository.delete(eventId);
+      eventRepository.delete(eventId);
     } catch (NoSuchElementException e) {
       throw new EventNotFoundException();
     }
