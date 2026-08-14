@@ -21,19 +21,19 @@ import york.studentevents.exceptions.EventNotFoundException;
  */
 public class EventService {
 
-  private IEventRepository repository;
+  private IEventRepository eventRepository;
 
   /**
    * Constructs an {@code EventService} backed by the given repository.
    *
-   * @param repositoryInjection the repository used to store and retrieve events; must not be
+   * @param eventRepository the repository used to store and retrieve events; must not be
    *     {@code null}
    */
-  public EventService(IEventRepository repositoryInjection) {
-    if (repositoryInjection == null) {
-      throw new IllegalArgumentException("repositoryInjection must not be null");
+  public EventService(IEventRepository eventRepository) {
+    if (eventRepository == null) {
+      throw new IllegalArgumentException("Injected eventRepository must not be null");
     }
-    this.repository = repositoryInjection;
+    this.eventRepository = eventRepository;
   }
 
   /**
@@ -44,7 +44,7 @@ public class EventService {
    * @throws EventNotFoundException if the given event does not exist
    */
   public IEvent getEvent(UUID eventId) {
-    Optional<IEvent> optionalEvent = repository.findByID(eventId);
+    Optional<IEvent> optionalEvent = eventRepository.findByID(eventId);
     if (optionalEvent.isEmpty()) {
       throw new EventNotFoundException();
     }
@@ -71,7 +71,7 @@ public class EventService {
       event = new Event(title, capacity, category);
     }
 
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -88,7 +88,7 @@ public class EventService {
   public IEvent updateEventTitle(UUID id, String title) {
     IEvent event = getEvent(id);
     event.setTitle(title);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -106,7 +106,7 @@ public class EventService {
   public IEvent updateEventDescription(UUID id, String description) {
     IEvent event = getEvent(id);
     event.setDescription(description);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -139,7 +139,7 @@ public class EventService {
   ) {
     IEvent event = getEvent(id);
     event.setDateTime(startDateTime, endDateTime);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -160,7 +160,7 @@ public class EventService {
     IEvent event = getEvent(id);
     event.setDateTime(null, null);
     event.setLocation(location);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -178,7 +178,7 @@ public class EventService {
   public IEvent updateEventCapacity(UUID id, Integer capacity) {
     IEvent event = getEvent(id);
     event.setCapacity(capacity);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -194,7 +194,7 @@ public class EventService {
   public IEvent updateEventCategory(UUID id, EventCategory category) {
     IEvent event = getEvent(id);
     event.setCategory(category);
-    repository.save(event);
+    eventRepository.save(event);
     return event;
   }
 
@@ -205,7 +205,7 @@ public class EventService {
    *     been saved
    */
   public List<IEvent> getAllEvents() {
-    return repository.findAll();
+    return eventRepository.findAll();
   }
 
   /**
@@ -292,7 +292,7 @@ public class EventService {
    */
   public void deleteEvent(UUID eventId) {
     try {
-      repository.delete(eventId);
+      eventRepository.delete(eventId);
     } catch (NoSuchElementException e) {
       throw new EventNotFoundException();
     }
