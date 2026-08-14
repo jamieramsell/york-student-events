@@ -13,6 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.repository.inmemory.InMemoryEventRepository;
+import york.studentevents.venues.IVenue;
+import york.studentevents.venues.Venue;
 
 /**
  * Tests {@link EventService} against a real {@link InMemoryEventRepository}.
@@ -170,7 +172,7 @@ class EventServiceTest {
   @Test
   void updateEventDateTime_withLocationAndValidTimes_updatesAndPersists() {
     IEvent event = savedEvent();
-    service.updateEventLocation(event.getId(), "Central Hall");
+    service.updateEventVenue(event.getId(), getVenueId());
     LocalDateTime start = LocalDateTime.now().plusDays(1);
     LocalDateTime end = start.plusHours(2);
 
@@ -184,7 +186,7 @@ class EventServiceTest {
   @Test
   void updateEventDateTime_withBothNull_clearsTimings() {
     IEvent event = savedEvent();
-    service.updateEventLocation(event.getId(), "Central Hall");
+    service.updateEventVenue(event.getId(), getVenueId());
     LocalDateTime start = LocalDateTime.now().plusDays(1);
     service.updateEventDateTime(event.getId(), start, start.plusHours(2));
 
@@ -207,7 +209,7 @@ class EventServiceTest {
   @Test
   void updateEventDateTime_whenEndBeforeStart_throwsIllegalArgumentException() {
     IEvent event = savedEvent();
-    service.updateEventLocation(event.getId(), "Central Hall");
+    service.updateEventVenue(event.getId(), getVenueId());
     LocalDateTime start = LocalDateTime.now().plusDays(2);
     LocalDateTime end = LocalDateTime.now().plusDays(1);
 
@@ -218,7 +220,7 @@ class EventServiceTest {
   @Test
   void updateEventDateTime_whenStartInPast_throwsIllegalArgumentException() {
     IEvent event = savedEvent();
-    service.updateEventLocation(event.getId(), "Central Hall");
+    service.updateEventVenue(event.getId(), getVenueId());
     LocalDateTime start = LocalDateTime.now().minusDays(1);
     LocalDateTime end = LocalDateTime.now().plusDays(1);
 
@@ -229,7 +231,7 @@ class EventServiceTest {
   @Test
   void updateEventDateTime_withOnlyStart_throwsIllegalArgumentException() {
     IEvent event = savedEvent();
-    service.updateEventLocation(event.getId(), "Central Hall");
+    service.updateEventVenue(event.getId(), getVenueId());
     LocalDateTime start = LocalDateTime.now().plusDays(1);
 
     assertThrows(IllegalArgumentException.class,
@@ -239,7 +241,7 @@ class EventServiceTest {
   @Test
   void updateEventDateTime_withOnlyEnd_throwsIllegalArgumentException() {
     IEvent event = savedEvent();
-    service.updateEventLocation(event.getId(), "Central Hall");
+    service.updateEventVenue(event.getId(), getVenueId());
     LocalDateTime end = LocalDateTime.now().plusDays(1);
 
     assertThrows(IllegalArgumentException.class,
@@ -254,46 +256,47 @@ class EventServiceTest {
         () -> service.updateEventDateTime(UUID.randomUUID(), start, start.plusHours(2)));
   }
 
-  // --- updateEventLocation ---
+  // --- updateEventVenue ---
 
   @Test
-  void updateEventLocation_updatesAndPersistsLocation() {
+  void updateEventVenue_updatesAndPersistsLocation() {
     IEvent event = savedEvent();
 
-    service.updateEventLocation(event.getId(), "The Courtyard");
+    service.updateEventVenue(event.getId(), getVenueId());
 
-    assertEquals("The Courtyard", service.getEvent(event.getId()).getLocation());
+    assertEquals("The Courtyard", service.getEvent(event.getId()).getVenue());
   }
 
   @Test
-  void updateEventLocation_clearsAnyExistingDateTime() {
+  void updateEventVenue_clearsAnyExistingDateTime() {
     IEvent event = savedEvent();
-    service.updateEventLocation(event.getId(), "Central Hall");
+    UUID venueId = getVenueId();
+    service.updateEventVenue(event.getId(), venueId);
     LocalDateTime start = LocalDateTime.now().plusDays(1);
     service.updateEventDateTime(event.getId(), start, start.plusHours(2));
 
-    service.updateEventLocation(event.getId(), "The Courtyard");
+    service.updateEventVenue(event.getId(), venueId);
 
     IEvent fetched = service.getEvent(event.getId());
-    assertEquals("The Courtyard", fetched.getLocation());
+    assertEquals(venueId, fetched.getVenue());
     assertNull(fetched.getStartDateTime());
     assertNull(fetched.getEndDateTime());
   }
 
   @Test
-  void updateEventLocation_withNull_removesLocation() {
+  void updateEventVenue_withNull_removesVenue() {
     IEvent event = savedEvent();
-    service.updateEventLocation(event.getId(), "The Courtyard");
+    service.updateEventVenue(event.getId(), getVenueId());
 
-    service.updateEventLocation(event.getId(), null);
+    service.updateEventVenue(event.getId(), null);
 
-    assertNull(service.getEvent(event.getId()).getLocation());
+    assertNull(service.getEvent(event.getId()).getVenue());
   }
 
   @Test
-  void updateEventLocation_whenEventDoesNotExist_throwsEventNotFoundException() {
+  void updateEventVenue_whenEventDoesNotExist_throwsEventNotFoundException() {
     assertThrows(EventNotFoundException.class,
-        () -> service.updateEventLocation(UUID.randomUUID(), "The Courtyard"));
+        () -> service.updateEventVenue(UUID.randomUUID(), getVenueId()));
   }
 
   // --- updateEventCapacity ---
@@ -545,9 +548,15 @@ class EventServiceTest {
 
   private IEvent savedScheduledEvent(LocalDateTime start, LocalDateTime end) {
     IEvent event = new Event("Original Title", EventCategory.MUSIC);
-    event.setLocation("Central Hall");
+    event.setVenue(getVenueId());
     event.setDateTime(start, end);
     repository.save(event);
     return event;
   }
+
+  private UUID getVenueId() {
+    IVenue venue = new Venue("Central Hall", "University of York");
+    return venue.getId();
+  }
+
 }
