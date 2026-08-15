@@ -1,0 +1,931 @@
+<title>York Student Events</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Visual mockup of the YSE student event-discovery and social app." />
+
+<!--
+  YSE FRONTEND SKETCH — visual mockup only (non-functional).
+  Single self-contained file: inline CSS + vanilla JS, zero network requests.
+  Field names in MOCK data mirror the real domain entities so this doubles as
+  a reference for the eventual React (M8/M9) build.
+
+  Known spec-vs-code drifts to resolve in the real build:
+   - Event/User/Venue ids: docs/api-spec.yaml says int64, Java entities use UUID.
+   - Event.category: spec is a free string, Java uses the EventCategory enum (13).
+   - User is abstract in Java (Student/Host subtypes); spec models a flat User.
+  This sketch follows the richer Java model (UUID ids, category enum, Student/Host).
+-->
+
+<style>
+  /* ---- Tokens: light (bare :root) ---- */
+  :root {
+    --accent: #f5386a;          /* raspberry-rose brand accent */
+    --accent-strong: #d81e56;
+    --accent-soft: #fdeef2;
+    --ink: #1b1620;
+    --ink-2: #4c4553;
+    --ink-3: #7c7486;
+    --bg: #fbf8f9;              /* faint rose-biased near-white */
+    --surface: #ffffff;
+    --surface-2: #f4eef1;
+    --line: #ece4e8;
+    --line-strong: #ddd2d8;
+    --good: #12a594;
+    --warn: #e0912f;
+    --crit: #e5484d;
+    --shadow: 0 1px 2px rgba(27,22,32,.05), 0 8px 24px -12px rgba(27,22,32,.18);
+    --shadow-lg: 0 12px 40px -12px rgba(27,22,32,.28);
+    --r-sm: 10px; --r: 16px; --r-lg: 22px; --r-pill: 999px;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    --sans: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    --nav-h: 62px;
+    color-scheme: light;
+  }
+  /* ---- Tokens: dark via OS, unless an explicit light choice overrides ---- */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --accent: #ff5b83;
+      --accent-strong: #ff7d9c;
+      --accent-soft: #331420;
+      --ink: #f4eef1;
+      --ink-2: #c3b9c3;
+      --ink-3: #8f8593;
+      --bg: #141017;
+      --surface: #1e1822;
+      --surface-2: #271f2d;
+      --line: #2e2634;
+      --line-strong: #3a3040;
+      --good: #2dd4bf;
+      --warn: #f0b45f;
+      --crit: #ff6369;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.6);
+      --shadow-lg: 0 16px 50px -12px rgba(0,0,0,.7);
+      color-scheme: dark;
+    }
+  }
+  /* ---- Tokens: explicit dark toggle wins both ways ---- */
+  :root[data-theme="dark"] {
+    --accent: #ff5b83;
+    --accent-strong: #ff7d9c;
+    --accent-soft: #331420;
+    --ink: #f4eef1;
+    --ink-2: #c3b9c3;
+    --ink-3: #8f8593;
+    --bg: #141017;
+    --surface: #1e1822;
+    --surface-2: #271f2d;
+    --line: #2e2634;
+    --line-strong: #3a3040;
+    --good: #2dd4bf;
+    --warn: #f0b45f;
+    --crit: #ff6369;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.6);
+    --shadow-lg: 0 16px 50px -12px rgba(0,0,0,.7);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; text-wrap: balance; font-weight: 800; }
+  a { color: inherit; }
+  button { font-family: inherit; cursor: pointer; }
+  img { max-width: 100%; }
+  ::selection { background: var(--accent); color: #fff; }
+
+  .mono { font-family: var(--mono); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 600;
+  }
+
+  /* ---- App shell ---- */
+  .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px clamp(14px, 4vw, 28px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(1.4) blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+  .brand .rose {
+    width: 34px; height: 34px; border-radius: 10px; flex: none;
+    display: grid; place-items: center; font-size: 19px;
+    background: linear-gradient(135deg, var(--accent), #ff8aa6);
+    box-shadow: 0 6px 16px -6px var(--accent);
+  }
+  .brand b { font-size: 17px; letter-spacing: -0.03em; }
+  .brand small { display: block; font-size: 11px; color: var(--ink-3); font-family: var(--mono); letter-spacing: .04em; }
+
+  .icon-btn {
+    display: grid; place-items: center; width: 40px; height: 40px;
+    border-radius: var(--r-pill); border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink); font-size: 17px;
+    transition: transform .12s ease, background .15s ease;
+  }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(.94); }
+
+  .layout { flex: 1; display: grid; grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  main {
+    width: 100%; max-width: 1080px; margin: 0 auto;
+    padding: clamp(16px, 3vw, 26px) clamp(14px, 4vw, 28px) calc(var(--nav-h) + 40px);
+  }
+
+  /* ---- Desktop: sidebar replaces bottom nav ---- */
+  @media (min-width: 900px) {
+    .layout { grid-template-columns: 244px 1fr; max-width: 1360px; margin: 0 auto; width: 100%; }
+    .sidebar {
+      display: flex; flex-direction: column; gap: 4px;
+      position: sticky; top: 71px; align-self: start;
+      height: calc(100vh - 71px); padding: 18px 14px; border-right: 1px solid var(--line);
+    }
+    .sidebar .navlink {
+      display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+      border-radius: var(--r-sm); color: var(--ink-2); font-weight: 600; font-size: 14.5px;
+      border: 1px solid transparent;
+    }
+    .sidebar .navlink .ico { font-size: 18px; width: 22px; text-align: center; }
+    .sidebar .navlink:hover { background: var(--surface-2); color: var(--ink); }
+    .sidebar .navlink.active { background: var(--accent-soft); color: var(--accent-strong); border-color: color-mix(in srgb, var(--accent) 28%, transparent); }
+    .sidebar .side-sep { height: 1px; background: var(--line); margin: 12px 8px; }
+    .bottomnav { display: none !important; }
+    main { padding-bottom: 60px; }
+  }
+
+  /* ---- Bottom tab nav (mobile) ---- */
+  .bottomnav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+    display: flex; justify-content: space-around; align-items: stretch;
+    height: var(--nav-h); padding-bottom: env(safe-area-inset-bottom);
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+  }
+  .bottomnav .navlink {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; color: var(--ink-3); font-size: 10.5px; font-weight: 600; border: none; background: none;
+  }
+  .bottomnav .navlink .ico { font-size: 20px; line-height: 1; }
+  .bottomnav .navlink.active { color: var(--accent); }
+
+  /* ---- Buttons ---- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 18px; border-radius: var(--r-pill); font-weight: 700; font-size: 14px;
+    border: 1px solid transparent; transition: transform .12s ease, filter .15s ease, background .15s ease;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn.primary { background: var(--accent); color: #fff; box-shadow: 0 8px 20px -8px var(--accent); }
+  .btn.primary:hover { filter: brightness(1.05); }
+  .btn.secondary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+  .btn.secondary:hover { background: var(--surface-2); }
+  .btn.ghost { background: transparent; color: var(--accent-strong); }
+  .btn.ghost:hover { background: var(--accent-soft); }
+  .btn.block { width: 100%; }
+  .btn.sm { padding: 8px 13px; font-size: 13px; }
+
+  /* ---- Cards ---- */
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+    box-shadow: var(--shadow);
+  }
+
+  /* ---- Chips / category badges ---- */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono);
+    font-size: 11.5px; font-weight: 600; letter-spacing: .02em;
+    padding: 5px 11px; border-radius: var(--r-pill); white-space: nowrap;
+  }
+  .cat {
+    background: color-mix(in srgb, var(--cat) 14%, var(--surface));
+    color: color-mix(in srgb, var(--cat) 72%, var(--ink));
+    border: 1px solid color-mix(in srgb, var(--cat) 30%, transparent);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cat); flex: none; }
+
+  /* ---- Section headers ---- */
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 6px 0 14px; }
+  .sec-head h2 { font-size: clamp(20px, 4.5vw, 26px); }
+  .sec-head .link { font-family: var(--mono); font-size: 12px; color: var(--accent-strong); font-weight: 600; }
+  .screen-title { font-size: clamp(26px, 6vw, 34px); margin-bottom: 4px; }
+  .screen-sub { color: var(--ink-3); margin-bottom: 22px; }
+
+  /* ---- Search + filter ---- */
+  .search {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px; margin-bottom: 16px;
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-pill);
+    box-shadow: var(--shadow);
+  }
+  .search input { border: none; outline: none; background: none; color: var(--ink); font-size: 15px; width: 100%; }
+  .search input::placeholder { color: var(--ink-3); }
+
+  .filters { display: flex; gap: 9px; overflow-x: auto; padding: 2px 2px 12px; margin: 0 -2px 6px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .filters::-webkit-scrollbar { display: none; }
+  .filter {
+    flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px;
+    border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--ink-2); font-size: 13px; font-weight: 600; transition: all .14s ease;
+  }
+  .filter:hover { border-color: var(--ink-3); }
+  .filter.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .filter .g { font-size: 14px; }
+
+  /* ---- Event grid + card ---- */
+  .grid-events { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+  .event {
+    text-align: left; padding: 0; overflow: hidden; display: flex; flex-direction: column;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+    box-shadow: var(--shadow); transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; color: inherit;
+  }
+  .event:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--line-strong); }
+  .event .banner {
+    height: 92px; position: relative;
+    background:
+      radial-gradient(120% 140% at 85% -10%, color-mix(in srgb, var(--cat) 55%, transparent), transparent 60%),
+      linear-gradient(135deg, color-mix(in srgb, var(--cat) 90%, #000 4%), color-mix(in srgb, var(--cat) 55%, #7a2a49));
+  }
+  .event .banner .glyph { position: absolute; right: 12px; bottom: 8px; font-size: 34px; opacity: .92; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+  .event .banner .when {
+    position: absolute; left: 12px; top: 12px; font-family: var(--mono); font-size: 11px; font-weight: 700;
+    background: rgba(0,0,0,.34); color: #fff; padding: 4px 9px; border-radius: var(--r-pill); backdrop-filter: blur(4px);
+  }
+  .event .body { padding: 13px 15px 15px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+  .event h3 { font-size: 16.5px; line-height: 1.25; }
+  .event .meta { display: flex; align-items: center; gap: 6px; color: var(--ink-3); font-size: 12.5px; }
+  .event .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+  /* ---- Capacity bar ---- */
+  .capacity { display: flex; flex-direction: column; gap: 4px; }
+  .capacity .bar { height: 6px; border-radius: var(--r-pill); background: var(--surface-2); overflow: hidden; }
+  .capacity .bar > span { display: block; height: 100%; border-radius: var(--r-pill); background: var(--good); }
+  .capacity .bar.warn > span { background: var(--warn); }
+  .capacity .bar.full > span { background: var(--crit); }
+  .capacity .lab { font-family: var(--mono); font-size: 11px; color: var(--ink-3); display: flex; justify-content: space-between; }
+
+  /* ---- Avatars ---- */
+  .avatar { border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; flex: none;
+    font-size: 13px; background: var(--av, var(--accent)); }
+  .stack { display: flex; align-items: center; }
+  .stack .avatar { width: 26px; height: 26px; font-size: 11px; margin-left: -8px; border: 2px solid var(--surface); }
+  .stack .avatar:first-child { margin-left: 0; }
+  .stack .more { font-size: 11.5px; color: var(--ink-3); margin-left: 8px; font-weight: 600; }
+
+  /* ---- Rails (horizontal scroll) ---- */
+  .rail { display: flex; gap: 14px; overflow-x: auto; padding: 2px 2px 14px; margin: 0 -2px;
+    scroll-snap-type: x mandatory; scrollbar-width: thin; }
+  .rail > * { scroll-snap-align: start; flex: 0 0 auto; }
+  .rail .event { width: 268px; }
+
+  /* ---- Screens ---- */
+  .screen { display: none; animation: fade .25s ease; }
+  .screen.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ---- Lists (friends / members / venues) ---- */
+  .row-list { display: flex; flex-direction: column; }
+  .row {
+    display: flex; align-items: center; gap: 13px; padding: 13px 15px;
+    border-bottom: 1px solid var(--line);
+  }
+  .row:last-child { border-bottom: none; }
+  .row .grow { flex: 1; min-width: 0; }
+  .row .grow b { font-size: 14.5px; }
+  .row .grow small { display: block; color: var(--ink-3); font-size: 12.5px; }
+  .row .actions { display: flex; gap: 8px; flex: none; }
+
+  /* ---- Profile header ---- */
+  .profile-hero {
+    display: flex; align-items: center; gap: 18px; padding: 22px; margin-bottom: 18px;
+    background: linear-gradient(135deg, var(--accent-soft), var(--surface));
+    border: 1px solid var(--line); border-radius: var(--r-lg);
+  }
+  .profile-hero .avatar { width: 78px; height: 78px; font-size: 30px; box-shadow: var(--shadow); }
+  .stat-row { display: flex; gap: 22px; margin-top: 8px; }
+  .stat b { font-size: 19px; font-family: var(--mono); }
+  .stat small { display: block; color: var(--ink-3); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; }
+
+  /* ---- Badges ---- */
+  .grid-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .badge-card { padding: 18px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; }
+  .badge-card .medal { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 30px;
+    background: radial-gradient(circle at 35% 30%, #ffe08a, #f5b027 70%, #c98a12); box-shadow: 0 8px 20px -8px #d9a520; }
+  .badge-card.locked .medal { background: var(--surface-2); filter: grayscale(1); opacity: .55; box-shadow: none; }
+  .badge-card h4 { font-size: 14.5px; }
+  .badge-card p { font-size: 12px; color: var(--ink-3); margin: 0; line-height: 1.4; }
+  .badge-card .times { position: absolute; top: 12px; right: 12px; font-family: var(--mono); font-size: 11px; font-weight: 700;
+    background: var(--accent); color: #fff; border-radius: var(--r-pill); padding: 2px 8px; }
+  .badge-card.locked .cond { font-family: var(--mono); font-size: 11px; color: var(--ink-2); background: var(--surface-2);
+    padding: 4px 10px; border-radius: var(--r-pill); }
+
+  /* ---- Cohort / venue cards ---- */
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .info-card { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .info-card .kv { display: flex; gap: 8px; font-size: 13px; }
+  .info-card .kv .k { color: var(--ink-3); font-family: var(--mono); font-size: 11.5px; min-width: 92px; text-transform: uppercase; letter-spacing: .04em; padding-top: 1px; }
+  .yeartag { align-self: flex-start; }
+
+  /* ---- Auth ---- */
+  .auth-wrap { max-width: 420px; margin: 10px auto; }
+  .seg { display: flex; padding: 4px; gap: 4px; background: var(--surface-2); border-radius: var(--r-pill); margin-bottom: 18px; }
+  .seg button { flex: 1; padding: 9px; border: none; background: none; border-radius: var(--r-pill); font-weight: 700; font-size: 13.5px; color: var(--ink-2); }
+  .seg button.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; letter-spacing: .01em; }
+  .field input, .field select {
+    width: 100%; padding: 12px 14px; border-radius: var(--r-sm); border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink); font-size: 14.5px; font-family: inherit; outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .hint { text-align: center; color: var(--ink-3); font-size: 12.5px; margin-top: 14px; }
+  .hostonly { display: none; }
+  .authmode-host .hostonly { display: block; }
+  .authmode-host .studentonly { display: none; }
+
+  /* ---- Event detail overlay ---- */
+  .overlay { position: fixed; inset: 0; z-index: 60; display: none; }
+  .overlay.open { display: block; }
+  .overlay .scrim { position: absolute; inset: 0; background: rgba(20,16,23,.55); backdrop-filter: blur(3px); animation: fade .2s ease; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; max-height: 92vh; overflow-y: auto;
+    background: var(--bg); border-radius: 22px 22px 0 0; box-shadow: var(--shadow-lg);
+    animation: slideup .3s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes slideup { from { transform: translateY(100%); } to { transform: none; } }
+  .sheet .grab { width: 40px; height: 4px; border-radius: 999px; background: var(--line-strong); margin: 10px auto 0; }
+  .detail-hero {
+    padding: 26px 22px 20px; color: #fff; position: relative;
+    background:
+      radial-gradient(120% 130% at 90% -10%, color-mix(in srgb, var(--cat) 70%, transparent), transparent 55%),
+      linear-gradient(140deg, color-mix(in srgb, var(--cat) 92%, #000 6%), color-mix(in srgb, var(--cat) 55%, #6a2440));
+  }
+  .detail-hero .glyph { position: absolute; right: 18px; top: 18px; font-size: 52px; opacity: .9; }
+  .detail-hero h2 { font-size: 26px; margin: 12px 0 6px; max-width: 88%; }
+  .detail-hero .chip.cat { background: rgba(255,255,255,.22); color: #fff; border-color: rgba(255,255,255,.3); }
+  .detail-body { padding: 20px 22px 34px; display: flex; flex-direction: column; gap: 20px; }
+  .detail-body .close { position: absolute; right: 16px; top: 16px; background: rgba(0,0,0,.3); color:#fff; border:none; }
+  .fact { display: flex; gap: 12px; align-items: flex-start; }
+  .fact .fi { font-size: 18px; width: 24px; text-align: center; flex: none; }
+  .fact .ft small { display: block; color: var(--ink-3); font-size: 11.5px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .05em; }
+  .fact .ft b { font-size: 14.5px; }
+  .host-card { display: flex; align-items: center; gap: 12px; padding: 14px; }
+  .divider { height: 1px; background: var(--line); }
+
+  @media (min-width: 640px) {
+    .overlay .sheet { left: 50%; right: auto; top: 50%; bottom: auto; transform: translate(-50%,-50%);
+      width: min(560px, 94vw); max-height: 90vh; border-radius: 22px; animation: pop .25s ease; }
+    @keyframes pop { from { opacity:0; transform: translate(-50%,-46%) scale(.97);} to { opacity:1; transform: translate(-50%,-50%) scale(1);} }
+    .sheet .grab { display: none; }
+  }
+
+  .empty { text-align: center; color: var(--ink-3); padding: 40px 20px; font-size: 14px; }
+  .stack-gap { display: flex; flex-direction: column; gap: 26px; }
+  .pill-note { display: inline-flex; align-items:center; gap:6px; font-size: 12px; color: var(--ink-2);
+    background: var(--surface-2); padding: 6px 12px; border-radius: var(--r-pill); font-family: var(--mono); }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="rose">🌹</span>
+      <span><b>YSE</b><small>York Student Events</small></span>
+    </div>
+    <button class="icon-btn" id="searchBtn" title="Search" aria-label="Search">🔍</button>
+    <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+    <button class="icon-btn" data-goto="profile" title="Profile" aria-label="Profile" style="--av:#5b6ce4;background:#5b6ce4;color:#fff;border:none;font-weight:700;">A</button>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar"></nav>
+    <main>
+      <!-- DISCOVER -->
+      <section class="screen active" id="screen-discover">
+        <h1 class="screen-title">Discover</h1>
+        <p class="screen-sub">What's on around campus this week.</p>
+        <div class="search"><span>🔍</span><input placeholder="Search events, societies, venues…" /></div>
+        <div class="filters" id="filters"></div>
+
+        <div class="sec-head"><h2>For you</h2><span class="link">Recommendations →</span></div>
+        <div class="rail" id="railForYou"></div>
+
+        <div class="sec-head" style="margin-top:22px;"><h2 id="allHead">All events</h2></div>
+        <div class="grid-events" id="gridAll"></div>
+      </section>
+
+      <!-- RECOMMENDATIONS -->
+      <section class="screen" id="screen-recs">
+        <h1 class="screen-title">For you</h1>
+        <p class="screen-sub">Ranked by how many of your friends are going.</p>
+        <div class="grid-events" id="gridRecs"></div>
+      </section>
+
+      <!-- FRIENDS -->
+      <section class="screen" id="screen-friends">
+        <h1 class="screen-title">Friends</h1>
+        <p class="screen-sub"><span id="friendCount"></span> friends · <span id="pendCount"></span> pending</p>
+        <div class="stack-gap">
+          <div>
+            <div class="sec-head"><h2>Requests</h2></div>
+            <div class="card row-list" id="listPending"></div>
+          </div>
+          <div>
+            <div class="sec-head"><h2>Your friends</h2></div>
+            <div class="card row-list" id="listFriends"></div>
+          </div>
+          <div>
+            <div class="sec-head"><h2>People you may know</h2><span class="link">via mutual friends</span></div>
+            <div class="card row-list" id="listSuggested"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BADGES -->
+      <section class="screen" id="screen-badges">
+        <h1 class="screen-title">Badges</h1>
+        <p class="screen-sub">Earned by showing up and getting involved.</p>
+        <div class="sec-head"><h2>Earned</h2></div>
+        <div class="grid-badges" id="gridEarned" style="margin-bottom:26px;"></div>
+        <div class="sec-head"><h2>Locked</h2></div>
+        <div class="grid-badges" id="gridLocked"></div>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="screen" id="screen-profile">
+        <div id="profileHead"></div>
+        <div class="sec-head"><h2>My badges</h2><span class="link" data-goto="badges">All →</span></div>
+        <div class="stack" id="profileBadges" style="margin-bottom:24px;gap:0;"></div>
+        <div class="sec-head"><h2>My events</h2></div>
+        <div class="grid-events" id="gridMine"></div>
+
+        <div class="divider" style="margin:28px 0;"></div>
+        <div class="grid-2">
+          <button class="card info-card" data-goto="cohorts" style="text-align:left;color:inherit;">
+            <div class="eyebrow">Explore</div><h3>Cohorts</h3>
+            <p style="color:var(--ink-3);margin:0;font-size:13px;">Your course, year group and coursemates.</p>
+          </button>
+          <button class="card info-card" data-goto="venues" style="text-align:left;color:inherit;">
+            <div class="eyebrow">Explore</div><h3>Venues</h3>
+            <p style="color:var(--ink-3);margin:0;font-size:13px;">Every space events happen in on campus.</p>
+          </button>
+          <button class="card info-card" data-goto="auth" style="text-align:left;color:inherit;">
+            <div class="eyebrow">Account</div><h3>Sign in / Register</h3>
+            <p style="color:var(--ink-3);margin:0;font-size:13px;">Student & host onboarding forms.</p>
+          </button>
+        </div>
+      </section>
+
+      <!-- COHORTS -->
+      <section class="screen" id="screen-cohorts">
+        <h1 class="screen-title">Cohorts</h1>
+        <p class="screen-sub">Course communities by department and year.</p>
+        <div class="grid-2" id="gridCohorts"></div>
+      </section>
+
+      <!-- VENUES -->
+      <section class="screen" id="screen-venues">
+        <h1 class="screen-title">Venues</h1>
+        <p class="screen-sub">Spaces across the University of York.</p>
+        <div class="grid-2" id="gridVenues"></div>
+      </section>
+
+      <!-- AUTH -->
+      <section class="screen" id="screen-auth">
+        <div class="auth-wrap" id="authRoot">
+          <h1 class="screen-title" style="text-align:center;">Welcome to YSE</h1>
+          <p class="screen-sub" style="text-align:center;">Find your people. Never miss what's on.</p>
+          <div class="seg" id="authTab">
+            <button class="active" data-tab="login">Sign in</button>
+            <button data-tab="register">Register</button>
+          </div>
+          <div class="card" style="padding:20px;">
+            <div class="seg" id="roleTab" style="background:var(--surface-2);">
+              <button class="active" data-role="student">🎓 Student</button>
+              <button data-role="host">📣 Host</button>
+            </div>
+            <div class="field studentonly" id="regNameField" style="display:none;">
+              <label>Username</label><input placeholder="e.g. amara.okafor" />
+            </div>
+            <div class="field hostonly">
+              <label>Organiser name</label><input placeholder="e.g. Computer Science Society" />
+            </div>
+            <div class="field"><label>University email</label><input type="email" placeholder="abc123@york.ac.uk" /></div>
+            <div class="field studentonly" id="cohortField" style="display:none;">
+              <label>Cohort</label>
+              <select><option>Computer Science — Year 2 (2025/26)</option><option>History — Year 1 (2025/26)</option><option>Physics MSc (2024/25)</option></select>
+            </div>
+            <div class="field"><label>Password</label><input type="password" placeholder="••••••••" /></div>
+            <button class="btn primary block" id="authSubmit">Sign in</button>
+            <p class="hint">Mockup only — no data leaves this page.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="bottomnav" id="bottomnav"></nav>
+</div>
+
+<!-- Event detail overlay -->
+<div class="overlay" id="overlay">
+  <div class="scrim" data-close></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Event details"></div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   MOCK DATA — field names mirror the real domain entities.
+   ============================================================ */
+const CATEGORIES = {
+  ACADEMIC:         { label: "Academic",        g: "📚", hue: "#5b6ce4" },
+  SOCIAL:           { label: "Social",          g: "🥂", hue: "#ff7a59" },
+  SPORTS:           { label: "Sports",          g: "⚽", hue: "#16a34a" },
+  ARTS_AND_CULTURE: { label: "Arts & Culture",  g: "🎨", hue: "#9333ea" },
+  MUSIC:            { label: "Music",           g: "🎵", hue: "#db2777" },
+  CAREERS:          { label: "Careers",         g: "💼", hue: "#2563eb" },
+  WELLBEING:        { label: "Wellbeing",       g: "🧘", hue: "#0d9488" },
+  VOLUNTEERING:     { label: "Volunteering",    g: "🤝", hue: "#65a30d" },
+  SOCIETIES:        { label: "Societies",       g: "🎭", hue: "#d97706" },
+  FOOD_AND_DRINK:   { label: "Food & Drink",    g: "🍕", hue: "#ea580c" },
+  FUNDRAISER:       { label: "Fundraiser",      g: "💝", hue: "#dc2626" },
+  FRESHERS:         { label: "Freshers",        g: "🎉", hue: "#0891b2" },
+  NIGHTLIFE:        { label: "Nightlife",       g: "🌙", hue: "#7c3aed" },
+};
+
+const VENUES = {
+  v1: { id:"v1", name:"Central Hall",              address:"University Rd, Heslington Campus West", capacity:1000 },
+  v2: { id:"v2", name:"The Glasshouse @ York SU",  address:"James College, Campus East",          capacity:320 },
+  v3: { id:"v3", name:"Courtyard, Vanbrugh College",address:"Vanbrugh College, Campus West",       capacity:180 },
+  v4: { id:"v4", name:"Ron Cooke Hub",             address:"Deramore Ln, Campus East",            capacity:220 },
+  v5: { id:"v5", name:"Berrick Saul Treehouse",    address:"Humanities Research Centre, West",     capacity:80  },
+  v6: { id:"v6", name:"York Sport Village",        address:"Lakeside Way, Campus East",           capacity:600 },
+};
+
+// Hosts (Host user subtype) and Students (Student subtype). type = STUDENT | HOST
+const USERS = {
+  u_me:  { id:"u_me",  type:"STUDENT", username:"amara.okafor",  name:"Amara Okafor",  cohort:"c1", av:"#5b6ce4" },
+  u_ben: { id:"u_ben", type:"STUDENT", username:"ben.whitmore",  name:"Ben Whitmore",  cohort:"c1", av:"#16a34a" },
+  u_pri: { id:"u_pri", type:"STUDENT", username:"priya.nair",    name:"Priya Nair",    cohort:"c2", av:"#db2777" },
+  u_leo: { id:"u_leo", type:"STUDENT", username:"leo.zhang",     name:"Leo Zhang",     cohort:"c1", av:"#ea580c" },
+  u_maya:{ id:"u_maya",type:"STUDENT", username:"maya.patel",    name:"Maya Patel",    cohort:"c3", av:"#0d9488" },
+  u_sam: { id:"u_sam", type:"STUDENT", username:"sam.okoro",     name:"Sam Okoro",     cohort:"c2", av:"#9333ea" },
+  u_ivy: { id:"u_ivy", type:"STUDENT", username:"ivy.brooks",    name:"Ivy Brooks",    cohort:"c1", av:"#d97706" },
+  // Hosts (organisers: societies, SU, clubs, companies)
+  h_compsoc: { id:"h_compsoc", type:"HOST", username:"compsoc",       name:"Computer Science Society", av:"#5b6ce4" },
+  h_su:      { id:"h_su",      type:"HOST", username:"york.su",        name:"York Students' Union",     av:"#f5386a" },
+  h_careers: { id:"h_careers", type:"HOST", username:"careers",        name:"Careers & Placements",     av:"#2563eb" },
+  h_sport:   { id:"h_sport",   type:"HOST", username:"york.sport",     name:"York Sport",               av:"#16a34a" },
+  h_rag:     { id:"h_rag",     type:"HOST", username:"york.rag",       name:"York RAG",                 av:"#dc2626" },
+  h_artsoc:  { id:"h_artsoc",  type:"HOST", username:"artsoc",         name:"Fine Art Society",         av:"#9333ea" },
+};
+
+const COHORTS = {
+  c1: { id:"c1", name:"Computer Science",  department:"Computer Science", academicYear:2025, yearGroup:2, members:["u_me","u_ben","u_leo","u_ivy"] },
+  c2: { id:"c2", name:"History",           department:"History",         academicYear:2025, yearGroup:1, members:["u_pri","u_sam"] },
+  c3: { id:"c3", name:"Physics (MSc)",     department:"Physics",         academicYear:2024, yearGroup:5, members:["u_maya"] },
+};
+const YEAR_GROUP = {0:"Foundation year",1:"First year",2:"Second year",3:"Placement year",4:"Third year",5:"Masters"};
+
+// Events. startDateTime/endDateTime ISO; category = EventCategory enum key; venueId FK; capacity nullable; going = attending count
+const EVENTS = [
+  { id:"e1",  title:"Freshers Welcome Fair",        category:"FRESHERS",         startDateTime:"2026-09-21T11:00", endDateTime:"2026-09-21T16:00", venueId:"v1", capacity:1000, going:742, hostId:"h_su",      friendsGoing:["u_ben","u_leo","u_ivy"], description:"Kick off the year: 200+ societies, sports clubs and services under one roof. Grab your free tote and find your people." },
+  { id:"e2",  title:"CompSoc Hack Night",           category:"SOCIETIES",        startDateTime:"2026-09-24T18:30", endDateTime:"2026-09-24T23:00", venueId:"v4", capacity:120,  going:64,  hostId:"h_compsoc", friendsGoing:["u_ben","u_leo"],        description:"Pizza-fuelled evening of building silly things fast. All levels welcome — mentors on hand, hardware to borrow." },
+  { id:"e3",  title:"Graduate Careers Fair",        category:"CAREERS",          startDateTime:"2026-10-02T10:00", endDateTime:"2026-10-02T15:00", venueId:"v1", capacity:800,  going:513, hostId:"h_careers", friendsGoing:["u_pri"],                description:"Meet 90+ employers hiring for grad schemes, placements and internships. Bring your CV; on-the-spot reviews available." },
+  { id:"e4",  title:"Roses Warm-up: Football vs Lancaster", category:"SPORTS",   startDateTime:"2026-10-05T14:00", endDateTime:"2026-10-05T16:00", venueId:"v6", capacity:600,  going:588, hostId:"h_sport",   friendsGoing:["u_ben","u_leo","u_ivy","u_sam"], description:"The rivalry that defines the year. Come loud, wear white, roar the team on ahead of the big weekend." },
+  { id:"e5",  title:"Live Jazz at The Glasshouse",  category:"MUSIC",            startDateTime:"2026-10-09T20:00", endDateTime:"2026-10-09T23:30", venueId:"v2", capacity:320,  going:210, hostId:"h_su",      friendsGoing:["u_pri","u_maya"],       description:"Student ensembles and a headline quartet. Low lights, good drinks, a properly warm room. Doors 7:30." },
+  { id:"e6",  title:"Wellbeing Yoga & Chill",       category:"WELLBEING",        startDateTime:"2026-10-11T09:30", endDateTime:"2026-10-11T10:45", venueId:"v5", capacity:40,   going:31,  hostId:"h_su",      friendsGoing:["u_maya"],               description:"Slow flow, breathwork and a cup of tea after. Mats provided. A gentle reset for the middle of term." },
+  { id:"e7",  title:"Vanbrugh Bar Quiz",            category:"SOCIAL",           startDateTime:"2026-10-14T19:30", endDateTime:"2026-10-14T22:00", venueId:"v3", capacity:180,  going:96,  hostId:"h_su",      friendsGoing:["u_ben","u_ivy","u_leo"],description:"Six rounds, silly prizes, teams of up to six. The picture round is genuinely unfair and we won't apologise." },
+  { id:"e8",  title:"Life Drawing with Fine Art Soc",category:"ARTS_AND_CULTURE",startDateTime:"2026-10-16T18:00", endDateTime:"2026-10-16T20:00", venueId:"v5", capacity:35,   going:22,  hostId:"h_artsoc",  friendsGoing:[],                       description:"Relaxed, no-experience-needed session with a live model. Materials included; leave with a sketchbook full." },
+  { id:"e9",  title:"RAG Charity Bake Sale",        category:"FUNDRAISER",       startDateTime:"2026-10-20T12:00", endDateTime:"2026-10-20T14:00", venueId:"v4", capacity:null, going:130, hostId:"h_rag",     friendsGoing:["u_pri","u_sam"],        description:"All proceeds to this year's chosen charities. Yes, there is a vegan brownie tier. Bring coins." },
+  { id:"e10", title:"Halloween Club Night",         category:"NIGHTLIFE",        startDateTime:"2026-10-31T21:00", endDateTime:"2026-11-01T02:00", venueId:"v2", capacity:320,  going:305, hostId:"h_su",      friendsGoing:["u_ben","u_leo","u_pri","u_ivy"], description:"Two rooms, best-costume prizes and a very committed fog machine. Last entry midnight." },
+  { id:"e11", title:"River Ouse Clean-up",          category:"VOLUNTEERING",     startDateTime:"2026-10-25T10:00", endDateTime:"2026-10-25T13:00", venueId:"v6", capacity:60,   going:28,  hostId:"h_su",      friendsGoing:["u_maya"],               description:"Litter-pick along the riverbank with the volunteering team. Gloves and grabbers provided; wear old boots." },
+  { id:"e12", title:"International Food Festival",   category:"FOOD_AND_DRINK",   startDateTime:"2026-10-28T17:00", endDateTime:"2026-10-28T20:00", venueId:"v3", capacity:250,  going:174, hostId:"h_su",      friendsGoing:["u_pri","u_maya","u_sam"],description:"Dishes from 30+ student societies representing home. One token gets you tasting portions across the world." },
+];
+
+// Current user's registered events (Student.registeredEvents)
+const MY_EVENTS = ["e2","e4","e7","e10"];
+
+// Friend graph (friendship_status: PENDING | ACCEPTED). From current user's perspective.
+const FRIENDS_ACCEPTED = ["u_ben","u_leo","u_pri","u_ivy"];
+const FRIENDS_PENDING = [ // requests waiting on the current user
+  { user_id:"u_maya", direction:"incoming" },
+  { user_id:"u_sam",  direction:"incoming" },
+];
+const SUGGESTED = [ // recommended friends via mutual connections
+  { user_id:"u_sam",  mutual:2 },
+  { user_id:"u_maya", mutual:1 },
+];
+
+// Badges. award_condition rendered here in plain English (real: predicate DSL tree)
+const BADGES_EARNED = [
+  { id:"b1", name:"Early Bird",      g:"🐦", description:"Registered for 5 events.",             times_awarded:1, awarded_at:"2026-09-30" },
+  { id:"b2", name:"Social Butterfly",g:"🦋", description:"Made 10 friends on YSE.",              times_awarded:1, awarded_at:"2026-10-06" },
+  { id:"b3", name:"Night Owl",       g:"🌙", description:"Attended 3 nightlife events.",         times_awarded:2, awarded_at:"2026-11-01" },
+];
+const BADGES_LOCKED = [
+  { id:"b4", name:"Culture Vulture", g:"🎨", condition:"Attend 5 arts events",     progress:"2 / 5" },
+  { id:"b5", name:"Marathon",        g:"🏅", condition:"Attend 20 events",          progress:"7 / 20" },
+  { id:"b6", name:"Super Connector", g:"🔗", condition:"Reach 25 friends",          progress:"4 / 25" },
+  { id:"b7", name:"Give Back",       g:"🤝", condition:"Join 3 volunteering events",progress:"1 / 3" },
+];
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const $ = (s, r=document) => r.querySelector(s);
+const el = (html) => { const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstElementChild; };
+const initials = (name) => name.split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+const cat = (k) => CATEGORIES[k];
+function fmtWhen(iso){
+  const d = new Date(iso);
+  const day = d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+  const time = d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+  return { day, time, full:`${day} · ${time}` };
+}
+function avatar(u, cls=""){ return `<span class="avatar ${cls}" style="--av:${u.av};background:${u.av}">${initials(u.name)}</span>`; }
+function capState(going, cap){
+  if(cap==null) return { pct:0, cls:"", label:`${going} going`, sub:"No cap" };
+  const pct = Math.min(100, Math.round(going/cap*100));
+  const cls = pct>=100?"full":pct>=85?"warn":"";
+  return { pct, cls, label:`${going}/${cap}`, sub: pct>=100?"Full":`${cap-going} left` };
+}
+
+/* ============================================================
+   COMPONENTS
+   ============================================================ */
+function friendsStack(ids){
+  if(!ids || !ids.length) return "";
+  const shown = ids.slice(0,3).map(id=>avatar(USERS[id])).join("");
+  const extra = ids.length>3 ? `<span class="more">+${ids.length-3} friends</span>` : `<span class="more">${ids.length} going</span>`;
+  return `<div class="stack">${shown}${extra}</div>`;
+}
+function eventCard(e){
+  const c = cat(e.category), w = fmtWhen(e.startDateTime), cp = capState(e.going, e.capacity);
+  return `
+  <button class="event" data-event="${e.id}" style="--cat:${c.hue}">
+    <div class="banner"><span class="when mono">${w.full}</span><span class="glyph">${c.g}</span></div>
+    <div class="body">
+      <span class="chip cat"><span class="dot"></span>${c.label}</span>
+      <h3>${e.title}</h3>
+      <div class="meta">📍 ${VENUES[e.venueId].name}</div>
+      <div class="capacity">
+        <div class="bar ${cp.cls}"><span style="width:${cp.pct}%"></span></div>
+        <div class="lab"><span>${cp.label}</span><span>${cp.sub}</span></div>
+      </div>
+      <div class="foot">${friendsStack(e.friendsGoing) || '<span class="meta">Be the first to go</span>'}</div>
+    </div>
+  </button>`;
+}
+
+/* ============================================================
+   RENDER SCREENS
+   ============================================================ */
+let activeFilter = "ALL";
+
+function renderNav(){
+  const items = [
+    ["discover","Discover","🧭"], ["recs","For you","✨"], ["friends","Friends","👥"],
+    ["badges","Badges","🏅"], ["profile","Profile","🎓"],
+  ];
+  const side = [...items, null, ["cohorts","Cohorts","📚"], ["venues","Venues","📍"], ["auth","Sign in","🔑"]];
+  $("#sidebar").innerHTML = side.map(it => it===null ? '<div class="side-sep"></div>'
+    : `<button class="navlink" data-goto="${it[0]}"><span class="ico">${it[2]}</span>${it[1]}</button>`).join("");
+  $("#bottomnav").innerHTML = items.map(it =>
+    `<button class="navlink" data-goto="${it[0]}"><span class="ico">${it[2]}</span>${it[1]}</button>`).join("");
+}
+
+function renderFilters(){
+  const all = `<button class="filter ${activeFilter==="ALL"?"active":""}" data-filter="ALL"><span class="g">🌐</span>All</button>`;
+  const chips = Object.entries(CATEGORIES).map(([k,c])=>
+    `<button class="filter ${activeFilter===k?"active":""}" data-filter="${k}"><span class="g">${c.g}</span>${c.label}</button>`).join("");
+  $("#filters").innerHTML = all + chips;
+}
+
+function renderDiscover(){
+  renderFilters();
+  const forYou = EVENTS.filter(e=>e.friendsGoing.length>0)
+    .sort((a,b)=>b.friendsGoing.length-a.friendsGoing.length).slice(0,6);
+  $("#railForYou").innerHTML = forYou.map(eventCard).join("");
+  const list = activeFilter==="ALL" ? EVENTS : EVENTS.filter(e=>e.category===activeFilter);
+  $("#allHead").textContent = activeFilter==="ALL" ? "All events" : `${cat(activeFilter).label} events`;
+  $("#gridAll").innerHTML = list.length ? list.map(eventCard).join("")
+    : `<p class="empty">No ${cat(activeFilter).label.toLowerCase()} events right now.</p>`;
+}
+
+function renderRecs(){
+  const ranked = EVENTS.filter(e=>e.friendsGoing.length>0 && !MY_EVENTS.includes(e.id))
+    .sort((a,b)=>b.friendsGoing.length-a.friendsGoing.length);
+  $("#gridRecs").innerHTML = ranked.map(e=>{
+    const names = e.friendsGoing.map(id=>USERS[id].name.split(" ")[0]);
+    const label = names.length===1?`${names[0]} is going`
+      : `${names.slice(0,2).join(", ")}${names.length>2?` +${names.length-2}`:""} going`;
+    const card = el(eventCard(e));
+    card.querySelector(".foot").innerHTML = `${friendsStack(e.friendsGoing)}<span class="pill-note">🎯 ${label}</span>`;
+    return card.outerHTML;
+  }).join("");
+}
+
+function renderFriends(){
+  $("#friendCount").textContent = FRIENDS_ACCEPTED.length;
+  $("#pendCount").textContent = FRIENDS_PENDING.length;
+  $("#listPending").innerHTML = FRIENDS_PENDING.map(p=>{
+    const u = USERS[p.user_id];
+    return `<div class="row">${avatar(u,"")}<div class="grow"><b>${u.name}</b><small>@${u.username} · wants to connect</small></div>
+      <div class="actions"><button class="btn primary sm">Accept</button><button class="btn secondary sm">Decline</button></div></div>`;
+  }).join("") || '<div class="empty">No pending requests.</div>';
+  $("#listFriends").innerHTML = FRIENDS_ACCEPTED.map(id=>{
+    const u = USERS[id], co = COHORTS[u.cohort];
+    return `<div class="row">${avatar(u,"")}<div class="grow"><b>${u.name}</b><small>@${u.username} · ${co?co.name:""}</small></div>
+      <div class="actions"><button class="btn ghost sm">Message</button></div></div>`;
+  }).join("");
+  $("#listSuggested").innerHTML = SUGGESTED.map(s=>{
+    const u = USERS[s.user_id];
+    return `<div class="row">${avatar(u,"")}<div class="grow"><b>${u.name}</b><small>${s.mutual} mutual friend${s.mutual>1?"s":""}</small></div>
+      <div class="actions"><button class="btn secondary sm">+ Add</button></div></div>`;
+  }).join("");
+}
+
+function renderBadges(){
+  $("#gridEarned").innerHTML = BADGES_EARNED.map(b=>`
+    <div class="card badge-card">
+      ${b.times_awarded>1?`<span class="times">×${b.times_awarded}</span>`:""}
+      <div class="medal">${b.g}</div><h4>${b.name}</h4><p>${b.description}</p>
+      <small class="mono" style="color:var(--ink-3);font-size:11px;">Earned ${fmtWhen(b.awarded_at).day}</small>
+    </div>`).join("");
+  $("#gridLocked").innerHTML = BADGES_LOCKED.map(b=>`
+    <div class="card badge-card locked">
+      <div class="medal">${b.g}</div><h4>${b.name}</h4>
+      <span class="cond">${b.condition}</span>
+      <p class="mono" style="font-size:11px;">${b.progress}</p>
+    </div>`).join("");
+}
+
+function renderProfile(){
+  const u = USERS.u_me, co = COHORTS[u.cohort];
+  $("#profileHead").innerHTML = `
+    <div class="profile-hero">
+      ${avatar(u)}
+      <div>
+        <h1 style="font-size:24px;">${u.name}</h1>
+        <div style="color:var(--ink-3);font-size:13px;" class="mono">@${u.username} · ${u.id.startsWith("u")?"Student":"Host"}</div>
+        <span class="chip cat" style="--cat:#5b6ce4;margin-top:8px;"><span class="dot"></span>${co.name} · ${YEAR_GROUP[co.yearGroup]}</span>
+        <div class="stat-row">
+          <div class="stat"><b>${MY_EVENTS.length}</b><small>Events</small></div>
+          <div class="stat"><b>${FRIENDS_ACCEPTED.length}</b><small>Friends</small></div>
+          <div class="stat"><b>${BADGES_EARNED.length}</b><small>Badges</small></div>
+        </div>
+      </div>
+    </div>`;
+  $("#profileBadges").innerHTML = BADGES_EARNED.map(b=>
+    `<span class="avatar" title="${b.name}" style="width:44px;height:44px;font-size:22px;background:radial-gradient(circle at 35% 30%,#ffe08a,#f5b027 70%,#c98a12);margin-left:-6px;border:2px solid var(--surface);">${b.g}</span>`
+  ).join("") + `<span class="more" style="margin-left:12px;">${BADGES_EARNED.length} earned</span>`;
+  $("#gridMine").innerHTML = EVENTS.filter(e=>MY_EVENTS.includes(e.id)).map(eventCard).join("");
+}
+
+function renderCohorts(){
+  $("#gridCohorts").innerHTML = Object.values(COHORTS).map(c=>`
+    <div class="card info-card">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <div><div class="eyebrow">${c.department}</div><h3 style="font-size:18px;">${c.name}</h3></div>
+        <span class="chip cat yeartag" style="--cat:#5b6ce4;"><span class="dot"></span>${YEAR_GROUP[c.yearGroup]}</span>
+      </div>
+      <div class="kv"><span class="k">Academic yr</span><span>${c.academicYear}/${(c.academicYear+1)%100}</span></div>
+      <div class="kv"><span class="k">Members</span><span>${c.members.length} student${c.members.length!==1?"s":""}</span></div>
+      <div class="stack" style="margin-top:2px;">
+        ${c.members.slice(0,5).map(id=>avatar(USERS[id])).join("")}
+        ${c.members.length>5?`<span class="more">+${c.members.length-5}</span>`:""}
+      </div>
+    </div>`).join("");
+}
+
+function renderVenues(){
+  $("#gridVenues").innerHTML = Object.values(VENUES).map(v=>{
+    const here = EVENTS.filter(e=>e.venueId===v.id);
+    return `<div class="card info-card">
+      <div><div class="eyebrow">Campus venue</div><h3 style="font-size:18px;">${v.name}</h3></div>
+      <div class="kv"><span class="k">Address</span><span>${v.address}</span></div>
+      <div class="kv"><span class="k">Capacity</span><span>${v.capacity.toLocaleString()}</span></div>
+      <div class="kv"><span class="k">Upcoming</span><span>${here.length} event${here.length!==1?"s":""}</span></div>
+      ${here.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;">${here.slice(0,3).map(e=>`<span class="chip cat" style="--cat:${cat(e.category).hue};font-size:11px;"><span class="dot"></span>${e.title}</span>`).join("")}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+/* ============================================================
+   EVENT DETAIL OVERLAY
+   ============================================================ */
+function openEvent(id){
+  const e = EVENTS.find(x=>x.id===id); if(!e) return;
+  const c = cat(e.category), v = VENUES[e.venueId], host = USERS[e.hostId];
+  const s = fmtWhen(e.startDateTime), en = fmtWhen(e.endDateTime), cp = capState(e.going, e.capacity);
+  const related = EVENTS.filter(x=>x.category===e.category && x.id!==e.id).slice(0,4);
+  const registered = MY_EVENTS.includes(e.id);
+  $("#sheet").style.setProperty("--cat", c.hue);
+  $("#sheet").innerHTML = `
+    <div class="grab"></div>
+    <div class="detail-hero" style="--cat:${c.hue}">
+      <button class="icon-btn close" data-close aria-label="Close">✕</button>
+      <span class="glyph">${c.g}</span>
+      <span class="chip cat"><span class="dot" style="background:#fff"></span>${c.label}</span>
+      <h2>${e.title}</h2>
+      <div class="mono" style="font-size:13px;opacity:.9;">${s.full} – ${en.time}</div>
+    </div>
+    <div class="detail-body">
+      <div style="display:flex;gap:10px;">
+        <button class="btn primary" style="flex:1;">${registered?"✓ Registered":"Register"}</button>
+        <button class="btn secondary">🔔 Subscribe</button>
+      </div>
+      <div style="display:grid;gap:16px;">
+        <div class="fact"><span class="fi">📍</span><div class="ft"><small>Venue</small><b>${v.name}</b><div style="color:var(--ink-3);font-size:12.5px;">${v.address}</div></div></div>
+        <div class="fact"><span class="fi">🕒</span><div class="ft"><small>When</small><b>${s.day}</b><div style="color:var(--ink-3);font-size:12.5px;">${s.time} – ${en.time}</div></div></div>
+        <div class="fact"><span class="fi">🎟️</span><div class="ft"><small>Capacity</small>
+          <div class="capacity" style="margin-top:4px;max-width:280px;"><div class="bar ${cp.cls}"><span style="width:${cp.pct}%"></span></div>
+          <div class="lab"><span>${cp.label} going</span><span>&nbsp;${cp.sub}</span></div></div></div></div>
+      </div>
+      <p style="color:var(--ink-2);line-height:1.6;margin:0;">${e.description}</p>
+      ${e.friendsGoing.length?`<div><div class="eyebrow" style="margin-bottom:8px;">Friends going</div>${friendsStack(e.friendsGoing)}</div>`:""}
+      <div class="divider"></div>
+      <div class="card host-card">${avatar(host)}<div class="grow"><small class="eyebrow">Hosted by</small><b style="display:block;">${host.name}</b></div><button class="btn ghost sm">Follow</button></div>
+      ${related.length?`<div><div class="sec-head" style="margin-bottom:10px;"><h2 style="font-size:18px;">More ${c.label.toLowerCase()}</h2></div><div class="rail">${related.map(eventCard).join("")}</div></div>`:""}
+    </div>`;
+  $("#overlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeEvent(){ $("#overlay").classList.remove("open"); document.body.style.overflow = ""; }
+
+/* ============================================================
+   NAV + EVENTS
+   ============================================================ */
+const SCREENS = ["discover","recs","friends","badges","profile","cohorts","venues","auth"];
+function goto(name){
+  if(!SCREENS.includes(name)) return;
+  SCREENS.forEach(s=>$("#screen-"+s).classList.toggle("active", s===name));
+  document.querySelectorAll(".navlink").forEach(n=>n.classList.toggle("active", n.dataset.goto===name));
+  window.scrollTo({top:0, behavior:"instant"});
+  const map = {recs:renderRecs, friends:renderFriends, badges:renderBadges, profile:renderProfile, cohorts:renderCohorts, venues:renderVenues};
+  if(map[name]) map[name]();
+}
+
+document.addEventListener("click", (ev)=>{
+  const nav = ev.target.closest("[data-goto]");
+  if(nav){ goto(nav.dataset.goto); return; }
+  const evt = ev.target.closest("[data-event]");
+  if(evt){ openEvent(evt.dataset.event); return; }
+  if(ev.target.closest("[data-close]")){ closeEvent(); return; }
+  const filter = ev.target.closest("[data-filter]");
+  if(filter){ activeFilter = filter.dataset.filter; renderDiscover(); return; }
+  const authTab = ev.target.closest("#authTab button");
+  if(authTab){
+    $("#authTab").querySelectorAll("button").forEach(b=>b.classList.toggle("active", b===authTab));
+    const isReg = authTab.dataset.tab==="register";
+    $("#regNameField").style.display = isReg ? "block" : "none";
+    $("#cohortField").style.display = isReg ? "block" : "none";
+    $("#authSubmit").textContent = isReg ? "Create account" : "Sign in";
+    return;
+  }
+  const roleTab = ev.target.closest("#roleTab button");
+  if(roleTab){
+    $("#roleTab").querySelectorAll("button").forEach(b=>b.classList.toggle("active", b===roleTab));
+    $("#authRoot").classList.toggle("authmode-host", roleTab.dataset.role==="host");
+    return;
+  }
+  if(ev.target.closest("#searchBtn")){ goto("discover"); $(".search input").focus(); return; }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeEvent(); });
+
+/* THEME toggle: cycles explicit light/dark, seeded from current OS preference */
+const themeBtn = $("#themeBtn");
+function currentDark(){
+  const t = document.documentElement.getAttribute("data-theme");
+  if(t) return t==="dark";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function syncThemeIcon(){ themeBtn.textContent = currentDark() ? "☀️" : "🌙"; }
+themeBtn.addEventListener("click", ()=>{
+  document.documentElement.setAttribute("data-theme", currentDark() ? "light" : "dark");
+  syncThemeIcon();
+});
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncThemeIcon);
+
+/* INIT */
+renderNav();
+renderDiscover();
+goto("discover");
+syncThemeIcon();
+</script>
