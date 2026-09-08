@@ -100,7 +100,7 @@ type Handler = collections.abc.Callable[[IncomingPayload], OutgoingPayload]
 def get_user_badges(payload: IncomingPayload) -> OutgoingPayload:
     user_id = uuid.UUID(payload["userId"])
     return {
-        "badges": [str(badge_id) for badge_id
+        "badges": [str(badge.get_id()) for badge
                    in _services.badge_service.get_user_badges(user_id)]
     }
 
