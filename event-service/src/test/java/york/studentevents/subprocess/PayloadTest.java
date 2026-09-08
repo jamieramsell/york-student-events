@@ -14,7 +14,7 @@ class PayloadTest {
   }
 
   @Test
-  void awardBadgePayloadExposesUserIdAndBadgeName() {
+  void awardBadgePayloadExposesUserIdAndBadgeId() {
     UUID userId = UUID.randomUUID();
     UUID badgeId = UUID.randomUUID();
     AwardBadgePayload payload = new AwardBadgePayload(userId, badgeId);

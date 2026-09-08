@@ -36,7 +36,7 @@ class SubprocessRequestFactoryTest {
   }
 
   @Test
-  void buildAwardBadgeIncludesUserIdAndBadgeName() {
+  void buildAwardBadgeIncludesUserIdAndBadgeId() {
     UUID badgeId = UUID.randomUUID();
     JsonObject envelope = parse(SubprocessRequestFactory.buildAwardBadge(USER_ID, badgeId));
     assertEquals("AWARD_BADGE", envelope.get("requestType").getAsString());
