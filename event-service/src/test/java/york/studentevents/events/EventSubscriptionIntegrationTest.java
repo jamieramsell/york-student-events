@@ -35,7 +35,7 @@ import york.studentevents.users.Student;
 class EventSubscriptionIntegrationTest {
 
   private InMemoryUserRepository userRepository;
-  private InMemoryEventRepository eventRepository;
+  private IEventRepository eventRepository;
   private SubscriptionService subscriptionService;
   private EventService eventService;
   private StudentEventService service;

@@ -25,7 +25,7 @@ import york.studentevents.venues.Venue;
  */
 class EventServiceTest {
 
-  private InMemoryEventRepository repository;
+  private IEventRepository repository;
   private EventService service;
 
   @BeforeEach
