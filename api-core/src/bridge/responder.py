@@ -1,14 +1,11 @@
 """Responder answering subprocess requests issued by the Java event-service.
 
-This is the inverse of ``client.py``: event-service spawns this module as a fresh
-process per call, writes a JSON request envelope to its stdin, and reads a JSON
-response envelope from its stdout. Each line of stdin is one request; the
-``MessageHandlerFactory`` routes it to a handler by ``requestType`` and the
+This is the inverse of ``client.py``: event-service spawns this module as a
+fresh process per call, writes a JSON request envelope to its stdin, and reads a
+JSON response envelope from its stdout. Each line of stdin is one request; the
+``MessageHandlerFactory`` routes it to a handler by ``requestType``, and the
 result is written back as an ``ok`` or ``error`` envelope. The envelope contract
 is documented in ``docs/subprocess-contract.md``.
-
-Several handlers are still stubs returning canned data (tracked in #164);
-``record_attendance`` and ``get_recommended_friends`` are wired to real services.
 
 Stdlib only, in keeping with the project's no-dependencies convention.
 """
@@ -26,28 +23,14 @@ _SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-import bootstrap
-from attendance import (
-    InMemoryCannedAttendanceRepository,
-)
-from friends import (
-    InMemoryCannedFriendshipRepository,
-)
+import bootstrap, bootstrap_sql
 
-# Compose the service graph for the subprocess bridge through the shared
-# composition root (``bootstrap``). event-service spawns a fresh responder
-# process per call, so this graph lives only for that one call; it is seeded with
-# the canned repositories to give end-to-end tests deterministic data (a
-# pre-recorded attendance and a small friend graph). The in-process handler tests
-# replace ``_services`` with a bare graph (see test_bridge_responder.py). Badge
-# evaluation is left unregistered (``register=False``): the responder is a
-# stateless per-call surface and is not where the activity-driven auto-award
-# listener should run.
-_services = bootstrap.bootstrap(
-    attendance_repository=InMemoryCannedAttendanceRepository(),
-    friendship_repository=InMemoryCannedFriendshipRepository(),
-    register=False,
-)
+def _compose_services() -> bootstrap.Services:
+    if os.getenv("YSE_BRIDGE_INMEMORY"):
+        return bootstrap.bootstrap(register=False)   # unit-test surface only
+    return bootstrap_sql.bootstrap_sql()             # SQL repos, register=True; raises w/o DATABASE_URL
+
+_services = _compose_services()
 
 # Type alias of a Payload passed to a handler, formed of str keys, and str
 # elements
