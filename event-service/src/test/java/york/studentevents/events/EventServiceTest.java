@@ -261,24 +261,47 @@ class EventServiceTest {
   @Test
   void updateEventVenue_updatesAndPersistsLocation() {
     IEvent event = savedEvent();
+    UUID venueId = getVenueId();
+    service.updateEventVenue(event.getId(), venueId);
 
-    service.updateEventVenue(event.getId(), getVenueId());
-
-    assertEquals("The Courtyard", service.getEvent(event.getId()).getVenue());
+    assertEquals(venueId, service.getEvent(event.getId()).getVenue());
   }
 
   @Test
-  void updateEventVenue_clearsAnyExistingDateTime() {
-    IEvent event = savedEvent();
-    UUID venueId = getVenueId();
-    service.updateEventVenue(event.getId(), venueId);
+  void updateEventVenue_withNonNull_keppsExistingDateTime() {
+    IEvent event = savedEvent(); // Register an event with the service
+
+    // Assign a venue to the event
+    service.updateEventVenue(event.getId(), getVenueId());
+
+    // Add a start and end datetime to the event
+    LocalDateTime start = LocalDateTime.now().plusDays(1);
+    LocalDateTime end = start.plusHours(2);
+    service.updateEventDateTime(event.getId(), start, end);
+
+    // Now update the event venue and validate that its start/end times are still in place
+    service.updateEventVenue(event.getId(), getVenueId());
+
+    IEvent fetched = service.getEvent(event.getId());
+    assertEquals(start, fetched.getStartDateTime());
+    assertEquals(end, fetched.getEndDateTime());
+  }
+
+  @Test
+  void updateEventVenue_withNull_clearsAnExistingDateTime() {
+    IEvent event = savedEvent(); // Register an event with the service
+
+    // Assign a venue to the event
+    service.updateEventVenue(event.getId(), getVenueId());
+
+    // Add a start and end datetime to the event
     LocalDateTime start = LocalDateTime.now().plusDays(1);
     service.updateEventDateTime(event.getId(), start, start.plusHours(2));
 
-    service.updateEventVenue(event.getId(), venueId);
+    // Now remove the event venue and validate that its start/end times were removed
+    service.updateEventVenue(event.getId(), null);
 
     IEvent fetched = service.getEvent(event.getId());
-    assertEquals(venueId, fetched.getVenue());
     assertNull(fetched.getStartDateTime());
     assertNull(fetched.getEndDateTime());
   }
