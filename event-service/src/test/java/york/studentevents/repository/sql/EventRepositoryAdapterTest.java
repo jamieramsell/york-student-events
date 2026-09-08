@@ -23,6 +23,21 @@ import york.studentevents.events.EventCategory;
 import york.studentevents.events.IEvent;
 import york.studentevents.events.IEventRepository;
 
+/**
+ * Integration tests for {@link EventRepositoryAdapter}, exercising it against a real Spring Data
+ * JPA layer backed by an in-memory H2 database via
+ * {@link org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest}.
+ *
+ * <p>Each test constructs the adapter around the injected {@link JpaEventRepository} proxy, so the
+ *     assertions cover both the CRUD delegation and the adapter's own translation behaviour: the
+ *     null-guards on {@code save}, {@code delete} and {@code findByID}, the mapping of a missing
+ *     row to {@link java.util.Optional#empty()}, the {@link java.util.NoSuchElementException}
+ *     raised when deleting a non-existent event, and the overwrite-on-save semantics of an existing
+ *     ID.
+ *
+ * @see EventRepositoryAdapter
+ * @see JpaEventRepository
+ */
 @DataJpaTest 
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 public class EventRepositoryAdapterTest {
