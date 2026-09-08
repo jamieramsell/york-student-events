@@ -37,11 +37,12 @@ class SubprocessRequestFactoryTest {
 
   @Test
   void buildAwardBadgeIncludesUserIdAndBadgeName() {
-    JsonObject envelope = parse(SubprocessRequestFactory.buildAwardBadge(USER_ID, "Social5"));
+    UUID badgeId = UUID.randomUUID();
+    JsonObject envelope = parse(SubprocessRequestFactory.buildAwardBadge(USER_ID, badgeId));
     assertEquals("AWARD_BADGE", envelope.get("requestType").getAsString());
     JsonObject payload = envelope.getAsJsonObject("payload");
     assertEquals(USER_ID.toString(), payload.get("userId").getAsString());
-    assertEquals("Social5", payload.get("badgeName").getAsString());
+    assertEquals(badgeId.toString(), payload.get("badgeId").getAsString());
   }
 
   @Test

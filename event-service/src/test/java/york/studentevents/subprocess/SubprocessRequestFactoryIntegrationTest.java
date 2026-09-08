@@ -82,7 +82,7 @@ class SubprocessRequestFactoryIntegrationTest {
     RuntimeException exception = assertThrows(
         RuntimeException.class,
         () -> SubprocessRequestFactory.sendRequest(
-            SubprocessRequestFactory.buildAwardBadge(USER_ID, "Social5")));
+            SubprocessRequestFactory.buildAwardBadge(USER_ID, UUID.randomUUID())));
     assertTrue(exception.getMessage().contains("THIS IS A TEST ERROR"));
   }
 

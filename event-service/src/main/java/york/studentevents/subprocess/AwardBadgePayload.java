@@ -3,9 +3,9 @@ package york.studentevents.subprocess;
 import java.util.UUID;
 
 /**
- * Payload carrying a user ID and a badge name, for requests that award a badge to a user.
+ * Payload carrying a User ID and a Badge ID, for requests that award a Badge to a User.
  *
- * @param userId the user's ID
- * @param badgeName the name of the badge to award
+ * @param userId the User's ID
+ * @param badgeId the ID of the Badge to award
  */
-record AwardBadgePayload(UUID userId, String badgeName) implements IPayload {}
+record AwardBadgePayload(UUID userId, UUID badgeId) implements IPayload {}

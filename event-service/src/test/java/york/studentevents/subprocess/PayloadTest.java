@@ -15,10 +15,11 @@ class PayloadTest {
 
   @Test
   void awardBadgePayloadExposesUserIdAndBadgeName() {
-    UUID id = UUID.randomUUID();
-    AwardBadgePayload payload = new AwardBadgePayload(id, "First Event");
-    assertEquals(id, payload.userId());
-    assertEquals("First Event", payload.badgeName());
+    UUID userId = UUID.randomUUID();
+    UUID badgeId = UUID.randomUUID();
+    AwardBadgePayload payload = new AwardBadgePayload(userId, badgeId);
+    assertEquals(userId, payload.userId());
+    assertEquals(badgeId, payload.badgeId());
   }
 
   @Test
@@ -32,12 +33,12 @@ class PayloadTest {
 
   @Test
   void payloadsExposeUserIdViaInterface() {
-    UUID id = UUID.randomUUID();
-    IPayload userIdPayload = new UserIdPayload(id);
-    IPayload awardBadgePayload = new AwardBadgePayload(id, "Social5");
-    IPayload attendancePayload = new AttendancePayload(id, UUID.randomUUID());
-    assertEquals(id, userIdPayload.userId());
-    assertEquals(id, awardBadgePayload.userId());
-    assertEquals(id, attendancePayload.userId());
+    UUID userId = UUID.randomUUID();
+    IPayload userIdPayload = new UserIdPayload(userId);
+    IPayload awardBadgePayload = new AwardBadgePayload(userId, UUID.randomUUID());
+    IPayload attendancePayload = new AttendancePayload(userId, UUID.randomUUID());
+    assertEquals(userId, userIdPayload.userId());
+    assertEquals(userId, awardBadgePayload.userId());
+    assertEquals(userId, attendancePayload.userId());
   }
 }
