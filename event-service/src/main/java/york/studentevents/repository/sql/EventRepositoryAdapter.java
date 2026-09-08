@@ -8,10 +8,34 @@ import york.studentevents.events.Event;
 import york.studentevents.events.IEvent;
 import york.studentevents.events.IEventRepository;
 
+/**
+ * Database-backed implementation of {@link IEventRepository}, adapting Spring Data JPA to the
+ * domain repository contract.
+ *
+ * <p>Persistence is delegated to a {@link JpaEventRepository}, whose implementation is generated
+ *     by Spring Data at runtime. This adapter translates between the two layers: the concrete
+ *     {@link Event} entity is widened to the {@link IEvent} interface on the way out, a missing row
+ *     is mapped to {@link Optional#empty()}, and a delete against a missing row is reported as the
+ *     {@link java.util.NoSuchElementException} the
+ *     {@link york.studentevents.repository.IRepository} contract requires, rather than the
+ *     framework exception Spring Data would otherwise raise.
+ *
+ * <p>This is the intended production implementation of {@link IEventRepository}, superseding the
+ *     hash-map backed {@link york.studentevents.repository.inmemory.InMemoryEventRepository}.
+ *
+ * @see IEventRepository
+ * @see JpaEventRepository
+ * @see IEvent
+ */
 public class EventRepositoryAdapter implements IEventRepository {
 
   private final JpaEventRepository jpa;
 
+  /**
+   * Constructs an adapter that delegates persistence to the given Spring Data repository.
+   *
+   * @param jpa the Spring Data repository to delegate to; must not be {@code null}
+   */
   public EventRepositoryAdapter(JpaEventRepository jpa) {
     this.jpa = jpa;
   }
