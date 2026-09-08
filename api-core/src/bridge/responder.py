@@ -61,22 +61,36 @@ type OutgoingPayload = dict[str, list[str]]
 # returns a Payload
 type Handler = collections.abc.Callable[[IncomingPayload], OutgoingPayload]
 
-#TODO
+
 def get_user_badges(payload: IncomingPayload) -> OutgoingPayload:
-    return {"badges": ["First Event", "Social5"]}
+    user_id = uuid.UUID(payload["userId"])
+    return {
+        "badges": [str(badge_id) for badge_id
+                   in _services.badge_service.get_user_badges(user_id)]
+    }
 
-#TODO
+
 def get_user_friends(payload: IncomingPayload) -> OutgoingPayload:
-    return {"friends": ["James", "Jamie"]}
+    user_id = uuid.UUID(payload["userId"])
+    return {
+        "friends": [str(friend_id) for friend_id
+                    in _services.friendship_service.get_friends(user_id)]
+    }
 
-#TODO
+
 def award_badge(payload: IncomingPayload) -> OutgoingPayload:
-    raise ValueError("THIS IS A TEST ERROR")
+    user_id = uuid.UUID(payload["userId"])
+    badge_id = uuid.UUID(payload["badgeId"])
+    _services.badge_service.award_badge(user_id, badge_id)
+    return {}
 
-#TODO
+
 def get_recommended_events(payload: IncomingPayload) -> OutgoingPayload:
-    return {"events": ["cd1e0662-beab-4fc0-af84-9dc29c98d561",
-                       "0c51b12f-6bec-4172-bba0-25bba3bef9d9"]}
+    user_id = uuid.UUID(payload["userId"])
+    return {
+        "events": [str(event_id) for event_id
+                   in _services.recommendations_service.get_recommended_events(user_id)]
+    }
 
 
 def record_attendance(payload: IncomingPayload) -> OutgoingPayload:
