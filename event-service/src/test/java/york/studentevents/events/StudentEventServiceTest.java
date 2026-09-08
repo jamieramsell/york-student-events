@@ -30,7 +30,7 @@ import york.studentevents.users.Student;
 class StudentEventServiceTest {
 
   private InMemoryUserRepository userRepository;
-  private InMemoryEventRepository eventRepository;
+  private IEventRepository eventRepository;
   private RecordingSubscriptionService subscriptionService;
   private EventService eventService;
   private StudentEventService service;
