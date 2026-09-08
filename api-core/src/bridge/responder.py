@@ -23,7 +23,8 @@ _SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-import bootstrap, bootstrap_sql
+import bootstrap
+import bootstrap_sql
 
 _services: bootstrap.Services | None = None
 
