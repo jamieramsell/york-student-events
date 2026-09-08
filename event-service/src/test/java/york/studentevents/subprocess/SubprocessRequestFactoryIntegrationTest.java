@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.UUID;
@@ -16,27 +15,20 @@ import org.junit.jupiter.api.Test;
  * Integration tests for {@link SubprocessRequestFactory#sendRequest(String)}.
  *
  * <p>These spawn the real Python responder ({@code bridge/responder.py}) and assert on the JSON it
- * returns, exercising the Java-to-Python direction of the bridge end to end. The responder
- * currently returns canned stub data. Skipped when {@code python3} is not available; the script is
+ * returns, exercising the Java-to-Python direction of the bridge end to end. They cover the wire
+ * contract — the {@code ok} / empty-payload / {@code error} envelope shapes — rather than persisted
+ * data: the responder is spawned with the {@code YSE_BRIDGE_INMEMORY} flag (set for the surefire
+ * fork in the pom and inherited by the spawned process), so it composes an empty in-memory backend
+ * and needs no database. The seeded-data round-trip is covered on the Python side in
+ * {@code test_bridge_responder.py}. Skipped when {@code python} is not available; the script is
  * located via the {@code project.root} property set by surefire.
  */
 class SubprocessRequestFactoryIntegrationTest {
 
+  // A sample user id; the in-memory backend holds no data for it, so read
+  // handlers return empty collections.
   private static final UUID USER_ID =
       UUID.fromString("11111111-1111-1111-1111-111111111111");
-
-  // The pair pre-seeded into the responder's canned attendance repository
-  // (InMemoryCannedAttendanceRepository); USER_ID doubles as the canned
-  // attendee, so re-recording it against CANNED_EVENT_ID is a known duplicate.
-  private static final UUID CANNED_EVENT_ID =
-      UUID.fromString("22222222-2222-2222-2222-222222222222");
-
-  // The user recommended by the responder's canned friend graph
-  // (InMemoryCannedFriendshipRepository): USER_ID doubles as the canned
-  // friend-seeker, who shares a mutual friend with this user but is not
-  // directly connected to them, so they are the sole recommendation.
-  private static final UUID CANNED_RECOMMENDED_FRIEND_ID =
-      UUID.fromString("44444444-4444-4444-4444-444444444444");
 
   @BeforeEach
   void requirePython() {
@@ -58,32 +50,28 @@ class SubprocessRequestFactoryIntegrationTest {
   }
 
   @Test
-  void getUserBadgesReturnsBadgesInOkEnvelope() {
+  void getUserBadgesReturnsEmptyBadgesInOkEnvelope() {
     JsonObject response = send(SubprocessRequestFactory.buildGetUserBadges(USER_ID));
     assertEquals("ok", response.get("status").getAsString());
-    JsonArray badges = response.getAsJsonObject("payload").getAsJsonArray("badges");
-    assertEquals(2, badges.size());
-    assertEquals("First Event", badges.get(0).getAsString());
-    assertEquals("Social5", badges.get(1).getAsString());
+    assertEquals(0, response.getAsJsonObject("payload").getAsJsonArray("badges").size());
   }
 
   @Test
-  void getUserFriendsReturnsFriendsInOkEnvelope() {
+  void getUserFriendsReturnsEmptyFriendsInOkEnvelope() {
     JsonObject response = send(SubprocessRequestFactory.buildGetUserFriends(USER_ID));
     assertEquals("ok", response.get("status").getAsString());
-    JsonArray friends = response.getAsJsonObject("payload").getAsJsonArray("friends");
-    assertEquals(2, friends.size());
-    assertEquals("James", friends.get(0).getAsString());
-    assertEquals("Jamie", friends.get(1).getAsString());
+    assertEquals(0, response.getAsJsonObject("payload").getAsJsonArray("friends").size());
   }
 
   @Test
-  void awardBadgeFailsAndSurfacesResponderError() {
+  void awardBadgeForUnknownBadgeSurfacesResponderError() {
+    // No badge exists in the empty backend, so the responder rejects the award and
+    // the non-zero exit is surfaced as a RuntimeException by sendRequest.
     RuntimeException exception = assertThrows(
         RuntimeException.class,
         () -> SubprocessRequestFactory.sendRequest(
             SubprocessRequestFactory.buildAwardBadge(USER_ID, UUID.randomUUID())));
-    assertTrue(exception.getMessage().contains("THIS IS A TEST ERROR"));
+    assertTrue(exception.getMessage().contains("Subprocess failed"));
   }
 
   @Test
@@ -95,27 +83,9 @@ class SubprocessRequestFactoryIntegrationTest {
   }
 
   @Test
-  void recordAttendanceOfCannedRecordSurfacesDuplicateError() {
-    RuntimeException exception = assertThrows(
-        RuntimeException.class,
-        () -> SubprocessRequestFactory.sendRequest(
-            SubprocessRequestFactory.buildRecordAttendance(USER_ID, CANNED_EVENT_ID)));
-    assertTrue(exception.getMessage().contains("already been recorded"));
-  }
-
-  @Test
-  void getRecommendedFriendsReturnsCannedRecommendationInOkEnvelope() {
-    JsonObject response = send(SubprocessRequestFactory.buildGetRecommendedFriends(USER_ID));
-    assertEquals("ok", response.get("status").getAsString());
-    JsonArray friends = response.getAsJsonObject("payload").getAsJsonArray("friends");
-    assertEquals(1, friends.size());
-    assertEquals(CANNED_RECOMMENDED_FRIEND_ID.toString(), friends.get(0).getAsString());
-  }
-
-  @Test
-  void getRecommendedFriendsForUnknownUserReturnsEmptyList() {
+  void getRecommendedFriendsReturnsEmptyListInOkEnvelope() {
     JsonObject response = send(
-        SubprocessRequestFactory.buildGetRecommendedFriends(UUID.randomUUID()));
+        SubprocessRequestFactory.buildGetRecommendedFriends(USER_ID));
     assertEquals("ok", response.get("status").getAsString());
     assertEquals(0, response.getAsJsonObject("payload").getAsJsonArray("friends").size());
   }
