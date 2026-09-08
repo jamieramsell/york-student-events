@@ -39,13 +39,13 @@ class SubprocessRequestFactoryIntegrationTest {
       UUID.fromString("44444444-4444-4444-4444-444444444444");
 
   @BeforeEach
-  void requirePython3() {
-    assumeTrue(python3Available(), "python3 is not available on PATH");
+  void requirePython() {
+    assumeTrue(pythonAvailable(), "python is not available on PATH");
   }
 
-  private static boolean python3Available() {
+  private static boolean pythonAvailable() {
     try {
-      Process process = new ProcessBuilder("python3", "--version").start();
+      Process process = new ProcessBuilder("python", "--version").start();
       return process.waitFor() == 0;
     } catch (Exception e) {
       return false;
