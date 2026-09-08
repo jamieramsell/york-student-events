@@ -212,6 +212,25 @@ class TestHandlers:
         )
         assert result == {"friends": []}
 
+    def test_get_recommended_events_ranks_friends_attendance(self, monkeypatch):
+        # The user attends nothing; their one friend is signed up for `event`, so
+        # it is the sole recommendation. The bridge is stubbed by conftest; re-patch
+        # bridge.get_user_events so the friend has an event to recommend.
+        user, friend, event = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(user, friend)
+        friendship_service.accept_friend_request(user, friend)
+        monkeypatch.setattr(
+            "bridge.get_user_events",
+            lambda requested_id: [event] if requested_id == friend else [],
+        )
+
+        result = responder.get_recommended_events({"userId": str(user)})
+        assert result == {"events": [str(event)]}
+
+    def test_get_recommended_events_empty_for_user_with_no_friends(self):
+        result = responder.get_recommended_events({"userId": str(uuid.uuid4())})
+        assert result == {"events": []}
+
 
 class TestMessageHandlerFactory:
     def test_returns_handler_for_known_type(self):
