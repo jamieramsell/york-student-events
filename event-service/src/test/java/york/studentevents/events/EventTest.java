@@ -180,7 +180,7 @@ class EventTest {
   @Test
   void setVenue_withValidLocation_updatesLocation() {
     event.setVenue(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"));
-    assertEquals("632b4764-69e7-4ef6-9645-2789919c29ac", event.getVenue());
+    assertEquals(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"), event.getVenue());
   }
 
   @Test
