@@ -89,3 +89,17 @@ If processing fails, the response has `status: "error"` and an `error` field hol
 ```
 
 Errors are raised for a malformed or non-JSON request, a missing `requestType` or `payload`, an unknown request type, a request type not owned by the receiving side, a missing or malformed payload field (e.g. an invalid `userId`), or an unknown entity. The `error` message is intended for humans and diagnostics; it is **not** a stable, machine-parsable part of the contract — callers should branch on `status` and the exit code, not on the message text.
+
+## 7. Responder backend selection (api-core)
+
+The api-core responder (`api-core/src/bridge/responder.py`) holds no state of its own. The event-service spawns a fresh process per call (see §2), meaning that anything kept in memory dies when that process exits. State is therefore external, with the responder composing its service graph over the shared database, so that a badge awarded or an attendance recorded by one call is committed to the database and read back by the next freshly-spawned process. This is what makes the subprocess-per-call model stateful; the rationale is recorded in [ADR-0001](adr/0001-inter-service-transport.md).
+
+Which backend the responder composes is chosen from the environment:
+
+| Variable | Required? | Effect |
+|---|---|---|
+| `DATABASE_URL` | **Yes**, unless `YSE_BRIDGE_INMEMORY` is set | Connection URL for the shared database. The responder persists to and reads from it (via `bootstrap_sql()`). If it is unset, the responder **fails fast at start-up** rather than serving an empty, non-persistent graph. |
+| `YSE_BRIDGE_INMEMORY` | No, **test only** | When set to any non-empty value, the responder composes a throwaway in-memory graph and does not require `DATABASE_URL`. Must not be set in production. |
+
+- **Default (production):** `DATABASE_URL` must be present. A misconfigured bridge is thus a loud start-up error, not silent data loss.
+- **`YSE_BRIDGE_INMEMORY` (tests only):** exists solely so the responder process can start *without* a database in test environments, for example within the Java→Python integration tests, which spawn the real responder to exercise the wire contract but only assert envelope shapes (`ok` / empty payload / `error`) rather than persisted data. Each spawned process starts with an empty in-memory graph which dies with the process, so this mode carries no data between calls and offers no persistence guarantees. It is therefore never a production configuration.
