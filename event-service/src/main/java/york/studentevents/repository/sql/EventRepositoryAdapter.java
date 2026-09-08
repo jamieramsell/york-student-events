@@ -30,6 +30,9 @@ public class EventRepositoryAdapter implements IEventRepository {
     if (id == null) {
       throw new IllegalArgumentException("id cannot be null");
     }
+    if (!jpa.existsById(id)) {
+      throw new NoSuchElementException("No entity with the given ID exists within the database.");
+    }
     jpa.deleteById(id);
   }
 
