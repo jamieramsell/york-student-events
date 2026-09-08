@@ -59,8 +59,6 @@ Each row lists the responder that owns the type, the request payload fields, and
 
 > **Why send `badgeName` and not `badgeId` on `BADGE_AWARDED`?** `BADGE_AWARDED` is a fire-and-forget notification that lets event-service tell a student they earned a badge. Badges are owned by `api-core`, so event-service cannot resolve a badge UUID to anything displayable on its own; sending the human-readable name keeps the notification self-contained and mirrors the existing `AWARD_BADGE` type (the reverse direction), which is also keyed by `badgeName`. One request is sent per newly awarded badge.
 
-> **Note:** the responder handlers are still stubs — they return canned data rather than querying real repositories, and `GET_USER_BADGES` currently emits placeholder badge *names* instead of UUIDs. The schema above describes the intended contract; wiring the handlers up to it is tracked separately.
-
 ## 5. Response envelope
 
 A successful response has `status: "ok"` and a `payload` object whose shape is determined by the request type (see §4).
