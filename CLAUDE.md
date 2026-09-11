@@ -82,4 +82,4 @@ The primary established patterns are:
 - Dependency injection to keep each layer truly separate, with `bootstrap.py` as the api-core composition root
 - Spring Boot MVC structure (Controller → Service → Repository)
 
-CI runs on every PR (`java-build.yml` for the Java build/test/Checkstyle, `python-built.yml` for `ruff` and `pytest` on `api-core`). No persistence layer or authentication exists yet; cross-service communication is limited to the per-call subprocess bridge (no long-running RPC or shared database).
+CI runs on every PR (`java-build.yml` for the Java build/test/Checkstyle, `python-build.yml` for `ruff` and `pytest` on `api-core`). No persistence layer or authentication exists yet; cross-service communication is limited to the per-call subprocess bridge (no long-running RPC or shared database).
