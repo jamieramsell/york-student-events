@@ -166,6 +166,14 @@
 					<systemPropertyVariables>
 						<project.root>${project.basedir}/..</project.root>
 					</systemPropertyVariables>
+					<!-- The bridge integration test spawns the real responder.py.
+					YSE_BRIDGE_INMEMORY makes that child compose an in-memory backend
+					so it starts without a DATABASE_URL; the ProcessBuilder in
+					sendRequest inherits this fork's environment, carrying the flag
+					through to the child. -->
+					<environmentVariables>
+						<YSE_BRIDGE_INMEMORY>1</YSE_BRIDGE_INMEMORY>
+					</environmentVariables>
 				</configuration>
 			</plugin>
 

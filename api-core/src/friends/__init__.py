@@ -7,13 +7,12 @@ in-memory repository today and remaining open to a database-backed backend
 later.
 
 The public surface is the ``Friendship`` entity and its ``FriendshipStatus``,
-the in-memory repository, and the service-level operations callers use to drive
-the friend graph (send/accept/remove requests and query friendships).
+the friendship repositories, and the service-level operations callers use to
+drive the friendship graph (send/accept/remove requests and query friendships).
 """
 
 from friends.base import Friendship, FriendshipStatus
 from friends.friendship_repository import (
-    InMemoryCannedFriendshipRepository,
     InMemoryFriendshipRepository,
     SQLAlchemyFriendshipRepository,
 )
@@ -24,7 +23,6 @@ __all__ = [
     "FriendshipRepository",
     "FriendshipService",
     "FriendshipStatus",
-    "InMemoryCannedFriendshipRepository",
     "InMemoryFriendshipRepository",
     "SQLAlchemyFriendshipRepository"
 ]
