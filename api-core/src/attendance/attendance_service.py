@@ -8,6 +8,7 @@ repository, keeping persistence details out of callers.
 """
 
 import activity
+import bridge
 import attendance.base as base
 import datetime
 import repositories
@@ -57,7 +58,13 @@ class AttendanceService:
         )
         self.__attendance_repository.save(attendance_record)
 
-        activity.publish(attendee_id)
+        try:
+            activity.publish(attendee_id)
+        except bridge.SubprocessError:
+            # Don't let a cross-service failure rollback an attendance recording
+            # If the publish fails, meaning simply that badges are not auto
+            # evaluated, that is not the end of the world!
+            pass 
 
 
     def withdraw_attendance(self, attendee_id: uuid.UUID, event_id: uuid.UUID) -> None:
