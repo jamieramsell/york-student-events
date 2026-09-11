@@ -16,6 +16,7 @@ Run from the repo root:  ``python -m pytest api-core/tests/``
 """
 
 import datetime
+import typing
 import uuid
 
 import pytest
@@ -105,6 +106,34 @@ class TestRecordAttendance:
         assert _repo().find_by_id((attendee_id, event_b)) is not None
         assert len(attendance_service.get_attendances(attendee_id)) == 2
 
+    def test_record_survives_a_bridge_failure_during_publish(self):
+        import activity
+        import bridge
+
+        def _boom(_user_id: typing.Any) -> None:
+            raise bridge.SubprocessError("event-service unavailable")
+
+        activity.subscribe(_boom)
+
+        attendee_id = uuid.uuid4()
+        event_id = uuid.uuid4()
+
+        # Must not raise, despite the listener blowing up.
+        attendance_service.record_attendance(attendee_id, event_id)
+
+        # And the record must still be persisted.
+        assert _repo().find_by_id((attendee_id, event_id)) is not None
+
+    def test_record_does_not_swallow_unrelated_listener_errors(self):
+        import activity
+
+        def _boom(_user_id: typing.Any) -> None:
+            raise RuntimeError("not a bridge failure")
+        
+        activity.subscribe(_boom)
+
+        with pytest.raises(RuntimeError):
+            attendance_service.record_attendance(uuid.uuid4(), uuid.uuid4())
 
 # ---------------------------------------------------------------------------
 # withdraw_attendance
