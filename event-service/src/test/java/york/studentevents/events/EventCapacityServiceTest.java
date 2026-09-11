@@ -30,7 +30,7 @@ import york.studentevents.venues.VenueService;
  */
 public class EventCapacityServiceTest {
 
-  private InMemoryEventRepository eventRepository;
+  private IEventRepository eventRepository;
   private EventService eventService;
 
   private InMemoryVenueRepository venueRepository;
