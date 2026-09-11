@@ -14,9 +14,8 @@ import sys
 import uuid
 from pathlib import Path
 
-import pytest
-
 import bootstrap
+import pytest
 from attendance.attendance_repository import CANNED_ATTENDEE_ID, CANNED_EVENT_ID
 from friends.friendship_repository import (
     CANNED_FRIEND_SEEKER_ID,
@@ -70,6 +69,7 @@ def _run(request_line: str) -> subprocess.CompletedProcess:
         text=True,
         capture_output=True,
         timeout=30,
+        check=False,
     )
 
 

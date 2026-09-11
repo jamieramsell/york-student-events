@@ -23,10 +23,9 @@ Run from the repo root:  ``python -m pytest api-core/tests/``
 
 import uuid
 
-import pytest
-
 import activity
 import activity.base
+import pytest
 
 
 @pytest.fixture

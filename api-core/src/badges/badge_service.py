@@ -8,11 +8,12 @@ domain models from ``base`` with their in-memory repositories, keeping
 persistence details out of callers.
 """
 
-import badges.base as base
-import badges.predicates as predicates
 import datetime
-import repositories
 import uuid
+
+import repositories
+
+from badges import base, predicates
 
 type BadgeRepository = repositories.IRepository[uuid.UUID, base.Badge]
 type AwardedBadgeRepository = repositories.IRepository[base.AwardId,
@@ -107,7 +108,7 @@ class BadgeService:
         new_award = base.AwardedBadge(
             user_id,
             badge_id,
-            datetime.datetime.now(),
+            datetime.datetime.now(tz=datetime.timezone.utc),
             times_awarded
         )
 

@@ -9,9 +9,9 @@ This is the trigger mechanism that drives the automatic ``evaluate_badges()``
 method- fact-producing slices publish, and the badges slice subscribes.
 """
 
-from activity.base import subscribe, publish
+from activity.base import publish, subscribe
 
 __all__ = [
-    "subscribe",
-    "publish"
+    "publish",
+    "subscribe"
 ]

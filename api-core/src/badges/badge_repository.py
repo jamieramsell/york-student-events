@@ -6,9 +6,13 @@ This stands in for a database-backed repository during early development.
 """
 
 from __future__ import annotations
-import badges.base as base
-import repositories
+
 import uuid
+
+import repositories
+
+from badges import base
+
 
 class InMemoryBadgeRepository(
     repositories.InMemoryRepository[uuid.UUID, base.Badge]

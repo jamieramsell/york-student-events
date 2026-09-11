@@ -19,7 +19,6 @@ import datetime
 import uuid
 
 import pytest
-
 from attendance import AttendanceService, InMemoryAttendanceRepository
 from attendance.base import Attendance
 
@@ -68,9 +67,9 @@ class TestRecordAttendance:
         assert record.event_id == event_id
 
     def test_record_stamps_a_datetime_recorded_at(self):
-        before = datetime.datetime.now()
+        before = datetime.datetime.now(tz=datetime.timezone.utc)
         attendee_id, event_id = _record()
-        after = datetime.datetime.now()
+        after = datetime.datetime.now(tz=datetime.timezone.utc)
 
         record = _repo().find_by_id((attendee_id, event_id))
         assert isinstance(record.recorded_at, datetime.datetime)

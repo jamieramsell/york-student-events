@@ -8,14 +8,16 @@ to import those slices directly.
 
 from __future__ import annotations
 
-import activity
-import attendance
-import badges
-import bridge
 import datetime
-import friends
 import logging
 import uuid
+
+import activity
+import attendance
+import bridge
+import friends
+
+import badges
 
 _logger = logging.getLogger(__name__)
 

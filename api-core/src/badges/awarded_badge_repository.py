@@ -7,8 +7,11 @@ during early development.
 """
 
 from __future__ import annotations
-import badges.base as base
+
 import repositories
+
+from badges import base
+
 
 class InMemoryAwardedBadgeRepository(
     repositories.InMemoryRepository[base.AwardId, base.AwardedBadge]

@@ -6,11 +6,13 @@ This stands in for a database-backed repository during early development.
 """
 
 from __future__ import annotations
+
 import datetime
 import uuid
 
-import friends.base as base
 import repositories
+
+from friends import base
 
 
 class InMemoryFriendshipRepository(
@@ -62,7 +64,7 @@ class InMemoryCannedFriendshipRepository(InMemoryFriendshipRepository):
 
     def __init__(self):
         super().__init__()
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(tz=datetime.timezone.utc)
         accepted = base.FriendshipStatus.ACCEPTED
         self.save(
             base.Friendship(
