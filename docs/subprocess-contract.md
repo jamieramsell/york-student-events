@@ -57,7 +57,7 @@ Each row lists the responder that owns the type, the request payload fields, and
 | `GET_BATCH_EVENT_INFO` | event-service | `eventIds` (array of event UUIDs) | `events`: dict keyed by event IDs, values store event info (see payload returned by `GET_EVENT_INFO`)|
 | `BADGE_AWARDED` | event-service | `userId` (UUID), `badgeName` (string) | *(empty — success signalled by the `ok` status)* |
 
-> **Why send `badgeName` and not `badgeId` on `BADGE_AWARDED`?** `BADGE_AWARDED` is a fire-and-forget notification that lets event-service tell a student they earned a badge. Badges are owned by `api-core`, so event-service cannot resolve a badge UUID to anything displayable on its own; sending the human-readable name keeps the notification self-contained and mirrors the existing `AWARD_BADGE` type (the reverse direction), which is also keyed by `badgeName`. One request is sent per newly awarded badge.
+> **Why send `badgeName` and not `badgeId` on `BADGE_AWARDED`?** `BADGE_AWARDED` is a fire-and-forget notification that lets event-service tell a student they earned a badge. Badges are owned by `api-core`, so event-service cannot resolve a badge UUID to anything displayable on its own; sending the human-readable name keeps the notification self-contained. One request is sent per newly awarded badge.
 
 ## 5. Response envelope
 

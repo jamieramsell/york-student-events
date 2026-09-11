@@ -6,8 +6,6 @@ JSON response envelope from its stdout. Each line of stdin is one request; the
 ``MessageHandlerFactory`` routes it to a handler by ``requestType``, and the
 result is written back as an ``ok`` or ``error`` envelope. The envelope contract
 is documented in ``docs/subprocess-contract.md``.
-
-Stdlib only, in keeping with the project's no-dependencies convention.
 """
 import collections.abc
 import json
