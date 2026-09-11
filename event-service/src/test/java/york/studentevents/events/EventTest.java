@@ -193,8 +193,8 @@ class EventTest {
   void setLocation_withNull_whenDateTimeAlreadySet_throwsIllegalStateException() {
     event.setLocation("The Courtyard");
     event.setDateTime(
-        LocalDateTime.of(2026, 8, 1, 18, 0),
-        LocalDateTime.of(2026, 8, 1, 22, 0));
+        LocalDateTime.of(2050, 8, 1, 18, 0),
+        LocalDateTime.of(2050, 8, 1, 22, 0));
     assertThrows(IllegalStateException.class, () -> event.setLocation(null));
   }
 
@@ -202,8 +202,8 @@ class EventTest {
 
   @Test
   void setDateTime_whenLocationSet_updatesDateTimes() {
-    LocalDateTime start = LocalDateTime.of(2026, 8, 1, 18, 0);
-    LocalDateTime end = LocalDateTime.of(2026, 8, 1, 22, 0);
+    LocalDateTime start = LocalDateTime.of(2050, 8, 1, 18, 0);
+    LocalDateTime end = LocalDateTime.of(2050, 8, 1, 22, 0);
     event.setLocation("The Courtyard");
 
     event.setDateTime(start, end);
@@ -214,23 +214,23 @@ class EventTest {
 
   @Test
   void setDateTime_whenNoLocationSet_throwsIllegalStateException() {
-    LocalDateTime start = LocalDateTime.of(2026, 8, 1, 18, 0);
-    LocalDateTime end = LocalDateTime.of(2026, 8, 1, 22, 0);
+    LocalDateTime start = LocalDateTime.of(2050, 8, 1, 18, 0);
+    LocalDateTime end = LocalDateTime.of(2050, 8, 1, 22, 0);
     assertThrows(IllegalStateException.class, () -> event.setDateTime(start, end));
   }
 
   @Test
   void setDateTime_withStartAfterEnd_throwsIllegalArgumentException() {
     event.setLocation("The Courtyard");
-    LocalDateTime start = LocalDateTime.of(2026, 8, 1, 22, 0);
-    LocalDateTime end = LocalDateTime.of(2026, 8, 1, 18, 0);
+    LocalDateTime start = LocalDateTime.of(2050, 8, 1, 22, 0);
+    LocalDateTime end = LocalDateTime.of(2050, 8, 1, 18, 0);
     assertThrows(IllegalArgumentException.class, () -> event.setDateTime(start, end));
   }
 
   @Test
   void setDateTime_withStartEqualToEnd_throwsIllegalArgumentException() {
     event.setLocation("The Courtyard");
-    LocalDateTime same = LocalDateTime.of(2026, 8, 1, 18, 0);
+    LocalDateTime same = LocalDateTime.of(2050, 8, 1, 18, 0);
     assertThrows(IllegalArgumentException.class, () -> event.setDateTime(same, same));
   }
 
