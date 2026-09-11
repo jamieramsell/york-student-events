@@ -17,15 +17,15 @@ import dataclasses
 import datetime
 import uuid
 
-import pytest
-
 import activity
+import pytest
 import repositories
 from friends import FriendshipService
 from friends.base import Friendship, FriendshipStatus, _generate_id
 from friends.friendship_repository import InMemoryFriendshipRepository
 
-_FIXED_TIME = datetime.datetime(2026, 6, 20, 12, 0, 0)
+_FIXED_TIME = datetime.datetime(2026, 6, 20, 12, 0, 0,
+                                tzinfo=datetime.timezone.utc)
 
 # Module-level defaults so the file is usable on its own; ``compose_services`` in
 # conftest.py swaps in a fresh, isolated service (and its repository) before

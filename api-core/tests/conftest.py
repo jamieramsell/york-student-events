@@ -90,14 +90,13 @@ def compose_services():
     attendance/friend/badge state leaks between tests.
     """
 
+    import bootstrap
     import test_attendance
     import test_badges
     import test_evaluation
     import test_friends
     import test_recommendations
     import test_recommendations_integration
-
-    import bootstrap
 
     # Fresh graph, over bare repositories (never the canned variants) so the
     # unit suite starts from empty state.

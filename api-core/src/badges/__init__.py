@@ -19,25 +19,21 @@ rather than re-exported here.
 """
 
 from badges.awarded_badge_repository import InMemoryAwardedBadgeRepository
-from badges.base import Badge, AwardedBadge
-from badges.predicates import AwardContext, AttendedEvent
 from badges.badge_repository import InMemoryBadgeRepository
-from badges.badge_service import (
-    BadgeService,
-    BadgeRepository, 
-    AwardedBadgeRepository
-)
+from badges.badge_service import AwardedBadgeRepository, BadgeRepository, BadgeService
+from badges.base import AwardedBadge, Badge
 from badges.evaluation import EvaluationService
+from badges.predicates import AttendedEvent, AwardContext
 
 __all__ = [
-    "Badge",
-    "AwardedBadge",
-    "AwardContext",
     "AttendedEvent",
-    "InMemoryBadgeRepository",
-    "InMemoryAwardedBadgeRepository",
-    "BadgeService",
-    "BadgeRepository", 
+    "AwardContext",
+    "AwardedBadge",
     "AwardedBadgeRepository",
-    "EvaluationService"
+    "Badge",
+    "BadgeRepository",
+    "BadgeService",
+    "EvaluationService",
+    "InMemoryAwardedBadgeRepository",
+    "InMemoryBadgeRepository"
 ]

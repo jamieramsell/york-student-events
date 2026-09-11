@@ -9,8 +9,10 @@ during early development.
 import datetime
 import uuid
 
-import attendance.base as base
 import repositories
+
+from attendance import base
+
 
 class InMemoryAttendanceRepository(
     repositories.InMemoryRepository[base.AttendanceId, base.Attendance]
@@ -53,6 +55,8 @@ class InMemoryCannedAttendanceRepository(InMemoryAttendanceRepository):
         super().__init__()
         self.save(
             base.Attendance(
-                CANNED_ATTENDEE_ID, CANNED_EVENT_ID, datetime.datetime.now()
+                CANNED_ATTENDEE_ID,
+                CANNED_EVENT_ID,
+                datetime.datetime.now(tz=datetime.timezone.utc)
             )
         )
