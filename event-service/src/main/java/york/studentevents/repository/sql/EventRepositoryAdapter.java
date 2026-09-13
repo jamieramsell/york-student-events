@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.stereotype.Repository;
 import york.studentevents.events.Event;
 import york.studentevents.events.IEvent;
 import york.studentevents.events.IEventRepository;
@@ -27,6 +28,7 @@ import york.studentevents.events.IEventRepository;
  * @see JpaEventRepository
  * @see IEvent
  */
+@Repository
 public class EventRepositoryAdapter implements IEventRepository {
 
   private final JpaEventRepository jpa;
