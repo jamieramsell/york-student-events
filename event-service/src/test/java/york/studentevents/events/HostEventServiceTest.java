@@ -14,7 +14,9 @@ import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.repository.inmemory.InMemoryEventRepository;
+import york.studentevents.repository.inmemory.InMemorySubscriptionRepository;
 import york.studentevents.repository.inmemory.InMemoryUserRepository;
+import york.studentevents.subscriptions.SubscriptionService;
 import york.studentevents.users.Host;
 import york.studentevents.users.IHost;
 import york.studentevents.users.Student;
@@ -166,6 +168,32 @@ class HostEventServiceTest {
     assertEquals(2, hosts.size());
     assertTrue(hosts.contains(first));
     assertTrue(hosts.contains(second));
+  }
+
+  @Test
+  @SuppressWarnings("unlikely-arg-type")
+  void getHostsForEvent_doesNotIncludeStudents() {
+    StudentEventService studentEventService = new StudentEventService(
+        eventRepository,
+        userRepository, 
+        new SubscriptionService(new InMemorySubscriptionRepository()), 
+        eventService);
+
+    Event event = newEvent(5);
+    Host first = newHost();
+    Host second = newHost();
+    Student student = newStudent();
+
+    hostEventService.registerForEvent(first.getId(), event.getId());
+    hostEventService.registerForEvent(second.getId(), event.getId());
+    studentEventService.registerForEvent(student.getId(), event.getId());
+
+    Set<IHost> hosts = hostEventService.getHostsForEvent(event.getId());
+
+    assertEquals(2, hosts.size());
+    assertTrue(hosts.contains(first));
+    assertTrue(hosts.contains(second));
+    assertFalse(hosts.contains(student));
   }
 
   @Test
