@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import york.studentevents.exceptions.CapacityExceededException;
 import york.studentevents.exceptions.EventNotFoundException;
@@ -30,30 +31,25 @@ import york.studentevents.users.IUserRepository;
  */
 public class HostEventService {
 
-  private final IEventRepository eventRepository;
   private final IUserRepository userRepository;
   private final EventService eventService;
 
   /**
    * Constructor for HostEventService.
    *
-   * @param eventRepository the event repository which events are registered to
    * @param userRepository the user repository which users are registered to
    * @param eventService the current event service instance
    */
   public HostEventService(
-      IEventRepository eventRepository,
       IUserRepository userRepository,
       EventService eventService
   ) {
     if (
-        eventRepository == null
-        || userRepository == null
+        userRepository == null
         || eventService == null
     ) {
       throw new IllegalArgumentException("Injected repositories and services cannot be null");
     }
-    this.eventRepository = eventRepository;
     this.userRepository = userRepository;
     this.eventService = eventService;
   }
@@ -121,6 +117,15 @@ public class HostEventService {
   public Set<IEvent> getEventsForHost(UUID userId) {
     IHost host = getHost(userId);
 
+    Function<UUID, IEvent> mapEventIdToEvent = eventId -> {
+      try {
+        return eventService.getEvent(eventId);
+      } catch (EventNotFoundException e) {
+        throw new IllegalStateException("The given Host is registered for an event with ID" 
+            + " " + eventId + ", which could not be found within the event repository.");
+      }
+    };
+
     /*
      * Get a stream of event IDs and map them onto their actual entities. If an event ID points
      * to an event which does not exist, throw an error.
@@ -128,10 +133,7 @@ public class HostEventService {
     Set<UUID> events = host.getHostedEvents();
     Set<IEvent> hostEvents = new HashSet<>(
         events.stream()
-        .map(eventId -> eventRepository.findByID(eventId)
-            .orElseThrow(() -> new IllegalStateException("The given Host is registered for an"
-                + " event with ID " + eventId + ", which could not be found within the event"
-                + " repository.")))
+            .map(mapEventIdToEvent)
         .toList()
     );
     return hostEvents;
