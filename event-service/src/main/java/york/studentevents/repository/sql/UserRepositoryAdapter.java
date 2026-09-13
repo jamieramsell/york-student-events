@@ -28,7 +28,6 @@ import york.studentevents.users.User;
  * @see JpaUserRepository
  * @see IUser
  */
-@Repository 
 public class UserRepositoryAdapter implements IUserRepository {
 
   private final JpaUserRepository jpa;
