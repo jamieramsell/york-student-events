@@ -134,7 +134,7 @@ public class HostEventService {
     Set<IEvent> hostEvents = new HashSet<>(
         events.stream()
             .map(mapEventIdToEvent)
-        .toList()
+            .toList()
     );
     return hostEvents;
   }
@@ -147,6 +147,8 @@ public class HostEventService {
    * @throws EventNotFoundException if the event does not exist
    */
   public Set<IHost> getHostsForEvent(UUID eventId) {
+    eventService.getEvent(eventId); // Verify that the event does exist
+
     Predicate<IUser> isHost = user -> user.getType() == UserType.HOST;
     Predicate<IHost> isHostingSpecifiedEvent = host -> host.getHostedEvents().contains(eventId);
 
