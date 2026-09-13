@@ -72,7 +72,7 @@ public class UserRepositoryAdapterTest {
     user.setEmail("email2@provider2.co.uk"); // User keeps its original ID here but has a new email
     userRepository.save(user);
     
-    // Use JPA here to avoid relying on a seperate adapter method
+    // Use JPA here to avoid relying on a separate adapter method
     assertEquals(1, jpa.findAll().size()); 
 
     // Assert that the saved email address has been overwritten
@@ -94,7 +94,7 @@ public class UserRepositoryAdapterTest {
   @Test 
   void delete_RemovesUserFromJpa() {
     User user = new Student("username", "email@provider.com", "hash", new HashSet<>());
-    jpa.saveAndFlush(user); // Use JPA here to avoid relying on a seperate adapter method
+    jpa.saveAndFlush(user); // Use JPA here to avoid relying on a separate adapter method
 
     userRepository.delete(user.getId());
     assertFalse(jpa.existsById(user.getId()));
@@ -116,7 +116,7 @@ public class UserRepositoryAdapterTest {
   @Test
   void findById_RetrievesUserFromJpa() {
     User user = new Student("username", "email@provider.com", "hash", new HashSet<>());
-    jpa.saveAndFlush(user); // Use JPA here to avoid relying on a seperate adapter method
+    jpa.saveAndFlush(user); // Use JPA here to avoid relying on a separate adapter method
 
     IUser retrievedUser = userRepository.findByID(user.getId()).get();
     assertEquals(user.getId(), retrievedUser.getId());
@@ -132,7 +132,7 @@ public class UserRepositoryAdapterTest {
     userList.add(new Student("username1", "email@provider.com", "hash", new HashSet<>()));
     userList.add(new Student("username2", "email@provider.com", "hash", new HashSet<>()));
     userList.add(new Student("username3", "email@provider.com", "hash", new HashSet<>()));
-    jpa.saveAllAndFlush(userList); // Use JPA here to avoid relying on a seperate adapter method
+    jpa.saveAllAndFlush(userList); // Use JPA here to avoid relying on a separate adapter method
 
     List<IUser> savedUsers = userRepository.findAll();
     assertEquals(3, savedUsers.size());
