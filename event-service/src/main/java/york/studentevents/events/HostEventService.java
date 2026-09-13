@@ -7,12 +7,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import york.studentevents.exceptions.CapacityExceededException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.users.IHost;
-import york.studentevents.users.IStudent;
 import york.studentevents.users.IUser;
 import york.studentevents.users.IUser.UserType;
 import york.studentevents.users.IUserRepository;
@@ -26,7 +24,7 @@ import york.studentevents.users.IUserRepository;
  *
  * @see york.studentevents.repository.IRepository
  * @see IUserRepository
- * @see IEventRepository
+ * @see IEventService
  * @see IHost
  */
 public class HostEventService {
