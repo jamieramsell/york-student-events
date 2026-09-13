@@ -19,7 +19,7 @@ import york.studentevents.users.IUser.UserType;
 import york.studentevents.users.IUserRepository;
 
 /**
- * Application service exposing user-related business operations.
+ * Application service exposing Student-related event operations.
  *
  * <p>This service forms the {@code Service} layer of the stack, sitting between the controllers and
  * repositories. Persistence is delegated to the injected repository; the service holds no state of
