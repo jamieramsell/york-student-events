@@ -42,6 +42,9 @@ public class Host extends User implements IHost {
     setHostedEvents(hostedEvents);
   }
 
+  /** No-args constructor for JPA use only. */
+  protected Host() {}
+
   @Override
   public Set<UUID> getHostedEvents() {
     return getEvents();
