@@ -49,6 +49,9 @@ public class Student extends User implements IStudent {
     setRegisteredEvents(registeredEvents);
   }
 
+  /** No-args constructor for JPA use only. */
+  protected Student() {}
+
   @Override
   public Set<UUID> getRegisteredEvents() {
     return getEvents();

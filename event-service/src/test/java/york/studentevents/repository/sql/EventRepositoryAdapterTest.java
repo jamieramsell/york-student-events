@@ -71,7 +71,7 @@ public class EventRepositoryAdapterTest {
     event.setTitle("Test Title 2"); // Event keeps its original ID here but has a new title record
     eventRepository.save(event);
     
-    // Use JPA here to avoid relying on a seperate adapter method
+    // Use JPA here to avoid relying on a separate adapter method
     assertEquals(1, jpa.findAll().size()); 
 
     // Assert that the saved title has been overwritten
@@ -93,7 +93,7 @@ public class EventRepositoryAdapterTest {
   @Test 
   void delete_RemovesEventFromJpa() {
     Event event = new Event("Test Title", EventCategory.ACADEMIC);
-    jpa.saveAndFlush(event); // Use JPA here to avoid relying on a seperate adapter method
+    jpa.saveAndFlush(event); // Use JPA here to avoid relying on a separate adapter method
 
     eventRepository.delete(event.getId());
     assertFalse(jpa.existsById(event.getId()));
@@ -115,7 +115,7 @@ public class EventRepositoryAdapterTest {
   @Test
   void findById_RetrievesEventFromJpa() {
     Event event = new Event("Test Title", EventCategory.ACADEMIC);
-    jpa.saveAndFlush(event); // Use JPA here to avoid relying on a seperate adapter method
+    jpa.saveAndFlush(event); // Use JPA here to avoid relying on a separate adapter method
 
     IEvent retrievedEvent = eventRepository.findByID(event.getId()).get();
     assertEquals(event.getId(), retrievedEvent.getId());
@@ -129,7 +129,7 @@ public class EventRepositoryAdapterTest {
     eventList.add(new Event("Title 1", EventCategory.ACADEMIC));
     eventList.add(new Event("Title 2", EventCategory.SPORTS));
     eventList.add(new Event("Title 3", EventCategory.NIGHTLIFE));
-    jpa.saveAllAndFlush(eventList); // Use JPA here to avoid relying on a seperate adapter method
+    jpa.saveAllAndFlush(eventList); // Use JPA here to avoid relying on a separate adapter method
 
     List<IEvent> savedEvents = eventRepository.findAll();
     assertEquals(3, savedEvents.size());
