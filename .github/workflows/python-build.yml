@@ -21,5 +21,9 @@ jobs:
       # deliberately, alongside any fixes the new version demands.
       - run: pip3 install ruff==0.16.0
       - run: python3 -m ruff check api-core/
+      # Install api-core's runtime deps (SQLAlchemy, psycopg, alembic) so the
+      # suite can import them. Pytest itself isn't a runtime dep, so install it
+      # separately.
+      - run: pip3 install -r api-core/requirements.txt
       - run: pip3 install pytest
       - run: python3 -m pytest
