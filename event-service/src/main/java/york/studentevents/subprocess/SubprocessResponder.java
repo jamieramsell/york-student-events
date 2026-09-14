@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -58,6 +59,17 @@ public class SubprocessResponder {
 
   private static final Gson GSON = new Gson();
 
+  /**
+   * The true standard output, captured at class load before {@code main} redirects
+   * {@link System#out}.
+   *
+   * <p>Standard output is this bridge's response channel, as api-core reads the JSON envelope
+   * from it, so it cannot carry anything else. However, Spring writes its banner and logs to
+   * {@code System.out}, therefore {@code main} redirects {@code System.out} to standard error
+   * (where those logs belong), and every response write goes through this captured stream.
+   */
+  private static final PrintStream STDOUT = System.out;
+
   // Envelopes //
 
   /** Request envelope: a request type and its still-raw JSON payload. */
@@ -103,6 +115,9 @@ public class SubprocessResponder {
    * @param args command-line arguments; unused.
    */
   public static void main(String[] args) {
+    // Standard output is the response channel (see STDOUT); keep Spring's banner and logs off it by
+    // sending everything written to System.out to standard error instead.
+    System.setOut(System.err);
     try {
       // Read and validate the request
       String requestJson = readRequest();
@@ -395,10 +410,10 @@ public class SubprocessResponder {
 
   // Static response methods //
 
-  /** Writes a response envelope to standard output, newline-terminated and flushed. */
+  /** Writes a response envelope to the true standard output, newline-terminated and flushed. */
   private static void writeResponse(String json) {
-    System.out.println(json);
-    System.out.flush();
+    STDOUT.println(json);
+    STDOUT.flush();
   }
 
   // Responder instance methods //
