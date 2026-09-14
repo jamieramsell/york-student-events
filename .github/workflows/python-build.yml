@@ -1,6 +1,12 @@
-name: Lint
+name: Python Build
 
 on: [pull_request]
+
+# Cancel an in-progress run when the same ref is pushed again, to avoid piling
+# up redundant builds.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint-python:
@@ -9,9 +15,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13.14'
       # Pin ruff so its default rule set can't shift under us between runs
       # (an unpinned upgrade to 0.16.0 silently widened the defaults). Bump
       # deliberately, alongside any fixes the new version demands.
       - run: pip3 install ruff==0.16.0
       - run: python3 -m ruff check api-core/
+      - run: pip3 install pytest
+      - run: python3 -m pytest

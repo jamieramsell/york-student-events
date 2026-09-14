@@ -10,6 +10,7 @@ import datetime
 import uuid
 
 import activity
+import bridge
 import repositories
 from attendance import base
 
@@ -53,11 +54,19 @@ class AttendanceService:
             raise ValueError("The user's attendance has already been recorded.")
 
         attendance_record = base.Attendance(
-            attendee_id, event_id, datetime.datetime.now(datetime.timezone.utc)
+            attendee_id,
+            event_id,
+            datetime.datetime.now(tz=datetime.timezone.utc)
         )
         self.__attendance_repository.save(attendance_record)
 
-        activity.publish(attendee_id)
+        try:
+            activity.publish(attendee_id)
+        except bridge.SubprocessError:
+            # Don't let a cross-service failure rollback an attendance recording
+            # If the publish fails, meaning simply that badges are not auto
+            # evaluated, that is not the end of the world!
+            pass 
 
 
     def withdraw_attendance(self, attendee_id: uuid.UUID, event_id: uuid.UUID) -> None:

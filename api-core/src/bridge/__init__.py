@@ -28,5 +28,5 @@ __all__ = [
     "get_batch_event_info",
     "get_event_info",
     "get_user_events",
-    "notify_badge_awarded"
+    "notify_badge_awarded",
 ]

@@ -832,9 +832,8 @@ class TestBadgeService:
         # broken invariant the getter surfaces rather than silently skips.
         user = uuid.uuid4()
         awarded_badge_repo.save(
-            base.AwardedBadge(
-                user, uuid.uuid4(), datetime.datetime.now(datetime.timezone.utc)
-            )
+            base.AwardedBadge(user, uuid.uuid4(), 
+                              datetime.datetime.now(tz=datetime.timezone.utc))
         )
 
         with pytest.raises(ValueError):

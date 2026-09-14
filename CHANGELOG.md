@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.4.1] - 2026-09-11
+
+Small bug patch prior to M5 to facilitate its stable release.
+
+### Fixed
+- Fixed a bug where an error would be raised if automatic badge re-evaluation failed when recording a Student's attendance to an Event, despite the record having been persisted.
+- Added a pytest step to the python build workflow to ensure that files are tested before their merge.
+
 ## [0.4.0] - 2026-07-21
 
 M4 - Gamification: attendance tracking, the badge system, and automatic badge evaluation driven by user activity, plus the cross-service plumbing needed to support them and an explicit composition root for `api-core`. Still pure business logic, with no HTTP layer or real persistence yet.

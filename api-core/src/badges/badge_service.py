@@ -7,6 +7,7 @@ badges from an ``AwardContext``. Orchestrates the ``Badge`` / ``AwardedBadge``
 domain models from ``base`` with their in-memory repositories, keeping
 persistence details out of callers.
 """
+
 import datetime
 import uuid
 
@@ -106,7 +107,7 @@ class BadgeService:
         new_award = base.AwardedBadge(
             user_id,
             badge_id,
-            datetime.datetime.now(datetime.timezone.utc),
+            datetime.datetime.now(tz=datetime.timezone.utc),
             times_awarded
         )
 

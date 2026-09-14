@@ -1,4 +1,4 @@
-name: Build
+name: Java Build
 
 # Runs on every pull request, so all code is built, tested, and linted before merge.
 on:

@@ -56,7 +56,7 @@ class FriendshipService:
                              + " users, and has either been accepted, or is"
                              + " still pending.")
 
-        time = datetime.datetime.now(datetime.timezone.utc)
+        time = datetime.datetime.now(tz=datetime.timezone.utc)
         status = base.FriendshipStatus.PENDING
         friendship = base.Friendship(user_id, friend_id, time, status)
 
