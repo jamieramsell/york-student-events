@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.boot.WebApplicationType;
@@ -562,7 +563,8 @@ public class SubprocessResponder {
    * @param eventId the event to retrieve info about
    * @return the payload of the event's info
    *
-   * @throws IllegalArgumentException if the event ID is not recognised.
+   * @throws IllegalArgumentException if the event ID is not recognised, or the event is missing an
+   *     attribute required by the python service for badge evaluation.
    */
   private EventInfoPayload getRawEventInfo(UUID eventId) {
     IEvent event;
@@ -575,11 +577,30 @@ public class SubprocessResponder {
       throw new IllegalArgumentException("The given event ID was not recognised");
     }
 
+    // Attribute retrieval & validation
     // TODO: add support on both services for multiple hosts
+    UUID hostId;
+    try {
+      hostId = List.copyOf(hosts).getFirst().getId();
+    } catch (NoSuchElementException e) {
+      throw new IllegalArgumentException("The given event currently has no host assigned.");
+    }
+
+    if (event.getStartDateTime() == null) {
+      throw new IllegalArgumentException("The given event does not yet have an assigned start"
+          + " time");
+    }
+    String startDateTime = event.getStartDateTime().toString();
+
+    if (event.getCategory() == null) {
+      throw new IllegalArgumentException("The given event does not have an assigned category");
+    }
+    String category = event.getCategory().toString();
+
     EventInfoPayload info = new EventInfoPayload(
-        List.copyOf(hosts).getFirst().getId(),
-        event.getStartDateTime().toString(),
-        event.getCategory().toString()
+        hostId,
+        startDateTime,
+        category
     );
 
     return info;
@@ -591,7 +612,7 @@ public class SubprocessResponder {
    *
    * <p>Validates that the user exists via {@link UserService} and acknowledges the award.
    * Delivering it to the user (for example as a user-facing notification) is not yet implemented
-   * (see the {@code TODO} in the body).
+   * (see the {@code todo} in the body).
    *
    * @param userId the user who has been awarded the badge.
    * @param badgeName the display name of the badge that was awarded.
