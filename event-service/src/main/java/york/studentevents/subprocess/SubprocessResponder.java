@@ -132,18 +132,16 @@ public class SubprocessResponder {
 
       // Pick the profile to take (in-memory vs database driven)
       String flag = System.getenv("YSE_BRIDGE_INMEMORY");
-      boolean inMemory = flag != null && !flag.isEmpty();
-      String profile = null;
-      if (inMemory) {
-        profile = "inmemory";
+
+      SpringApplicationBuilder application = new SpringApplicationBuilder(Application.class)
+          .web(WebApplicationType.NONE);
+
+      if (flag != null && !flag.isEmpty()) {
+        application.profiles("inmemory");
       }
 
       // Boot the app context within a try with resources container
-      try (ConfigurableApplicationContext context =
-          new SpringApplicationBuilder(Application.class)
-              .web(WebApplicationType.NONE)
-              .profiles(profile)
-              .run()) {
+      try (ConfigurableApplicationContext context = application.run()) {
         // Fetch services & construct the responder
         UserService userService = context.getBean(UserService.class);
         EventService eventService = context.getBean(EventService.class);
