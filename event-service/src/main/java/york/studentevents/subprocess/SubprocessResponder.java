@@ -136,9 +136,9 @@ public class SubprocessResponder {
 
       // Boot the app context within a try with resources container
       try (ConfigurableApplicationContext context =
-            new SpringApplicationBuilder(Application.class)
-            .web(WebApplicationType.NONE)
-            .profiles(profile)
+          new SpringApplicationBuilder(Application.class)
+              .web(WebApplicationType.NONE)
+              .profiles(profile)
               .run()) {
         // Fetch services & construct the responder
         UserService userService = context.getBean(UserService.class);
@@ -486,9 +486,8 @@ public class SubprocessResponder {
   /**
    * Returns the events for the given user as a JSON {@code ok} response envelope.
    *
-   * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
-   *     purposes. Logic must be ripped out and swapped for code which contacts
-   *     {@link StudentEventService} when persistence is configured.
+   * <p>Resolves the user's type via {@link UserService} and returns the events that they're
+   *     associated with as a list of event IDs.
    *
    * @param userId the user whose events to return.
    * @return the JSON {@code ok} response envelope.
@@ -496,7 +495,12 @@ public class SubprocessResponder {
    * @throws IllegalArgumentException if the user ID is not recognised.
    */
   private String getUserEvents(UUID userId) {
-    IUser user = userService.getUserById(userId);
+    IUser user;
+    try {
+      user = userService.getUserById(userId);
+    } catch (UserNotFoundException e) {
+      throw new IllegalArgumentException("The given userId was not recognised.");
+    }
 
     Set<IEvent> events = switch (user.getType()) {
       case STUDENT -> studentEventService.getEventsForStudent(userId);
@@ -513,9 +517,8 @@ public class SubprocessResponder {
   /**
    * Returns the information required about a given event as a JSON {@code ok} response envelope.
    *
-   * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
-   *     purposes. Logic must be ripped out and swapped for code which contacts
-   *     {@link StudentEventService} when persistence is configured.
+   * <p>The event's start and category are resolved from {@link EventService}, and its host from
+   *     {@link HostEventService} (see {@link #getRawEventInfo(UUID)}).
    *
    * @param eventId the event to retrieve info about.
    * @return the JSON {@code ok} response envelope.
@@ -530,9 +533,7 @@ public class SubprocessResponder {
   /**
    * Returns the information required about the given events as a JSON {@code ok} response envelope.
    *
-   * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
-   *     purposes. Logic must be ripped out and swapped for code which contacts
-   *     {@link StudentEventService} when persistence is configured.
+   * <p>Each event's info is resolved from the real services (see {@link #getRawEventInfo(UUID)}).
    *
    * <p>The response payload keys each event's info by its event ID (a
    * {@link LinkedHashMap} preserves request order in the emitted JSON). A repeated event ID
@@ -588,10 +589,9 @@ public class SubprocessResponder {
    * Notifies the given user that they have been awarded a badge, returning an empty JSON
    * {@code ok} response envelope.
    *
-   * <p>Note that this method is currently just a stub: it validates the request and acknowledges
-   * it, but does not yet act on the notification. A real implementation would deliver the award to
-   * the user (e.g. as a user-facing notification) once persistence and dependency injection are
-   * configured.
+   * <p>Validates that the user exists via {@link UserService} and acknowledges the award.
+   * Delivering it to the user (for example as a user-facing notification) is not yet implemented
+   * (see the {@code TODO} in the body).
    *
    * @param userId the user who has been awarded the badge.
    * @param badgeName the display name of the badge that was awarded.
