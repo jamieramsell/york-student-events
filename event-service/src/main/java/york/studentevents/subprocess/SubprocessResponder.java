@@ -7,13 +7,28 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.UUID;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
+import york.studentevents.Application;
+import york.studentevents.events.EventService;
+import york.studentevents.events.HostEventService;
+import york.studentevents.events.IEvent;
 import york.studentevents.events.StudentEventService;
+import york.studentevents.exceptions.EventNotFoundException;
+import york.studentevents.exceptions.UserNotFoundException;
+import york.studentevents.users.IHost;
+import york.studentevents.users.IUser;
+import york.studentevents.users.UserService;
 
 /**
  * Standalone entry point that answers subprocess requests issued by the Python {@code api-core}
@@ -41,54 +56,55 @@ import york.studentevents.events.StudentEventService;
  */
 public class SubprocessResponder {
 
+  // Static class attributes //
+
   private static final Gson GSON = new Gson();
 
-  /** Sentinel user recognised by this canned-stub responder. */
-  private static final UUID KNOWN_USER_ID =
-      UUID.fromString("11111111-1111-1111-1111-111111111111");
+  /**
+   * The true standard output, captured at class load before {@code main} redirects
+   * {@link System#out}.
+   *
+   * <p>Standard output is this bridge's response channel, as api-core reads the JSON envelope
+   * from it, so it cannot carry anything else. However, Spring writes its banner and logs to
+   * {@code System.out}, therefore {@code main} redirects {@code System.out} to standard error
+   * (where those logs belong), and every response write goes through this captured stream.
+   */
+  private static final PrintStream STDOUT = System.out;
 
-  /** Canned event IDs returned for the known user (stands in for a real EventService query). */
-  private static final List<UUID> CANNED_EVENTS = List.of(
-      UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-      UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+  // Envelopes //
 
-  /** Canned event info keyed by event ID (stands in for a real EventService query). */
-  private static final Map<UUID, EventInfoPayload> CANNED_EVENT_INFO = Map.of(
-      UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-      new EventInfoPayload(
-          UUID.fromString("22222222-2222-2222-2222-222222222222"),
-          "2026-09-15T18:00:00",
-          "SOCIAL"),
-      UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-      new EventInfoPayload(
-          UUID.fromString("33333333-3333-3333-3333-333333333333"),
-          "2026-10-01T14:30:00",
-          "ACADEMIC"));
-
-  /** Request envelope: a request type and its still-raw JSON payload. */
-  private record RequestEnvelope(RequestType requestType, JsonObject payload) {}
+  /**
+   * Request envelope: a request type and its still-raw JSON payload.
+   *
+   * <p>Package-private (rather than {@code private}) so that the in-process handler tests can
+   *     construct one via {@link #deserialiseEnvelope(String)} and drive
+   *     {@link #route(RequestEnvelope)} directly, without spawning a subprocess.
+   */
+  static record RequestEnvelope(RequestType requestType, JsonObject payload) {}
 
   /** Response envelope for a successful request; {@code payload} shape depends on the request. */
-  private record OkResponse(String status, Object payload) {}
+  private static record OkResponse(String status, Object payload) {}
 
   /** Payload of a successful {@code GET_USER_EVENTS} response. */
-  private record EventsPayload(List<UUID> events) {}
+  private static record EventsPayload(List<UUID> events) {}
 
   /** Payload of a successful {@code GET_EVENT_INFO} response. */
-  private record EventInfoPayload(UUID host, String start, String category) {}
+  private static record EventInfoPayload(UUID host, String start, String category) {}
 
   /**
    * Payload of a successful {@code GET_BATCH_EVENT_INFO} response: the per-event info keyed by
    * event ID. Gson serialises the {@link UUID} keys to their string form, so this becomes a JSON
    * object mapping each event ID to its {@link EventInfoPayload}.
    */
-  private record BatchEventInfoPayload(Map<UUID, EventInfoPayload> events) {}
+  private static record BatchEventInfoPayload(Map<UUID, EventInfoPayload> events) {}
 
   /** Empty payload for a successful acknowledgement (e.g. a {@code BADGE_AWARDED} response). */
-  private record EmptyPayload() {}
+  private static record EmptyPayload() {}
 
   /** Response envelope for a failed request. */
-  private record ErrorResponse(String status, String error) {}
+  private static record ErrorResponse(String status, String error) {}
+
+  // Single entry point //
 
   /**
    * Entry point: answers a single subprocess request read from standard input and writes the
@@ -106,10 +122,39 @@ public class SubprocessResponder {
    * @param args command-line arguments; unused.
    */
   public static void main(String[] args) {
+    // Standard output is the response channel (see STDOUT); keep Spring's banner and logs off it by
+    // sending everything written to System.out to standard error instead.
+    System.setOut(System.err);
     try {
+      // Read and validate the request
       String requestJson = readRequest();
       RequestEnvelope envelope = deserialiseEnvelope(requestJson);
-      writeResponse(route(envelope));
+
+      // Pick the profile to take (in-memory vs database driven)
+      String flag = System.getenv("YSE_BRIDGE_INMEMORY");
+
+      SpringApplicationBuilder application = new SpringApplicationBuilder(Application.class)
+          .web(WebApplicationType.NONE);
+
+      if (flag != null && !flag.isEmpty()) {
+        application.profiles("inmemory");
+      }
+
+      // Boot the app context within a try with resources container
+      try (ConfigurableApplicationContext context = application.run()) {
+        // Fetch services & construct the responder
+        UserService userService = context.getBean(UserService.class);
+        EventService eventService = context.getBean(EventService.class);
+        StudentEventService studentEventService = context.getBean(StudentEventService.class);
+        HostEventService hostEventService = context.getBean(HostEventService.class);
+
+        SubprocessResponder responder = new SubprocessResponder(
+            userService, eventService, studentEventService, hostEventService);
+
+        // Route the envelope to the correct responder & send its response
+        writeResponse(responder.route(envelope));
+      }
+
     } catch (IllegalArgumentException e) {
       // Bad data: malformed request, unknown/unsupported type, or unknown user.
       writeResponse(GSON.toJson(new ErrorResponse("error", e.getMessage())));
@@ -120,6 +165,8 @@ public class SubprocessResponder {
       System.exit(1);
     }
   }
+
+  // Static envelope parsing methods //
 
   /**
    * Reads the single request envelope line from standard input.
@@ -152,7 +199,7 @@ public class SubprocessResponder {
    * @throws IllegalArgumentException if {@code json} is not a valid JSON object; if the
    *     {@code requestType} or {@code payload} fields are missing or malformed.
    */
-  private static RequestEnvelope deserialiseEnvelope(String json) {
+  static RequestEnvelope deserialiseEnvelope(String json) {
 
     /*
      * Try to parse the given String into a JsonObject. If this throws an error, then the String
@@ -217,40 +264,6 @@ public class SubprocessResponder {
     }
 
     return type;
-  }
-
-  /**
-   * Routes a deserialised request to its handler and returns the JSON response envelope.
-   *
-   * @param envelope the deserialised request.
-   * @return the JSON {@code ok} response envelope.
-   *
-   * @throws IllegalArgumentException if the request type is not supported by this responder; or a
-   *     required attribute is missing from the payload or is not valid.
-   */
-  private static String route(RequestEnvelope envelope) {
-
-    switch (envelope.requestType()) {
-      case GET_USER_EVENTS -> {
-        UUID userId = getUserId(envelope.payload());
-        return getUserEvents(userId);
-      }
-      case BADGE_AWARDED -> {
-        UUID userId = getUserId(envelope.payload());
-        String badgeName = getBadgeName(envelope.payload());
-        return badgeAwarded(userId, badgeName);
-      }
-      case GET_EVENT_INFO -> {
-        UUID eventId = getEventId(envelope.payload());
-        return getEventInfo(eventId);
-      }
-      case GET_BATCH_EVENT_INFO -> {
-        List<UUID> eventIds = getBatchEventIds(envelope.payload());
-        return getBatchEventInfo(eventIds);
-      }
-      default -> throw new IllegalArgumentException(
-          "Unsupported requestType for event-service: " + envelope.requestType());
-    }
   }
 
   /**
@@ -400,38 +413,121 @@ public class SubprocessResponder {
     return badgeName;
   }
 
+  // Static response methods //
+
+  /** Writes a response envelope to the true standard output, newline-terminated and flushed. */
+  private static void writeResponse(String json) {
+    STDOUT.println(json);
+    STDOUT.flush();
+  }
+
+  // Responder instance methods //
+
+  private final UserService userService;
+  private final EventService eventService;
+  private final StudentEventService studentEventService;
+  private final HostEventService hostEventService;
+
+  /**
+   * Constructs a responder over an already-composed service graph.
+   *
+   * <p>Package-private so that {@code main} can build one from the beans that it pulls out of the
+   * booted context, and the in-process handler tests can build one over a seeded graph directly.
+   *
+   * @param userService resolves users (type, existence).
+   * @param eventService resolves event info.
+   * @param studentEventService resolves a student's registered events.
+   * @param hostEventService resolves a host's events and an event's hosts.
+   */
+  SubprocessResponder(
+      UserService userService,
+      EventService eventService,
+      StudentEventService studentEventService,
+      HostEventService hostEventService
+  ) {
+    this.userService = userService;
+    this.eventService = eventService;
+    this.studentEventService = studentEventService;
+    this.hostEventService = hostEventService;
+  }
+
+  /**
+   * Routes a deserialised request to its handler and returns the JSON response envelope.
+   *
+   * @param envelope the deserialised request.
+   * @return the JSON {@code ok} response envelope.
+   *
+   * @throws IllegalArgumentException if the request type is not supported by this responder; or a
+   *     required attribute is missing from the payload or is not valid.
+   */
+  String route(RequestEnvelope envelope) {
+
+    switch (envelope.requestType()) {
+      case GET_USER_EVENTS -> {
+        UUID userId = getUserId(envelope.payload());
+        return getUserEvents(userId);
+      }
+      case BADGE_AWARDED -> {
+        UUID userId = getUserId(envelope.payload());
+        String badgeName = getBadgeName(envelope.payload());
+        return badgeAwarded(userId, badgeName);
+      }
+      case GET_EVENT_INFO -> {
+        UUID eventId = getEventId(envelope.payload());
+        return getEventInfo(eventId);
+      }
+      case GET_BATCH_EVENT_INFO -> {
+        List<UUID> eventIds = getBatchEventIds(envelope.payload());
+        return getBatchEventInfo(eventIds);
+      }
+      default -> throw new IllegalArgumentException(
+          "Unsupported requestType for event-service: " + envelope.requestType());
+    }
+  }
+
   /**
    * Returns the events for the given user as a JSON {@code ok} response envelope.
    *
-   * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
-   *     purposes. Logic must be ripped out and swapped for code which contacts
-   *     {@link StudentEventService} when persistence is configured.
+   * <p>Resolves the user's type via {@link UserService} and returns the events that they're
+   *     associated with as a list of event IDs.
    *
    * @param userId the user whose events to return.
    * @return the JSON {@code ok} response envelope.
    *
    * @throws IllegalArgumentException if the user ID is not recognised.
    */
-  private static String getUserEvents(UUID userId) {
-    if (!KNOWN_USER_ID.equals(userId)) {
-      throw new IllegalArgumentException("User " + userId + " not found");
+  private String getUserEvents(UUID userId) {
+    IUser user;
+    try {
+      user = userService.getUserById(userId);
+    } catch (UserNotFoundException e) {
+      throw new IllegalArgumentException("The given userId was not recognised.");
     }
-    return GSON.toJson(new OkResponse("ok", new EventsPayload(CANNED_EVENTS)));
+
+    Set<IEvent> events = switch (user.getType()) {
+      case STUDENT -> studentEventService.getEventsForStudent(userId);
+      case HOST -> hostEventService.getEventsForHost(userId);
+    };
+
+    List<UUID> listOfEventIds = events.stream()
+        .map(event -> event.getId())
+        .toList();
+
+    return GSON.toJson(new OkResponse("ok", new EventsPayload(listOfEventIds)));
   }
 
   /**
    * Returns the information required about a given event as a JSON {@code ok} response envelope.
    *
-   * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
-   *     purposes. Logic must be ripped out and swapped for code which contacts
-   *     {@link StudentEventService} when persistence is configured.
+   * <p>The event's start and category are resolved from {@link EventService}, and its host from
+   *     {@link HostEventService} (see {@link #getRawEventInfo(UUID)}).
    *
    * @param eventId the event to retrieve info about.
    * @return the JSON {@code ok} response envelope.
    *
    * @throws IllegalArgumentException if the event ID is not recognised.
    */
-  private static String getEventInfo(UUID eventId) {
+  private String getEventInfo(UUID eventId) {
     EventInfoPayload info = getRawEventInfo(eventId);
     return GSON.toJson(new OkResponse("ok", info));
   }
@@ -439,9 +535,7 @@ public class SubprocessResponder {
   /**
    * Returns the information required about the given events as a JSON {@code ok} response envelope.
    *
-   * <p>Note that this method is currently just a stub, retrieving hardcoded data for testing
-   *     purposes. Logic must be ripped out and swapped for code which contacts
-   *     {@link StudentEventService} when persistence is configured.
+   * <p>Each event's info is resolved from the real services (see {@link #getRawEventInfo(UUID)}).
    *
    * <p>The response payload keys each event's info by its event ID (a
    * {@link LinkedHashMap} preserves request order in the emitted JSON). A repeated event ID
@@ -452,7 +546,7 @@ public class SubprocessResponder {
    *
    * @throws IllegalArgumentException if a given event ID is not recognised.
    */
-  private static String getBatchEventInfo(List<UUID> eventIds) {
+  private String getBatchEventInfo(List<UUID> eventIds) {
     Map<UUID, EventInfoPayload> info = new LinkedHashMap<>();
     for (UUID eventId : eventIds) {
       info.put(eventId, getRawEventInfo(eventId));
@@ -470,13 +564,46 @@ public class SubprocessResponder {
    * @param eventId the event to retrieve info about
    * @return the payload of the event's info
    *
-   * @throws IllegalArgumentException if the event ID is not recognised.
+   * @throws IllegalArgumentException if the event ID is not recognised, or the event is missing an
+   *     attribute required by the python service for badge evaluation.
    */
-  private static EventInfoPayload getRawEventInfo(UUID eventId) {
-    EventInfoPayload info = CANNED_EVENT_INFO.get(eventId);
-    if (info == null) {
-      throw new IllegalArgumentException("Event " + eventId + " not found");
+  private EventInfoPayload getRawEventInfo(UUID eventId) {
+    IEvent event;
+    Set<IHost> hosts;
+
+    try {
+      event = eventService.getEvent(eventId);
+      hosts = hostEventService.getHostsForEvent(eventId);
+    } catch (EventNotFoundException e) {
+      throw new IllegalArgumentException("The given event ID was not recognised");
     }
+
+    // Attribute retrieval & validation
+    // TODO: add support on both services for multiple hosts
+    UUID hostId;
+    try {
+      hostId = List.copyOf(hosts).getFirst().getId();
+    } catch (NoSuchElementException e) {
+      throw new IllegalArgumentException("The given event currently has no host assigned.");
+    }
+
+    if (event.getStartDateTime() == null) {
+      throw new IllegalArgumentException("The given event does not yet have an assigned start"
+          + " time");
+    }
+    String startDateTime = event.getStartDateTime().toString();
+
+    if (event.getCategory() == null) {
+      throw new IllegalArgumentException("The given event does not have an assigned category");
+    }
+    String category = event.getCategory().name();
+
+    EventInfoPayload info = new EventInfoPayload(
+        hostId,
+        startDateTime,
+        category
+    );
+
     return info;
   }
 
@@ -484,10 +611,9 @@ public class SubprocessResponder {
    * Notifies the given user that they have been awarded a badge, returning an empty JSON
    * {@code ok} response envelope.
    *
-   * <p>Note that this method is currently just a stub: it validates the request and acknowledges
-   * it, but does not yet act on the notification. A real implementation would deliver the award to
-   * the user (e.g. as a user-facing notification) once persistence and dependency injection are
-   * configured.
+   * <p>Validates that the user exists via {@link UserService} and acknowledges the award.
+   * Delivering it to the user (for example as a user-facing notification) is not yet implemented
+   * (see the {@code todo} in the body).
    *
    * @param userId the user who has been awarded the badge.
    * @param badgeName the display name of the badge that was awarded.
@@ -495,17 +621,16 @@ public class SubprocessResponder {
    *
    * @throws IllegalArgumentException if the user ID is not recognised.
    */
-  private static String badgeAwarded(UUID userId, String badgeName) {
-    if (!KNOWN_USER_ID.equals(userId)) {
-      throw new IllegalArgumentException("User " + userId + " not found");
+  private String badgeAwarded(UUID userId, String badgeName) {
+    try { // Validate that the given user actually exists
+      userService.getUserById(userId);
+    } catch (UserNotFoundException e) {
+      throw new IllegalArgumentException("The given user ID was not recognised");
     }
-    return GSON.toJson(new OkResponse("ok", new EmptyPayload()));
-  }
 
-  /** Writes a response envelope to standard output, newline-terminated and flushed. */
-  private static void writeResponse(String json) {
-    System.out.println(json);
-    System.out.flush();
+    // TODO: implement push notifications
+
+    return GSON.toJson(new OkResponse("ok", new EmptyPayload()));
   }
 
 }

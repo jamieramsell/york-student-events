@@ -1,6 +1,5 @@
 """Graph traversal algorithms for the friends slice.
 """
-
 import collections.abc
 import uuid
 

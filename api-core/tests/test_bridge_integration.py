@@ -2,8 +2,16 @@
 
 This is skipped unless ``java`` is on PATH and the event-service build output
 (``target/classes`` + ``target/cp.txt``) exists; the fixture attempts a build
-first and skips with a clear message if the toolchain is unavailable. The canned
-constants below MUST match those in ``SubprocessResponder.java``.
+first and skips with a clear message if the toolchain is unavailable.
+
+Each request spawns the responder as a fresh JVM under ``YSE_BRIDGE_INMEMORY``, so
+it composes a throwaway in-memory graph and needs no database. That graph starts
+*empty* and dies with the process, and a cross-JVM child cannot see data seeded in
+this test's process, so these tests assert only envelope *shapes* (the ok
+round-trip and the not-found / error paths). The real-data assertions (that a
+seeded event yields its actual host, start and category) live in event-service's
+``SubprocessResponderInProcessTest``, which drives the handlers in-process over a
+seeded database.
 """
 from __future__ import annotations
 
@@ -13,6 +21,7 @@ import uuid
 from pathlib import Path
 
 import pytest
+
 from bridge import client
 from bridge.client import (
     SubprocessError,
@@ -28,29 +37,10 @@ pytestmark = pytest.mark.integration
 
 _EVENT_SERVICE = Path(__file__).resolve().parents[2] / "event-service"
 
-KNOWN_USER_ID = "11111111-1111-1111-1111-111111111111"
-# get_user_events parses the responder's event IDs into UUIDs, so the expected
-# canned events are UUID objects (not the raw strings the responder emits).
-EXPECTED_EVENTS = [
-    uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-    uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-]
-
-# One of the canned events known to the responder, with its expected info payload.
-KNOWN_EVENT_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-EXPECTED_EVENT_INFO = {
-    "host": "22222222-2222-2222-2222-222222222222",
-    "start": "2026-09-15T18:00:00",
-    "category": "SOCIAL",
-}
-
-# The responder's second canned event, used to exercise batch fetches.
+# Arbitrary well-formed UUIDs; unknown in the empty in-memory graph.
+SOME_USER_ID = "11111111-1111-1111-1111-111111111111"
+SOME_EVENT_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 SECOND_EVENT_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
-SECOND_EVENT_INFO = {
-    "host": "33333333-3333-3333-3333-333333333333",
-    "start": "2026-10-01T14:30:00",
-    "category": "ACADEMIC",
-}
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -81,59 +71,33 @@ def _event_service_built():
             )
 
 
+@pytest.fixture(autouse=True)
+def _inmemory_bridge(monkeypatch):
+    monkeypatch.setenv("YSE_BRIDGE_INMEMORY", "1")
+    
+
 class TestRoundTrip:
-    def test_known_user_returns_canned_events(self):
-        assert get_user_events(KNOWN_USER_ID) == EXPECTED_EVENTS
-
-    def test_unknown_user_raises_not_found(self):
-        with pytest.raises(SubprocessError, match="not found"):
-            get_user_events("00000000-0000-0000-0000-000000000000")
-
-    def test_known_event_returns_canned_info(self):
-        assert get_event_info(KNOWN_EVENT_ID) == EXPECTED_EVENT_INFO
-
-    def test_unknown_event_raises_not_found(self):
-        with pytest.raises(SubprocessError, match="not found"):
-            get_event_info("99999999-9999-9999-9999-999999999999")
-
-    def test_batch_returns_canned_info_keyed_by_event_id(self):
-        result = get_batch_event_info(
-            [uuid.UUID(SECOND_EVENT_ID), uuid.UUID(KNOWN_EVENT_ID)]
-        )
-        assert result == {
-            uuid.UUID(SECOND_EVENT_ID): SECOND_EVENT_INFO,
-            uuid.UUID(KNOWN_EVENT_ID): EXPECTED_EVENT_INFO,
-        }
-
-    def test_batch_single_event_matches_get_event_info(self):
-        result = get_batch_event_info([uuid.UUID(KNOWN_EVENT_ID)])
-        assert result[uuid.UUID(KNOWN_EVENT_ID)] == EXPECTED_EVENT_INFO
-        assert result[uuid.UUID(KNOWN_EVENT_ID)] == get_event_info(KNOWN_EVENT_ID)
-
-    def test_batch_repeated_event_id_appears_once(self):
-        result = get_batch_event_info(
-            [uuid.UUID(KNOWN_EVENT_ID), uuid.UUID(KNOWN_EVENT_ID)]
-        )
-        assert result == {uuid.UUID(KNOWN_EVENT_ID): EXPECTED_EVENT_INFO}
+    # ok-shape: a request needing no data completes a full round trip //
 
     def test_batch_empty_list_returns_empty(self):
         assert get_batch_event_info([]) == {}
 
-    def test_batch_with_any_unknown_event_raises_not_found(self):
-        with pytest.raises(SubprocessError, match="not found"):
+    # not-found: every id is unknown in the empty graph //
+
+    def test_unknown_user_raises_not_recognised(self):
+        with pytest.raises(SubprocessError, match="not recognised"):
+            get_user_events(SOME_USER_ID)
+
+    def test_unknown_event_raises_not_recognised(self):
+        with pytest.raises(SubprocessError, match="not recognised"):
+            get_event_info(SOME_EVENT_ID)
+
+    def test_batch_with_any_unknown_event_raises_not_recognised(self):
+        with pytest.raises(SubprocessError, match="not recognised"):
             get_batch_event_info(
-                [
-                    uuid.UUID(KNOWN_EVENT_ID),
-                    uuid.UUID("99999999-9999-9999-9999-999999999999"),
-                ]
+                [uuid.UUID(SOME_EVENT_ID), uuid.UUID(SECOND_EVENT_ID)]
             )
 
-    def test_badge_awarded_notification_for_known_user_succeeds(self):
-        # Fire-and-forget: a successful notification returns None (empty payload).
-        assert notify_badge_awarded(KNOWN_USER_ID, "First Event") is None
-
-    def test_badge_awarded_notification_unknown_user_raises(self):
-        with pytest.raises(SubprocessError, match="not found"):
-            notify_badge_awarded(
-                "00000000-0000-0000-0000-000000000000", "First Event"
-            )
+    def test_badge_awarded_notification_unknown_user_raises_not_recognised(self):
+        with pytest.raises(SubprocessError, match="not recognised"):
+            notify_badge_awarded(SOME_USER_ID, "First Event")

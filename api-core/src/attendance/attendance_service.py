@@ -6,14 +6,12 @@ whether a student attended a given event or which students attended it.
 Orchestrates the ``Attendance`` domain model from ``base`` with the in-memory
 repository, keeping persistence details out of callers.
 """
-
 import datetime
 import uuid
 
 import activity
 import bridge
 import repositories
-
 from attendance import base
 
 type AttendanceRepository = repositories.IRepository[base.AttendanceId,

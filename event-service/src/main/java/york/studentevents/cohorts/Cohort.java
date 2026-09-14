@@ -1,5 +1,11 @@
 package york.studentevents.cohorts;
 
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -9,13 +15,29 @@ import java.util.UUID;
  *
  * <p>A cohort maintains the set of member user IDs belonging to it.
  */
+@Entity
 public class Cohort implements ICohort {
-  private final UUID id;
+
+  @Id
+  private UUID id;
+
+  @Column(nullable = false)
   private String name;
+
+  @Column(nullable = false)
   private String department;
+
   private int academicYear;
+
   private int yearGroup;
-  private final Set<UUID> members;
+
+  @ElementCollection
+  @CollectionTable(
+      name = "cohort_members",
+      joinColumns = @JoinColumn(name = "cohort_id")
+  )
+  @Column(name = "member_id")
+  private Set<UUID> members = new HashSet<>();
 
   /**
    * Creates a {@code Cohort} with the given details.
@@ -69,6 +91,9 @@ public class Cohort implements ICohort {
     this.id = id;
     this.members = new HashSet<>();
   }
+
+  /** No-args constructor for JPA use only. */
+  protected Cohort() {}
 
   private void setName(String name) {
     if (name == null || name.isBlank()) {
