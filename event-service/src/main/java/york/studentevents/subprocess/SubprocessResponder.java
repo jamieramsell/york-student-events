@@ -595,7 +595,7 @@ public class SubprocessResponder {
     if (event.getCategory() == null) {
       throw new IllegalArgumentException("The given event does not have an assigned category");
     }
-    String category = event.getCategory().toString();
+    String category = event.getCategory().name();
 
     EventInfoPayload info = new EventInfoPayload(
         hostId,
