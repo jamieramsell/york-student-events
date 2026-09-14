@@ -135,13 +135,11 @@ public class SubprocessResponder {
       String profile = inMemory ? "inmemory" : "jpa";
 
       // Boot the app context within a try with resources container
-      try (
-          ConfigurableApplicationContext context =
+      try (ConfigurableApplicationContext context =
             new SpringApplicationBuilder(Application.class)
             .web(WebApplicationType.NONE)
             .profiles(profile)
-            .run();
-      ) {
+              .run()) {
         // Fetch services & construct the responder
         UserService userService = context.getBean(UserService.class);
         EventService eventService = context.getBean(EventService.class);
@@ -149,8 +147,7 @@ public class SubprocessResponder {
         HostEventService hostEventService = context.getBean(HostEventService.class);
 
         SubprocessResponder responder = new SubprocessResponder(
-          userService, eventService, studentEventService, hostEventService
-        );
+            userService, eventService, studentEventService, hostEventService);
 
         // Route the envelope to the correct responder & send its response
         writeResponse(responder.route(envelope));
@@ -577,8 +574,9 @@ public class SubprocessResponder {
       throw new IllegalArgumentException("The given event ID was not recognised");
     }
 
+    // TODO: add support on both services for multiple hosts
     EventInfoPayload info = new EventInfoPayload(
-        List.copyOf(hosts).getFirst().getId(), // TODO: add support on both services for multiple hosts
+        List.copyOf(hosts).getFirst().getId(),
         event.getStartDateTime().toString(),
         event.getCategory().toString()
     );
