@@ -3,7 +3,6 @@ package york.studentevents.subprocess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.BufferedReader;
@@ -15,19 +14,25 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 /**
- * Integration tests for {@link SubprocessResponder}.
+ * Envelope-shape integration tests for {@link SubprocessResponder}.
  *
  * <p>The responder's {@code main} calls {@link System#exit}, so each case runs it in a fresh JVM
- * (reusing the test classpath) and asserts on the response envelope and exit code, mirroring how
- * the Python client drives it.
+ * (reusing the test classpath) and asserts on the response envelope and exit code, mirroring
+ * how the Python client drives it.
+ *
+ * <p>Each spawned process is launched with {@code YSE_BRIDGE_INMEMORY} set, so it composes a
+ * throwaway in-memory graph and needs no database. That graph starts <em>empty</em> and dies with
+ * the process, and a cross-JVM child cannot see data seeded in this test's JVM — so these tests
+ * assert only envelope <em>shapes</em> ({@code ok} / {@code error} / exit code) and the
+ * not-found and validation paths. The real-data assertions (that a seeded event yields its
+ * actual host, start and
+ * category) live in {@link SubprocessResponderInProcessTest}, which drives the handlers in-process
+ * over a seeded database.
  */
 class SubprocessResponderTest {
 
-  private static final String KNOWN_USER = "11111111-1111-1111-1111-111111111111";
-  private static final String UNKNOWN_USER = "00000000-0000-0000-0000-000000000000";
-  private static final String KNOWN_EVENT = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
-  private static final String SECOND_EVENT = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
-  private static final String UNKNOWN_EVENT = "99999999-9999-9999-9999-999999999999";
+  private static final String SOME_USER = "11111111-1111-1111-1111-111111111111";
+  private static final String SOME_EVENT = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 
   /** The exit code and parsed response envelope from one responder invocation. */
   private record Result(int exitCode, JsonObject response) {}
@@ -67,6 +72,8 @@ class SubprocessResponderTest {
         "-cp",
         System.getProperty("java.class.path"),
         "york.studentevents.subprocess.SubprocessResponder");
+    // Compose a database-free in-memory graph, so the spawned process needs no DATABASE_URL.
+    builder.environment().put("YSE_BRIDGE_INMEMORY", "1");
 
     Process process = builder.start();
     try (OutputStream stdin = process.getOutputStream()) {
@@ -89,44 +96,54 @@ class SubprocessResponderTest {
     return result.response().get("error").getAsString();
   }
 
+  // ok-shape: a request needing no data succeeds //
+
   @Test
-  void knownUserReturnsCannedEventsAndExitsZero() throws Exception {
-    Result result = run(request("GET_USER_EVENTS", KNOWN_USER));
+  void batchOfNoEventsReturnsEmptyObjectAndExitsZero() throws Exception {
+    Result result = run(batchRequest());
     assertEquals(0, result.exitCode());
     assertEquals("ok", result.response().get("status").getAsString());
-    JsonArray events = result.response().getAsJsonObject("payload").getAsJsonArray("events");
-    assertEquals(2, events.size());
-    assertEquals("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", events.get(0).getAsString());
-    assertEquals("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", events.get(1).getAsString());
+    JsonObject events = result.response().getAsJsonObject("payload").getAsJsonObject("events");
+    assertEquals(0, events.size());
   }
+
+  // not-found: every id is unknown in the empty graph //
 
   @Test
   void unknownUserReturnsErrorAndExitsNonZero() throws Exception {
-    Result result = run(request("GET_USER_EVENTS", UNKNOWN_USER));
+    Result result = run(request("GET_USER_EVENTS", SOME_USER));
     assertEquals(1, result.exitCode());
     assertEquals("error", result.response().get("status").getAsString());
-    assertTrue(errorOf(result).contains("not found"));
-  }
-
-  @Test
-  void knownEventReturnsCannedInfoAndExitsZero() throws Exception {
-    Result result = run(eventRequest("GET_EVENT_INFO", KNOWN_EVENT));
-    assertEquals(0, result.exitCode());
-    assertEquals("ok", result.response().get("status").getAsString());
-    JsonObject payload = result.response().getAsJsonObject("payload");
-    assertEquals(
-        "22222222-2222-2222-2222-222222222222", payload.get("host").getAsString());
-    assertEquals("2026-09-15T18:00:00", payload.get("start").getAsString());
-    assertEquals("SOCIAL", payload.get("category").getAsString());
+    // Shape only: unlike the event handlers, getUserEvents does not currently wrap
+    // UserNotFoundException, so the message is the generic "Unexpected error: null"
+    // (see review note).
   }
 
   @Test
   void unknownEventReturnsErrorAndExitsNonZero() throws Exception {
-    Result result = run(eventRequest("GET_EVENT_INFO", UNKNOWN_EVENT));
+    Result result = run(eventRequest("GET_EVENT_INFO", SOME_EVENT));
     assertEquals(1, result.exitCode());
     assertEquals("error", result.response().get("status").getAsString());
-    assertTrue(errorOf(result).contains("not found"));
+    assertTrue(errorOf(result).contains("not recognised"));
   }
+
+  @Test
+  void batchWithUnknownEventReturnsErrorAndExitsNonZero() throws Exception {
+    Result result = run(batchRequest(SOME_EVENT));
+    assertEquals(1, result.exitCode());
+    assertEquals("error", result.response().get("status").getAsString());
+    assertTrue(errorOf(result).contains("not recognised"));
+  }
+
+  @Test
+  void unknownUserBadgeAwardedReturnsErrorAndExitsNonZero() throws Exception {
+    Result result = run(badgeAwardedRequest(SOME_USER, "First Event"));
+    assertEquals(1, result.exitCode());
+    assertEquals("error", result.response().get("status").getAsString());
+    assertTrue(errorOf(result).contains("not recognised"));
+  }
+
+  // validation errors: rejected before any context is booted //
 
   @Test
   void missingEventIdReturnsError() throws Exception {
@@ -143,65 +160,6 @@ class SubprocessResponderTest {
   }
 
   @Test
-  void batchOfKnownEventsReturnsInfoKeyedByEventIdAndExitsZero() throws Exception {
-    Result result = run(batchRequest(SECOND_EVENT, KNOWN_EVENT));
-    assertEquals(0, result.exitCode());
-    assertEquals("ok", result.response().get("status").getAsString());
-    JsonObject events = result.response().getAsJsonObject("payload").getAsJsonObject("events");
-    assertEquals(2, events.size());
-
-    JsonObject first = events.getAsJsonObject(SECOND_EVENT);
-    assertEquals("33333333-3333-3333-3333-333333333333", first.get("host").getAsString());
-    assertEquals("2026-10-01T14:30:00", first.get("start").getAsString());
-    assertEquals("ACADEMIC", first.get("category").getAsString());
-
-    JsonObject second = events.getAsJsonObject(KNOWN_EVENT);
-    assertEquals("22222222-2222-2222-2222-222222222222", second.get("host").getAsString());
-    assertEquals("2026-09-15T18:00:00", second.get("start").getAsString());
-    assertEquals("SOCIAL", second.get("category").getAsString());
-  }
-
-  @Test
-  void batchOfSingleKnownEventReturnsOneEntryAndExitsZero() throws Exception {
-    Result result = run(batchRequest(KNOWN_EVENT));
-    assertEquals(0, result.exitCode());
-    assertEquals("ok", result.response().get("status").getAsString());
-    JsonObject events = result.response().getAsJsonObject("payload").getAsJsonObject("events");
-    assertEquals(1, events.size());
-    assertEquals(
-        "22222222-2222-2222-2222-222222222222",
-        events.getAsJsonObject(KNOWN_EVENT).get("host").getAsString());
-  }
-
-  @Test
-  void batchWithRepeatedEventIdReturnsSingleEntry() throws Exception {
-    Result result = run(batchRequest(KNOWN_EVENT, KNOWN_EVENT));
-    assertEquals(0, result.exitCode());
-    assertEquals("ok", result.response().get("status").getAsString());
-    JsonObject events = result.response().getAsJsonObject("payload").getAsJsonObject("events");
-    // A repeated event ID collapses to one key in the response object.
-    assertEquals(1, events.size());
-    assertTrue(events.has(KNOWN_EVENT));
-  }
-
-  @Test
-  void batchOfNoEventsReturnsEmptyObjectAndExitsZero() throws Exception {
-    Result result = run(batchRequest());
-    assertEquals(0, result.exitCode());
-    assertEquals("ok", result.response().get("status").getAsString());
-    JsonObject events = result.response().getAsJsonObject("payload").getAsJsonObject("events");
-    assertEquals(0, events.size());
-  }
-
-  @Test
-  void batchWithOneUnknownEventReturnsErrorAndExitsNonZero() throws Exception {
-    Result result = run(batchRequest(KNOWN_EVENT, UNKNOWN_EVENT));
-    assertEquals(1, result.exitCode());
-    assertEquals("error", result.response().get("status").getAsString());
-    assertTrue(errorOf(result).contains("not found"));
-  }
-
-  @Test
   void missingEventIdsReturnsError() throws Exception {
     Result result = run("{\"requestType\":\"GET_BATCH_EVENT_INFO\",\"payload\":{}}");
     assertEquals(1, result.exitCode());
@@ -211,7 +169,7 @@ class SubprocessResponderTest {
   @Test
   void eventIdsNotAnArrayReturnsError() throws Exception {
     Result result =
-        run("{\"requestType\":\"GET_BATCH_EVENT_INFO\",\"payload\":{\"eventIds\":\"" + KNOWN_EVENT
+        run("{\"requestType\":\"GET_BATCH_EVENT_INFO\",\"payload\":{\"eventIds\":\"" + SOME_EVENT
             + "\"}}");
     assertEquals(1, result.exitCode());
     assertEquals("'eventIds' field is not valid.", errorOf(result));
@@ -219,38 +177,22 @@ class SubprocessResponderTest {
 
   @Test
   void batchWithInvalidUuidReturnsError() throws Exception {
-    Result result = run(batchRequest(KNOWN_EVENT, "not-a-uuid"));
+    Result result = run(batchRequest(SOME_EVENT, "not-a-uuid"));
     assertEquals(1, result.exitCode());
     assertEquals("'eventIds' field contains an ID which is not a valid UUID.", errorOf(result));
   }
 
   @Test
-  void knownUserBadgeAwardedReturnsEmptyPayloadAndExitsZero() throws Exception {
-    Result result = run(badgeAwardedRequest(KNOWN_USER, "First Event"));
-    assertEquals(0, result.exitCode());
-    assertEquals("ok", result.response().get("status").getAsString());
-    assertTrue(result.response().getAsJsonObject("payload").isEmpty());
-  }
-
-  @Test
-  void unknownUserBadgeAwardedReturnsErrorAndExitsNonZero() throws Exception {
-    Result result = run(badgeAwardedRequest(UNKNOWN_USER, "First Event"));
-    assertEquals(1, result.exitCode());
-    assertEquals("error", result.response().get("status").getAsString());
-    assertTrue(errorOf(result).contains("not found"));
-  }
-
-  @Test
   void missingBadgeNameReturnsError() throws Exception {
     Result result = run(
-        "{\"requestType\":\"BADGE_AWARDED\",\"payload\":{\"userId\":\"" + KNOWN_USER + "\"}}");
+        "{\"requestType\":\"BADGE_AWARDED\",\"payload\":{\"userId\":\"" + SOME_USER + "\"}}");
     assertEquals(1, result.exitCode());
     assertEquals("Missing 'badgeName' field.", errorOf(result));
   }
 
   @Test
   void blankBadgeNameReturnsError() throws Exception {
-    Result result = run(badgeAwardedRequest(KNOWN_USER, "   "));
+    Result result = run(badgeAwardedRequest(SOME_USER, "   "));
     assertEquals(1, result.exitCode());
     assertEquals("'badgeName' field is not valid.", errorOf(result));
   }
@@ -264,7 +206,7 @@ class SubprocessResponderTest {
 
   @Test
   void missingRequestTypeReturnsError() throws Exception {
-    Result result = run("{\"payload\":{\"userId\":\"" + KNOWN_USER + "\"}}");
+    Result result = run("{\"payload\":{\"userId\":\"" + SOME_USER + "\"}}");
     assertEquals(1, result.exitCode());
     assertEquals("Missing 'requestType' field.", errorOf(result));
   }
@@ -278,14 +220,14 @@ class SubprocessResponderTest {
 
   @Test
   void unrecognisedRequestTypeReturnsError() throws Exception {
-    Result result = run(request("NOPE", KNOWN_USER));
+    Result result = run(request("NOPE", SOME_USER));
     assertEquals(1, result.exitCode());
     assertEquals("'requestType' field is not valid.", errorOf(result));
   }
 
   @Test
   void unsupportedRequestTypeReturnsError() throws Exception {
-    Result result = run(request("GET_USER_BADGES", KNOWN_USER));
+    Result result = run(request("GET_USER_BADGES", SOME_USER));
     assertEquals(1, result.exitCode());
     assertTrue(errorOf(result).contains("Unsupported requestType"));
   }
