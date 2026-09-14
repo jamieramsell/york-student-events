@@ -114,9 +114,7 @@ class SubprocessResponderTest {
     Result result = run(request("GET_USER_EVENTS", SOME_USER));
     assertEquals(1, result.exitCode());
     assertEquals("error", result.response().get("status").getAsString());
-    // Shape only: unlike the event handlers, getUserEvents does not currently wrap
-    // UserNotFoundException, so the message is the generic "Unexpected error: null"
-    // (see review note).
+    assertTrue(errorOf(result).contains("not recognised"));
   }
 
   @Test
