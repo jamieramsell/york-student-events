@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.stereotype.Repository;
 import york.studentevents.users.IUser;
 import york.studentevents.users.IUserRepository;
 import york.studentevents.users.User;
@@ -28,7 +27,6 @@ import york.studentevents.users.User;
  * @see JpaUserRepository
  * @see IUser
  */
-@Repository 
 public class UserRepositoryAdapter implements IUserRepository {
 
   private final JpaUserRepository jpa;
