@@ -133,7 +133,10 @@ public class SubprocessResponder {
       // Pick the profile to take (in-memory vs database driven)
       String flag = System.getenv("YSE_BRIDGE_INMEMORY");
       boolean inMemory = flag != null && !flag.isEmpty();
-      String profile = inMemory ? "inmemory" : "jpa";
+      String profile = null;
+      if (inMemory) {
+        profile = "inmemory";
+      }
 
       // Boot the app context within a try with resources container
       try (ConfigurableApplicationContext context =
