@@ -72,8 +72,14 @@ public class SubprocessResponder {
 
   // Envelopes //
 
-  /** Request envelope: a request type and its still-raw JSON payload. */
-  private static record RequestEnvelope(RequestType requestType, JsonObject payload) {}
+  /**
+   * Request envelope: a request type and its still-raw JSON payload.
+   *
+   * <p>Package-private (rather than {@code private}) so that the in-process handler tests can
+   *     construct one via {@link #deserialiseEnvelope(String)} and drive
+   *     {@link #route(RequestEnvelope)} directly, without spawning a subprocess.
+   */
+  static record RequestEnvelope(RequestType requestType, JsonObject payload) {}
 
   /** Response envelope for a successful request; {@code payload} shape depends on the request. */
   private static record OkResponse(String status, Object payload) {}
@@ -194,7 +200,7 @@ public class SubprocessResponder {
    * @throws IllegalArgumentException if {@code json} is not a valid JSON object; if the
    *     {@code requestType} or {@code payload} fields are missing or malformed.
    */
-  private static RequestEnvelope deserialiseEnvelope(String json) {
+  static RequestEnvelope deserialiseEnvelope(String json) {
 
     /*
      * Try to parse the given String into a JsonObject. If this throws an error, then the String
@@ -423,7 +429,18 @@ public class SubprocessResponder {
   private final StudentEventService studentEventService;
   private final HostEventService hostEventService;
 
-  private SubprocessResponder(
+  /**
+   * Constructs a responder over an already-composed service graph.
+   *
+   * <p>Package-private so that {@code main} can build one from the beans that it pulls out of the
+   * booted context, and the in-process handler tests can build one over a seeded graph directly.
+   *
+   * @param userService resolves users (type, existence).
+   * @param eventService resolves event info.
+   * @param studentEventService resolves a student's registered events.
+   * @param hostEventService resolves a host's events and an event's hosts.
+   */
+  SubprocessResponder(
       UserService userService,
       EventService eventService,
       StudentEventService studentEventService,
@@ -444,7 +461,7 @@ public class SubprocessResponder {
    * @throws IllegalArgumentException if the request type is not supported by this responder; or a
    *     required attribute is missing from the payload or is not valid.
    */
-  private String route(RequestEnvelope envelope) {
+  String route(RequestEnvelope envelope) {
 
     switch (envelope.requestType()) {
       case GET_USER_EVENTS -> {
