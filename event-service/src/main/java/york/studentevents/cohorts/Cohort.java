@@ -158,8 +158,8 @@ public class Cohort implements ICohort {
 
   @Override 
   public void setAcademicYear(int academicYear) {
-    if (academicYear < 0) {
-      throw new IllegalArgumentException("Academic year must be >= 0");
+    if (academicYear <= 0) {
+      throw new IllegalArgumentException("Academic year must be > 0");
     }
     this.academicYear = academicYear;
   }

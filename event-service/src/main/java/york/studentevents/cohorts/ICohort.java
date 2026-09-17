@@ -88,7 +88,7 @@ public interface ICohort extends IEntity {
   /**
    * Set the academic year associated with this cohort.
    *
-   * @param academicYear the academic year (e.g. {@code 2025} for the 2025/26 cohort)
+   * @param academicYear the academic year (e.g. {@code 2025} for the 2025/26 cohort); must be > 0.
    */
   void setAcademicYear(int academicYear);
 
