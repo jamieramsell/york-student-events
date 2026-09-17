@@ -70,5 +70,45 @@ public interface ICohort extends IEntity {
    * @throws IllegalArgumentException if the member is not a member of this cohort
    */
   void removeMember(UUID memberId);
+
+  /**
+   * Set the display name of this cohort.
+   *
+   * @param name the cohort name; never {@code null}
+   */
+  void setName(String name);
+
+  /**
+   * Set the name of the department which this cohort belongs to (e.g. Computer Science)
+   *
+   * @param departmentName the display name of the department; never {@code null}
+   */
+  void setDepartment(String departmentName);
+
+  /**
+   * Set the academic year associated with this cohort.
+   *
+   * @param academicYear the academic year (e.g. {@code 2025} for the 2025/26 cohort)
+   */
+  void setAcademicYear(int academicYear);
+
+  /**
+   * Set the year group / stage of the cohort.
+   *
+   * <p>First year students are represented by stage 1; second years are stage 2.
+   *
+   * <p>Foundation year cohorts are represented as 'stage 0'.
+   *
+   * <p>Placement years are represented by a stage of 3; third years are represented by 4. Note that
+   * this means that any students who are not following a placement year route seemingly jump
+   * straight from stage 2 into stage 4.
+   *
+   * <p>The masters stage is represented by 5.
+   *
+   * @param stage the stage to which the cohort belongs
+   * 
+   * @throws IllegalArgumentException if stage is less than 0, or greater than 5.
+   */
+  void setYearGroup(int stage);
   
 }
