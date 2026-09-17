@@ -29,7 +29,7 @@ import york.studentevents.venues.Venue;
  *     assertions cover both the CRUD delegation and the adapter's own translation behaviour: the
  *     null-guards on {@code save}, {@code delete} and {@code findByID}, the mapping of a missing
  *     row to {@link java.util.Optional#empty()}, the {@link java.util.NoSuchElementException}
- *     raised when deleting a non-existent event, and the overwrite-on-save semantics of an existing
+ *     raised when deleting a non-existent Venue, and the overwrite-on-save semantics of an existing
  *     ID.
  *
  * @see VenueRepositoryAdapter
