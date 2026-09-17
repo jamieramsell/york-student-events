@@ -16,7 +16,6 @@ per test.
 The public surface is ``bootstrap()`` (the wiring function) and the ``Services``
 container it returns, which holds the constructed repositories and services.
 """
-
 import dataclasses
 
 import attendance

@@ -12,7 +12,6 @@ import datetime
 import uuid
 
 import repositories
-
 from badges import base, predicates
 
 type BadgeRepository = repositories.IRepository[uuid.UUID, base.Badge]

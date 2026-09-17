@@ -16,8 +16,9 @@ Run from the repo root:  ``python -m pytest api-core/tests/``
 import sys
 import uuid
 
-import bridge
 import pytest
+
+import bridge
 from friends import FriendshipService, InMemoryFriendshipRepository
 from recommendations import RecommendationsService
 

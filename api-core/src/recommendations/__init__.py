@@ -5,7 +5,6 @@ those for finding new events and new friends. The public surface is the
 service-level operations callers use to execute the algorithms and find
 recommendations for a given user.
 """
-
 from recommendations.base import RecommendationsService
 
 __all__ = [

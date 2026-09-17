@@ -40,6 +40,7 @@ import json
 import uuid
 
 import pytest
+
 from badges import (
     BadgeService,
     InMemoryAwardedBadgeRepository,

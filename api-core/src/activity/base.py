@@ -5,7 +5,6 @@ Holds the module-level set of subscribed listeners and the ``subscribe`` /
 publishes a ``user_id`` and every subscribed listener is invoked synchronously,
 so slices can signal "this user's facts changed" without importing one another.
 """
-
 import typing
 import uuid
 

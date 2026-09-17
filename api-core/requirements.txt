@@ -1,0 +1,5 @@
+# Persistence layer (M5). Runtime deps for api-core.
+SQLAlchemy~=2.0        # dialect-portable Core expression language
+psycopg[binary]~=3.2   # PostgreSQL driver used by SQLAlchemy in production
+alembic~=1.13          # schema migrations (api-core-owned, Flyway equivalent)
+# SQLite (test dialect) is provided by the stdlib `sqlite3` module — no dependency.

@@ -1,17 +1,13 @@
 """Attendance slice for the api-core service.
 
-This package handles the recording of attendance of students to events. It
-builds on the generic ``repositories`` abstraction, storing ``Attendance``
-entities in an in-memory repository today, remaining open to a database-backed
-backend later.
+This package handles the recording of attendance of students to events.
 
-The public surface is the ``Attendance`` entity, the in-memory repository, and
-the service-level operations callers use to drive attendance operations.
+The public surface is the ``Attendance`` entity, the attendance repositories,
+and the service-level operations callers use to drive attendance operations.
 """
-
 from attendance.attendance_repository import (
     InMemoryAttendanceRepository,
-    InMemoryCannedAttendanceRepository,
+    SQLAlchemyAttendanceRepository,
 )
 from attendance.attendance_service import AttendanceRepository, AttendanceService
 from attendance.base import Attendance
@@ -21,5 +17,5 @@ __all__ = [
     "AttendanceRepository",
     "AttendanceService",
     "InMemoryAttendanceRepository",
-    "InMemoryCannedAttendanceRepository"
+    "SQLAlchemyAttendanceRepository"
 ]
