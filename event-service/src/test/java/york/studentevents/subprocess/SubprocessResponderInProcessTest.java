@@ -26,6 +26,7 @@ import york.studentevents.users.Host;
 import york.studentevents.users.IUserRepository;
 import york.studentevents.users.Student;
 import york.studentevents.users.UserService;
+import york.studentevents.venues.IVenueRepository;
 import york.studentevents.venues.Venue;
 
 /**
@@ -53,6 +54,7 @@ class SubprocessResponderInProcessTest {
   @Autowired private HostEventService hostEventService;
   @Autowired private IEventRepository eventRepository;
   @Autowired private IUserRepository userRepository;
+  @Autowired private IVenueRepository venueRepository;
 
   @PersistenceContext private EntityManager entityManager;
 
@@ -66,11 +68,10 @@ class SubprocessResponderInProcessTest {
 
   // Seeding helpers //
 
-  /** Persists a venue to H2 (to satisfy the {@code event.venue_id} FK) and returns its ID. */
-  private UUID persistVenue() { // TODO: refactor to use persistent venue repo when one exists
+  /** Persists a venue and returns its ID. */
+  private UUID persistVenue() {
     Venue venue = new Venue("Test Venue", "1 Test Street", 100);
-    entityManager.persist(venue);
-    entityManager.flush();
+    venueRepository.save(venue);
     return venue.getId();
   }
 
