@@ -29,6 +29,7 @@ public class Cohort implements ICohort {
 
   private int academicYear;
 
+  // Year group, also referred to as a stage
   private int yearGroup;
 
   @ElementCollection
@@ -45,7 +46,7 @@ public class Cohort implements ICohort {
    * @param name the name of the cohort; must not be {@code null} or blank.
    * @param department the department of the cohort; must not be {@code null} or blank.
    * @param academicYear the academic year of the cohort; must be greater than 0.
-   * @param yearGroup the year group of the cohort; must be within the range of 0 to 5.
+   * @param stage the year group, or stage, of the cohort; must be within the range of 0 to 5.
    *     <ul>
    *     <li>Foundation year cohorts are represented as 'year 0'.</li>
    *     <li>First year students are year 1; second year represented by 2.</li>
@@ -54,11 +55,10 @@ public class Cohort implements ICohort {
    *         seemingly jump straight from year 2 into year 4.</li>
    *     <li>The masters stage is represented by 5.</li>
    *     </ul>
-   * @throws IllegalArgumentException if the name, department, academic year, or year group is
-   *      invalid
+   * @throws IllegalArgumentException if the name, department, academic year, or stage is invalid
    */
-  public Cohort(String name, String department, int academicYear, int yearGroup) {
-    this(UUID.randomUUID(), name, department, academicYear, yearGroup);
+  public Cohort(String name, String department, int academicYear, int stage) {
+    this(UUID.randomUUID(), name, department, academicYear, stage);
   }
 
   /**
@@ -68,7 +68,7 @@ public class Cohort implements ICohort {
    * @param name the name of the cohort; must not be {@code null} or blank.
    * @param department the department of the cohort; must not be {@code null} or blank.
    * @param academicYear the academic year of the cohort; must be greater than 0.
-   * @param yearGroup the year group of the cohort; must be within the range of 0 to 5.
+   * @param stage the year group, or stage, of the cohort; must be within the range of 0 to 5.
    *     <ul>
    *     <li>Foundation year cohorts are represented as 'year 0'.</li>
    *     <li>First year students are year 1; second year represented by 2.</li>
@@ -77,53 +77,22 @@ public class Cohort implements ICohort {
    *         seemingly jump straight from year 2 into year 4.</li>
    *     <li>The masters stage is represented by 5.</li>
    *     </ul>
-   * @throws IllegalArgumentException if the name, department, academic year, or year group is
-   *      invalid
+   * @throws IllegalArgumentException if the name, department, academic year, or stage is invalid
    */
-  protected Cohort(UUID id, String name, String department, int academicYear, int yearGroup) {
+  protected Cohort(UUID id, String name, String department, int academicYear, int stage) {
     if (id == null) {
       throw new IllegalArgumentException("Cohort ID cannot be null");
     }
     setName(name);
     setDepartment(department);
     setAcademicYear(academicYear);
-    setYearGroup(yearGroup);
+    setYearGroup(stage);
     this.id = id;
     this.members = new HashSet<>();
   }
 
   /** No-args constructor for JPA use only. */
   protected Cohort() {}
-
-  private void setName(String name) {
-    if (name == null || name.isBlank()) {
-      throw new IllegalArgumentException("Cohort name cannot be null, blank, or empty.");
-    }
-    this.name = name;
-  }
-
-  private void setDepartment(String department) {
-    if (department == null || department.isBlank()) {
-      throw new IllegalArgumentException("Cohort department cannot be null, blank, or empty.");
-    }
-    this.department = department;
-  }
-
-  private void setAcademicYear(int academicYear) {
-    if (academicYear < 0) {
-      throw new IllegalArgumentException("Academic year must be >= 0");
-    }
-    this.academicYear = academicYear;
-  }
-
-  private void setYearGroup(int yearGroup) {
-    if (yearGroup < 0) {
-      throw new IllegalArgumentException("Year group must be >= 0");
-    } else if (yearGroup > 5) {
-      throw new IllegalArgumentException("Year group must be <= 5");
-    }
-    this.yearGroup = yearGroup;
-  }
 
   @Override
   public UUID getId() {
@@ -169,6 +138,40 @@ public class Cohort implements ICohort {
     if (!successfullyRemoved) {
       throw new IllegalArgumentException("Member is not a member of this cohort.");
     }
+  }
+
+  @Override 
+  public void setName(String name) {
+    if (name == null || name.isBlank()) {
+      throw new IllegalArgumentException("Cohort name cannot be null, blank, or empty.");
+    }
+    this.name = name;
+  }
+
+  @Override 
+  public void setDepartment(String department) {
+    if (department == null || department.isBlank()) {
+      throw new IllegalArgumentException("Cohort department cannot be null, blank, or empty.");
+    }
+    this.department = department;
+  }
+
+  @Override 
+  public void setAcademicYear(int academicYear) {
+    if (academicYear <= 0) {
+      throw new IllegalArgumentException("Academic year must be > 0");
+    }
+    this.academicYear = academicYear;
+  }
+
+  @Override 
+  public void setYearGroup(int stage) {
+    if (stage < 0) {
+      throw new IllegalArgumentException("stage must be >= 0");
+    } else if (stage > 5) {
+      throw new IllegalArgumentException("stage must be <= 5");
+    }
+    this.yearGroup = stage;
   }
 
   /** Returns a string representation for debugging purposes. */
