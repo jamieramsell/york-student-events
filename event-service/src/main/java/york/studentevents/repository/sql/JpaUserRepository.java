@@ -12,7 +12,7 @@ import york.studentevents.users.User;
  *     key type, providing standard CRUD operations scoped to Users.
  *
  * <p>Should be used in conjunction with the {@link UserRepositoryAdapter} to map methods onto the
- *     {@link IUserRepository} interface.
+ *     {@link york.studentevents.users.IUserRepository} interface.
  *
  * @see york.studentevents.repository.IRepository
  * @see york.studentevents.users.IUserRepository

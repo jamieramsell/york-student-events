@@ -24,7 +24,7 @@ import york.studentevents.users.IUserRepository;
  *
  * @see york.studentevents.repository.IRepository
  * @see IUserRepository
- * @see IEventService
+ * @see EventService
  * @see IHost
  */
 public class HostEventService {
