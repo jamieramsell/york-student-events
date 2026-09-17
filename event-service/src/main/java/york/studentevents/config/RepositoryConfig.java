@@ -15,7 +15,9 @@ import york.studentevents.repository.sql.EventRepositoryAdapter;
 import york.studentevents.repository.sql.JpaCohortRepository;
 import york.studentevents.repository.sql.JpaEventRepository;
 import york.studentevents.repository.sql.JpaUserRepository;
+import york.studentevents.repository.sql.JpaVenueRepository;
 import york.studentevents.repository.sql.UserRepositoryAdapter;
+import york.studentevents.repository.sql.VenueRepositoryAdapter;
 import york.studentevents.subscriptions.ISubscriptionRepository;
 import york.studentevents.users.IUserRepository;
 import york.studentevents.venues.IVenueRepository;
@@ -89,6 +91,13 @@ class RepositoryConfig {
   // Venues //
 
   @Bean
+  @Profile("!inmemory")
+  IVenueRepository venueRepository(JpaVenueRepository jpa) {
+    return new VenueRepositoryAdapter(jpa);
+  }
+
+  @Bean
+  @Profile("inmemory")
   IVenueRepository inMemoryVenueRepository() {
     return new InMemoryVenueRepository();
   }
