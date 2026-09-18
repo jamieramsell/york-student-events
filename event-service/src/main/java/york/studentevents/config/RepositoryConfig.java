@@ -14,8 +14,10 @@ import york.studentevents.repository.sql.CohortRepositoryAdapter;
 import york.studentevents.repository.sql.EventRepositoryAdapter;
 import york.studentevents.repository.sql.JpaCohortRepository;
 import york.studentevents.repository.sql.JpaEventRepository;
+import york.studentevents.repository.sql.JpaSubscriptionRepository;
 import york.studentevents.repository.sql.JpaUserRepository;
 import york.studentevents.repository.sql.JpaVenueRepository;
+import york.studentevents.repository.sql.SubscriptionRepositoryAdapter;
 import york.studentevents.repository.sql.UserRepositoryAdapter;
 import york.studentevents.repository.sql.VenueRepositoryAdapter;
 import york.studentevents.subscriptions.ISubscriptionRepository;
@@ -70,6 +72,13 @@ class RepositoryConfig {
   // Subscriptions //
 
   @Bean 
+  @Profile("!inmemory")
+  ISubscriptionRepository subscriptionRepository(JpaSubscriptionRepository jpa) {
+    return new SubscriptionRepositoryAdapter(jpa);
+  }
+
+  @Bean 
+  @Profile("inmemory")
   ISubscriptionRepository inMemorySubscriptionRepository() {
     return new InMemorySubscriptionRepository();
   }
