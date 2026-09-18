@@ -1,17 +1,33 @@
 package york.studentevents.subscriptions;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.util.UUID;
 import york.studentevents.events.IEvent;
 import york.studentevents.users.IUser;
 
 /** Concrete implementation of {@link ISubscription}, representing a User subscribing to an Event.
  */
+@Entity 
+@Table(name = "student_event_subscriptions")
 public class Subscription implements ISubscription {
   
-  private final UUID id;
-  private final UUID userId;
-  private final UUID eventId;
-  private final SubscriptionSource source;
+  @Id 
+  private UUID id;
+
+  @Column(nullable = false)
+  private UUID userId;
+
+  @Column(nullable = false)
+  private UUID eventId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private SubscriptionSource source;
 
   /**
    * Creates a {@code Subscription} between a User and an Event.
@@ -59,6 +75,9 @@ public class Subscription implements ISubscription {
     this.eventId = eventId;
     this.source = source;
   }
+
+  /** No-args constructor for JPA use only. */
+  protected Subscription() {}
 
   // Getters //
 
