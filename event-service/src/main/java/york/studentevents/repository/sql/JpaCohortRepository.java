@@ -12,7 +12,7 @@ import york.studentevents.cohorts.Cohort;
  *     key type, providing standard CRUD operations scoped to Users.
  *
  * <p>Should be used in conjunction with the {@link CohortRepositoryAdapter} to map methods onto the
- *     {@link york.studentevents.users.ICohortRepository} interface.
+ *     {@link york.studentevents.cohorts.ICohortRepository} interface.
  *
  * @see york.studentevents.repository.IRepository
  * @see york.studentevents.cohorts.ICohortRepository
