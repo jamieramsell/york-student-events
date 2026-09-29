@@ -110,16 +110,22 @@ public class SubscriptionRepositoryAdapter implements ISubscriptionRepository {
         .toList();
   }
 
-  @Override 
+  @Override
   public List<ISubscription> findAllByEventId(UUID eventId) {
+    if (eventId == null) {
+      throw new IllegalArgumentException("eventId cannot be null");
+    }
     return jpa.findByEventId(eventId)
         .stream()
         .map(sub -> (ISubscription) sub)
         .toList();
   }
 
-  @Override 
+  @Override
   public List<ISubscription> findAllByUserId(UUID userId) {
+    if (userId == null) {
+      throw new IllegalArgumentException("userId cannot be null");
+    }
     return jpa.findByUserId(userId)
         .stream()
         .map(sub -> (ISubscription) sub)
