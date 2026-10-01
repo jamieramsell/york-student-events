@@ -1,0 +1,36 @@
+# Local development database for york-student-events (M5 — Persistence Layer).
+#
+# A single, throwaway PostgreSQL instance shared by BOTH services
+# (event-service and api-core). See docs/adr/0002-database-technology.md for the
+# "shared database, clear table ownership" decision.
+#
+# Start it with a single command (reads values from your local .env):
+#   docker compose -f docker-compose.db.yml up -d
+# Stop it:
+#   docker compose -f docker-compose.db.yml down
+# Stop it and wipe all data:
+#   docker compose -f docker-compose.db.yml down -v
+#
+# NOTE: this is intentionally a database-only compose file. The full
+# application stack (both services + DB) is a later milestone (M7) concern.
+
+services:
+  db:
+    image: postgres:16
+    container_name: york-student-events-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-yse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-yse_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-york_student_events}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - yse_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-yse} -d ${POSTGRES_DB:-york_student_events}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  yse_pgdata:

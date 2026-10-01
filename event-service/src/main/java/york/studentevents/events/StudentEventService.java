@@ -19,7 +19,7 @@ import york.studentevents.users.IUser.UserType;
 import york.studentevents.users.IUserRepository;
 
 /**
- * Application service exposing user-related business operations.
+ * Application service exposing Student-related event operations.
  *
  * <p>This service forms the {@code Service} layer of the stack, sitting between the controllers and
  * repositories. Persistence is delegated to the injected repository; the service holds no state of
@@ -37,6 +37,7 @@ public class StudentEventService {
   private final IEventRepository eventRepository;
   private final IUserRepository userRepository;
   private final SubscriptionService subscriptionService;
+  private final EventService eventService;
 
   /**
    * Constructor for StudentEventService.
@@ -44,15 +45,26 @@ public class StudentEventService {
    * @param eventRepository the event repository which events are registered to
    * @param userRepository the user repository which users are registered to
    * @param subscriptionService the current subscription service instance
+   * @param eventService the current event service instance
    */
   public StudentEventService(
       IEventRepository eventRepository,
       IUserRepository userRepository,
-      SubscriptionService subscriptionService
+      SubscriptionService subscriptionService,
+      EventService eventService
   ) {
+    if (
+        eventRepository == null
+        || userRepository == null
+        || subscriptionService == null
+        || eventService == null
+    ) {
+      throw new IllegalArgumentException("Injected repositories and services cannot be null");
+    }
     this.eventRepository = eventRepository;
     this.userRepository = userRepository;
     this.subscriptionService = subscriptionService;
+    this.eventService = eventService;
   }
 
   /**
@@ -100,7 +112,7 @@ public class StudentEventService {
    */
   public void deregisterFromEvent(UUID userId, UUID eventId) {
     IStudent student = getStudent(userId);
-    getEvent(eventId); // Validate that the event actually exists
+    eventService.getEvent(eventId); // Validate that the event actually exists
     Set<UUID> studentEvents = student.getRegisteredEvents();
 
     // Ensure that the student was already signed up for the event
@@ -154,7 +166,7 @@ public class StudentEventService {
    */
   public void subscribeToEvent(UUID userId, UUID eventId) {
     getStudent(userId);
-    getEvent(eventId);
+    eventService.getEvent(eventId);
     subscriptionService.subscribe(userId, eventId, SubscriptionSource.EXPLICIT);
   }
 
@@ -170,8 +182,29 @@ public class StudentEventService {
    */
   public void unsubscribeFromEvent(UUID userId, UUID eventId) {
     getStudent(userId);
-    getEvent(eventId);
+    eventService.getEvent(eventId);
     subscriptionService.unsubscribe(userId, eventId, SubscriptionSource.EXPLICIT);
+  }
+
+  /** Counts the number of students currently registered for the given event.
+   *
+   * @param eventId the Event's ID; must not be null
+   * @return the number of Students signed up to attend the Event.
+   * @throws EventNotFoundException if the given event does not exist.
+   */
+  public int countRegisteredStudents(UUID eventId) {
+    eventService.getEvent(eventId); // Validate that the event actually exists
+    
+    Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
+    Predicate<IStudent> isStudentRegisteredForEvent =
+        student -> student.getRegisteredEvents().contains(eventId);
+
+    List<IUser> users = userRepository.findAll();
+    return (int) users.stream()
+        .filter(isUserStudent)
+        .map(user -> (IStudent) user)
+        .filter(isStudentRegisteredForEvent)
+        .count();
   }
 
   // Utility Methods //
@@ -203,21 +236,6 @@ public class StudentEventService {
   }
 
   /**
-   * Retrieves a student from the injected user repository.
-   *
-   * @param eventId the event's ID
-   * @return the {@code IEvent} entity; never null
-   * @throws EventNotFoundException if the event does not exist
-   */
-  private IEvent getEvent(UUID eventId) {
-    Optional<IEvent> optionalEvent = eventRepository.findByID(eventId);
-    if (optionalEvent.isEmpty()) {
-      throw new EventNotFoundException();
-    }
-    return optionalEvent.get();
-  }
-
-  /**
    * Publishes a {@link NotificationType#CAPACITY_WARNING} when a registration brings the number of
    * registered students up to the warning threshold.
    *
@@ -230,7 +248,7 @@ public class StudentEventService {
    * @param eventId the ID of the event to target
    */
   private void publishCapacityWarningIfReached(UUID eventId) {
-    Integer capacity = getEvent(eventId).getCapacity();
+    Integer capacity = eventService.getEvent(eventId).getCapacity();
     if (capacity == null) {
       return;
     }
@@ -238,20 +256,6 @@ public class StudentEventService {
     if (countRegisteredStudents(eventId) == thresholdCount) {
       subscriptionService.publish(eventId, NotificationType.CAPACITY_WARNING);
     }
-  }
-
-  /** Counts the students currently registered for the given event. */
-  private int countRegisteredStudents(UUID eventId) {
-    Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
-    Predicate<IStudent> isStudentRegisteredForEvent =
-        student -> student.getRegisteredEvents().contains(eventId);
-
-    List<IUser> users = userRepository.findAll();
-    return (int) users.stream()
-        .filter(isUserStudent)
-        .map(user -> (IStudent) user)
-        .filter(isStudentRegisteredForEvent)
-        .count();
   }
 
   /**
@@ -262,7 +266,7 @@ public class StudentEventService {
    * @throws EventNotFoundException if the event does not exist
    */
   private boolean isEventFull(UUID eventId) {
-    Integer capacity = getEvent(eventId).getCapacity();
+    Integer capacity = eventService.getEvent(eventId).getCapacity();
     if (capacity == null) { // unlimited events are never full
       return false;
     }

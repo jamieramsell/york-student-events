@@ -10,10 +10,10 @@ Two backend services:
 
 | Service | Language / Stack | Responsibility |
 |---|---|---|
-| `api-core` | Python 3.11+ | Attendance tracking, badges, friend graph, interest matching |
+| `api-core` | Python 3.12+ | Attendance tracking, badges, friend graph, interest matching |
 | `event-service` | Java 21 / Spring Boot 3.x | Users, events, venues, subscriptions |
 
-No frontend exists yet. No database; both services use in-memory repositories.
+No frontend exists yet, but a shared PostgreSQL database is configured for the project which is wired in to each service in the repository pattern.
 
 The two services talk to each other over a **subprocess bridge** — a JSON-over-stdio contract where one service spawns the other as a child process per call. api-core's `bridge/client.py` spawns the Java `SubprocessResponder`; api-core's `bridge/responder.py` answers requests issued by event-service. The envelope contract is documented in `docs/subprocess-contract.md`. Stdlib/standard-library only, in keeping with the no-dependencies convention.
 
@@ -21,9 +21,30 @@ The two services talk to each other over a **subprocess bridge** — a JSON-over
 
 ### api-core (Python)
 ```bash
-# From repo root — no requirements file yet
+# Install dependencies (SQLAlchemy Core, psycopg, Alembic — see api-core/requirements.txt)
+pip install -r api-core/requirements.txt
+
+# Run the tests (from repo root)
 python -m pytest api-core/tests/
 ```
+
+**Persistence.** api-core persists to the shared PostgreSQL database via SQLAlchemy Core (with psycopg as the production driver); the test suite runs against in-memory SQLite. The connection URL is read from the `DATABASE_URL` environment variable (see `.env.example`), never hardcoded. Alembic owns the schema, which is the api-core-side equivalent of event-service's Flyway:
+```bash
+docker compose -f docker-compose.db.yml up -d    # start the local Postgres
+set -a; . .env; set +a                           # export DATABASE_URL (no dotenv dependency)
+cd api-core
+alembic upgrade head                             # create the friendships / badges / awarded_badges / attendance tables
+python scripts/check_db.py                       # smoke test: connect, write and read back a row → prints OK
+```
+
+When you change the schema in `repositories/sql/schema.py`, generate a migration for it and **review the generated file before applying it**:
+```bash
+cd api-core
+alembic revision --autogenerate -m "describe the change"   # writes a new file under alembic/versions/
+# open the generated migration and sanity-check its upgrade() / downgrade()
+alembic upgrade head                                        # apply it
+```
+Autogenerate is a starting point, not gospel: it detects added/dropped tables and columns reliably, but column renames, type changes, and `CHECK` constraints usually need hand-editing.
 
 ### event-service (Java / Maven)
 ```bash
@@ -63,13 +84,13 @@ cd event-service
 - **Packages**: each domain slice is a package whose `__init__.py` re-exports its public surface via `__all__` (e.g. `friends/`, `badges/`, `bridge/`, `repositories/`)
 - **Test files**: prefixed `test_` and co-located in `api-core/tests/` (e.g. `test_attendance.py`)
 - **Test runner**: pytest — run from repo root with `python -m pytest api-core/tests/`
-- No third-party dependencies yet; avoid adding any without a `requirements.txt`
+- Third-party dependencies are pinned in `api-core/requirements.txt` (currently SQLAlchemy Core, psycopg, and Alembic, added for the M5 persistence layer); don't add new ones without recording them there
 
 ## Current State
 
 The domain models and service-layer business logic are implemented across both services:
-- **event-service:** concrete `Event`, `User` (abstract, with `Student` / `Host`), `Venue`, and `Cohort` entities; their services and in-memory repositories (`AbstractInMemoryRepository` + per-entity subclasses); the subscription / Observer stack; and the Java side of the subprocess bridge.
-- **api-core:** the `friends` graph; the `recommendations` slice; the `attendance` slice (`Attendance` record, `AttendanceService`, `InMemoryAttendanceRepository`); the `activity` in-process publish/subscribe registry; and the fully built `badges` slice — `Badge` / `AwardedBadge` entities, their in-memory repositories, a composable predicate DSL for award conditions (`predicates.py`: `IPredicate` + And/Or/Not combinators and `Min*` leaves, with JSON (de)serialisation via `predicate_from_dict`), `badge_service.py` (create/award/revoke/query plus condition-driven `evaluate_badges`), and `EvaluationService`, which subscribes to `activity` to auto-award badges when a user's activity changes. `bootstrap.py` is the composition root that wires the whole graph via constructor injection.
+- **event-service:** concrete `Event`, `User` (abstract, with `Student` / `Host`), `Venue`, and `Cohort` entities; their services, and both their in-memory and database-backed repositories; the subscription / Observer stack; and the Java side of the subprocess bridge.
+- **api-core:** the `friends` graph; the `recommendations` slice; the `attendance` slice (`Attendance` record, `AttendanceService`, `InMemoryAttendanceRepository`); the `activity` in-process publish/subscribe registry; and the fully built `badges` slice — `Badge` / `AwardedBadge` entities, their in-memory and db-backed repositories, a composable predicate DSL for award conditions (`predicates.py`: `IPredicate` + And/Or/Not combinators and `Min*` leaves, with JSON (de)serialisation via `predicate_from_dict`), `badge_service.py` (create/award/revoke/query plus condition-driven `evaluate_badges`), and `EvaluationService`, which subscribes to `activity` to auto-award badges when a user's activity changes. `bootstrap.py` is the composition root that wires the whole graph via constructor injection.
 
 Controllers exist but are thin and unwired (e.g. `EventController` is `@Deprecated`, with no Spring MVC request mappings), so no HTTP endpoints are live yet. `docs/api-spec.yaml` documents the *intended* REST contract ahead of implementation.
 
@@ -82,4 +103,4 @@ The primary established patterns are:
 - Dependency injection to keep each layer truly separate, with `bootstrap.py` as the api-core composition root
 - Spring Boot MVC structure (Controller → Service → Repository)
 
-CI runs on every PR (`java-build.yml` for the Java build/test/Checkstyle, `python-build.yml` for `ruff` and `pytest` on `api-core`). No persistence layer or authentication exists yet; cross-service communication is limited to the per-call subprocess bridge (no long-running RPC or shared database).
+CI runs on every PR (`java-build.yml` for the Java build/test/Checkstyle, `python-build.yml` for `ruff` and `pytest` on `api-core`). A shared PostgreSQL database is configured (M5) and the persistence layer is being stood up. Services do now default to database-backed repositories, unless an in-memory flag is explicitly set, which is to be used for testing purposes only. No authentication exists yet; cross-service communication is limited to the per-call subprocess bridge (no long-running RPC).

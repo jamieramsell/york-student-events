@@ -28,26 +28,26 @@ checkout or in a Python-only CI job -- the JVM-backed tests skip gracefully via
 also tagged ``@pytest.mark.integration`` so they can be selected or deselected
 explicitly (``pytest -m integration`` / ``pytest -m 'not integration'``).
 
-Known stub limitation
----------------------
-``SubprocessResponder.getUserEvents()`` is currently a stub: it only recognises
-the sentinel user ``11111111-1111-1111-1111-111111111111`` (returning two canned
-event IDs) and raises for any other ID. Until it queries real event data, every
-test that reaches the live responder must use that sentinel user. This also
-means a *successful* multi-user recommendation cannot be driven end-to-end yet:
-``get_recommended_events`` always queries the bridge for the target user and
-then for each friend, and at most one of those distinct IDs can be the sentinel.
-The tests below therefore cover the bridge seam with the sentinel directly, and
-prove that ``get_recommended_events`` really delegates its event lookups to the
-live responder.
+Empty-graph limitation
+----------------------
+Each request spawns the responder under ``YSE_BRIDGE_INMEMORY``, so it composes a
+throwaway in-memory graph that starts *empty* and cannot see data seeded in this
+process (the JVM is a separate process). ``get_user_events`` therefore raises for
+every user here, so a *successful* multi-user recommendation cannot be driven
+end-to-end against this bridge -- that arithmetic (friend-event exclusion and
+ranking) is covered by the unit tests in ``test_matching.py``. The tests below
+instead prove that ``get_recommended_events`` really delegates its event lookups
+to the live responder: reaching the bridge surfaces the responder's own error
+envelope as a ``SubprocessError``.
 
 Run from the repo root:  ``python -m pytest api-core/tests/``
 """
 
 import uuid
 
-import bridge
 import pytest
+
+import bridge
 from bridge import client as bridge_client
 from friends import FriendshipService, InMemoryFriendshipRepository
 from recommendations import RecommendationsService
@@ -58,15 +58,11 @@ from recommendations import RecommendationsService
 friendship_service = FriendshipService(InMemoryFriendshipRepository())
 recommendations_service = RecommendationsService(friendship_service)
 
-# The single user recognised by the SubprocessResponder stub, and the events it
-# returns for that user. These mirror the constants in SubprocessResponder.java.
-SENTINEL_USER = uuid.UUID("11111111-1111-1111-1111-111111111111")
-CANNED_EVENTS = [
-    uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-    uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-]
+@pytest.fixture(autouse=True)
+def _inmemory_bridge(monkeypatch):
+    monkeypatch.setenv("YSE_BRIDGE_INMEMORY", "1")
 
-
+    
 def _event_service_built() -> bool:
     """Whether event-service has been compiled (``./mvnw compile``).
 
@@ -143,52 +139,44 @@ class TestMatchingFriendsSeam:
 class TestRealBridge:
     """``get_recommended_events`` and the bridge against the live responder.
 
-    Every test here spawns the real Java ``SubprocessResponder``. Because that
-    responder is still a stub (see the module docstring), the only user it
-    recognises is ``SENTINEL_USER``; all of these tests are written around that
-    constraint.
+    Every test here spawns the real Java ``SubprocessResponder`` over an empty
+    in-memory graph (see the module docstring), so no user resolves: these cases
+    prove the bridge is actually reached, surfacing the responder's error
+    envelope as a ``SubprocessError``.
     """
 
-    def test_bridge_returns_canned_events_for_the_sentinel_user(self):
+    def test_bridge_raises_not_recognised_for_an_unknown_user(self):
         """A full round-trip through the real responder: spawn the JVM, send a
-        GET_USER_EVENTS request for the sentinel, and assert the event IDs it
-        returns."""
+        GET_USER_EVENTS request, and confirm the empty graph rejects the user.
 
-        assert bridge.get_user_events(SENTINEL_USER) == CANNED_EVENTS
+        Matching the responder's own ``not recognised`` message proves the JVM
+        ran and returned an error envelope, rather than the client failing to
+        launch it.
+        """
 
-    def test_bridge_raises_for_an_unknown_user(self):
-        """The stub responder recognises only the sentinel; any other user is
-        rejected, surfacing as a SubprocessError on the Python side."""
-
-        unknown = uuid.uuid4()
-
-        with pytest.raises(bridge.SubprocessError):
-            bridge.get_user_events(unknown)
+        with pytest.raises(bridge.SubprocessError, match="not recognised"):
+            bridge.get_user_events(uuid.uuid4())
 
     def test_recommendation_delegates_event_lookups_to_the_responder(self):
         """``get_recommended_events`` really fetches event data over the bridge.
 
-        With the sentinel as the target and one real accepted friend, the
-        pipeline first looks up the *target's own* events (the sentinel is
-        known, so this round-trip succeeds against the live responder) and then
-        looks up the friend's events -- which the stub does not recognise. The
-        resulting SubprocessError naming that friend proves both subprocess
-        calls actually reached the JVM.
+        With one real accepted friend the pipeline gets past the no-friends
+        short-circuit and makes its first bridge call: a ``get_user_events``
+        lookup for the target's own events. The empty graph does not recognise
+        that user, so the responder's error envelope propagates as a
+        ``SubprocessError`` -- proving the lookup was delegated to the live
+        responder rather than served locally.
 
         A successful multi-user recommendation cannot be asserted until the
-        responder serves real event data for arbitrary users (see the module
-        docstring); the exclusion and ranking arithmetic itself is covered by
-        the unit tests in ``test_matching.py``.
+        bridge serves real event data for seeded users; the exclusion and
+        ranking arithmetic itself is covered by the unit tests in
+        ``test_matching.py``.
         """
 
-        friend = uuid.uuid4()
-        friendship_service.send_friend_request(SENTINEL_USER, friend)
-        friendship_service.accept_friend_request(SENTINEL_USER, friend)
-        assert friendship_service.get_friends(SENTINEL_USER) == [friend]
+        user, friend = uuid.uuid4(), uuid.uuid4()
+        friendship_service.send_friend_request(user, friend)
+        friendship_service.accept_friend_request(user, friend)
+        assert friendship_service.get_friends(user) == [friend]
 
-        with pytest.raises(bridge.SubprocessError) as excinfo:
-            recommendations_service.get_recommended_events(SENTINEL_USER)
-
-        # The friend's lookup is what failed, which means the target's own-event
-        # lookup must have succeeded against the live responder first.
-        assert str(friend) in str(excinfo.value)
+        with pytest.raises(bridge.SubprocessError, match="not recognised"):
+            recommendations_service.get_recommended_events(user)

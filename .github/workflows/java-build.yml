@@ -23,6 +23,18 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: api-core/requirements.txt
+      # The bridge integration tests spawn the Python responder as a subprocess,
+      # and its import graph now pulls in SQLAlchemy (via the SQLAlchemy*
+      # repositories re-exported from each slice). Install api-core's runtime
+      # deps so the spawned `python` can start.
+      - name: Install api-core Python dependencies
+        working-directory: ${{ github.workspace }}
+        run: python -m pip install -r api-core/requirements.txt
       # `verify` compiles, runs the JUnit suite, and runs Checkstyle in one pass.
       - name: Build, test and lint
         run: ./mvnw -B verify

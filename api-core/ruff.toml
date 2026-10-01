@@ -1,0 +1,15 @@
+# Ruff configuration for api-core.
+#
+# We inherit ruff's default (stable) rule set rather than re-listing it, so the
+# lint posture tracks upstream. Determinism comes from pinning the ruff version
+# in .github/workflows/lint.yml (ruff==0.16.0) — the default set is stable for a
+# given version, so pinning the version pins the rules.
+#
+# target-version is intentionally left unset: the code uses PEP 695 `type X = ...`
+# alias statements (Python 3.12+), so pinning it to py311 would make ruff report
+# that syntax as invalid. Ruff infers a suitable target on its own.
+
+[lint.per-file-ignores]
+# Alembic autogenerates these migrations; leave its emitted style untouched so a
+# fresh `alembic revision` doesn't fail lint on typing idioms we don't control.
+"alembic/versions/*.py" = ["UP035", "UP007"]
