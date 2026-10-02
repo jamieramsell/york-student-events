@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.5.0] - Unreleased
+## [0.5.0] - 2026-10-03
 
 M5 - Persistence Layer: real database persistence for both services, backed by a shared PostgreSQL instance, plus the event-service service layer that was completed under M4.5. Business logic now reads and writes through database-backed repositories by default, with in-memory repositories kept for testing.
 
