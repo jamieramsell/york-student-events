@@ -44,6 +44,16 @@ public interface IUser extends IEntity {
    */
   void setEmail(String email);
 
+  /** Retrieves the user's password hash. */
+  String getPasswordHash();
+
+  /** Sets the user's password hash.
+   *
+   * @param hash the new password hash; must not be {@code null}, blank, or empty.
+   * @throws IllegalArgumentException if the hash is invalid.
+   */
+  void setPasswordHash(String hash);
+
   /**
    * Returns the role of this user.
    *

@@ -6,7 +6,6 @@ the two user IDs it relates. This is the lowest layer of the friends package: it
 depends only on the generic ``repositories`` abstraction and is consumed by both
 the repository and service layers.
 """
-
 import dataclasses
 import datetime
 import enum

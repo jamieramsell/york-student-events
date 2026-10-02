@@ -5,13 +5,11 @@ condition of a given badge. This is the lowest layer of the badge package: it
 depends only on the generic ``repositories`` abstraction, and is consumed by
 both the repository and service layers.
 """
-
 import dataclasses
 import datetime
 import uuid
 
 import repositories
-
 from badges import predicates
 
 

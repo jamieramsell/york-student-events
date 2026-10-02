@@ -117,13 +117,13 @@ class SubprocessRequestFactory {
    * Builds a JSON request for the subprocess to award a badge to a user.
    *
    * @param userId the user's ID
-   * @param badgeName the name of the badge to award
+   * @param badgeId the ID of the badge to award
    * @return the JSON request envelope.
    */
-  public static String buildAwardBadge(UUID userId, String badgeName) {
+  public static String buildAwardBadge(UUID userId, UUID badgeId) {
     Request<AwardBadgePayload> request = new Request<>(
         RequestType.AWARD_BADGE,
-        new AwardBadgePayload(userId, badgeName)
+        new AwardBadgePayload(userId, badgeId)
     );
 
     return GSON.toJson(request);

@@ -63,7 +63,7 @@ public class CohortService {
    *
    * @see IStudent
    */
-  void assignStudentToCohort(UUID userId, UUID cohortId) {
+  public void assignStudentToCohort(UUID userId, UUID cohortId) {
     Optional<IUser> optionalUser = userRepository.findByID(userId);
     Optional<ICohort> optionalCohort = cohortRepository.findByID(cohortId);
 
@@ -93,7 +93,7 @@ public class CohortService {
    *
    * @see IStudent
    */
-  void removeStudentFromCohort(UUID userId, UUID cohortId) {
+  public void removeStudentFromCohort(UUID userId, UUID cohortId) {
     Optional<IUser> optionalUser = userRepository.findByID(userId);
     Optional<ICohort> optionalCohort = cohortRepository.findByID(cohortId);
 
@@ -120,7 +120,7 @@ public class CohortService {
    *
    * @see IStudent
    */
-  Set<IStudent> getStudentsOfCohort(UUID cohortId) {
+  public Set<IStudent> getStudentsOfCohort(UUID cohortId) {
     Optional<ICohort> optionalCohort = cohortRepository.findByID(cohortId);
     if (optionalCohort.isEmpty()) {
       throw new CohortNotFoundException("Cohort not found");
@@ -158,7 +158,7 @@ public class CohortService {
    * @return a set of events for the cohort
    * @throws CohortNotFoundException if the cohort is not found
    */
-  Set<IEvent> getEventsForCohort(UUID cohortId) {
+  public Set<IEvent> getEventsForCohort(UUID cohortId) {
     /* 
      * Map cohort events to a set and return. If an ID exists within the cohort which does not point
      * to an actual event, throw an error.
