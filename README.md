@@ -65,69 +65,21 @@ york-student-events/
 │   │   │   │       └── studentevents/
 │   │   │   │           ├── Application.java
 │   │   │   │           ├── cohorts/
-│   │   │   │           │   ├── ICohort.java
-│   │   │   │           │   ├── ICohortRepository.java
-│   │   │   │           │   ├── Cohort.java
-│   │   │   │           │   ├── CohortService.java
-│   │   │   │           │   └── CohortController.java
+│   │   │   │           ├── config/
 │   │   │   │           ├── events/
-│   │   │   │           │   ├── IEvent.java
-│   │   │   │           │   ├── IEventRepository.java
-│   │   │   │           │   ├── Event.java
-│   │   │   │           │   ├── EventCategory.java
-│   │   │   │           │   ├── EventService.java
-│   │   │   │           │   ├── StudentEventService.java
-│   │   │   │           │   └── EventController.java
 │   │   │   │           ├── users/
-│   │   │   │           │   ├── IUser.java
-│   │   │   │           │   ├── IHost.java
-│   │   │   │           │   ├── IStudent.java
-│   │   │   │           │   ├── IUserRepository.java
-│   │   │   │           │   ├── User.java
-│   │   │   │           │   ├── Host.java
-│   │   │   │           │   ├── Student.java
-│   │   │   │           │   ├── UserService.java
-│   │   │   │           │   └── UserController.java
 │   │   │   │           ├── venues/
-│   │   │   │           │   ├── IVenue.java
-│   │   │   │           │   ├── IVenueRepository.java
-│   │   │   │           │   ├── Venue.java
-│   │   │   │           │   ├── VenueService.java
-│   │   │   │           │   └── VenueController.java
 │   │   │   │           ├── subscriptions/
-│   │   │   │           │   ├── IObserver.java
-│   │   │   │           │   ├── IObservable.java
-│   │   │   │           │   ├── ISubscription.java
-│   │   │   │           │   ├── ISubscriptionRepository.java
-│   │   │   │           │   ├── NotificationType.java
-│   │   │   │           │   ├── UserEventObserver.java
-│   │   │   │           │   ├── EventNotificationService.java
-│   │   │   │           │   └── SubscriptionService.java
 │   │   │   │           ├── subprocess/
-│   │   │   │           │   ├── RequestType.java
-│   │   │   │           │   ├── IPayload.java
-│   │   │   │           │   ├── UserIdPayload.java
-│   │   │   │           │   ├── AwardBadgePayload.java
 │   │   │   │           │   ├── SubprocessRequestFactory.java   # Java→Python: spawns api-core
 │   │   │   │           │   └── SubprocessResponder.java        # Python→Java: entry point for api-core
 │   │   │   │           ├── exceptions/
-│   │   │   │           │   ├── CapacityExceededException.java
-│   │   │   │           │   ├── CohortNotFoundException.java
-│   │   │   │           │   ├── EventNotFoundException.java
-│   │   │   │           │   ├── UserNotAuthorisedException.java
-│   │   │   │           │   ├── UserNotFoundException.java
-│   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           └── repository/
-│   │   │   │               ├── IEntity.java
-│   │   │   │               ├── IRepository.java
-│   │   │   │               └── inmemory/
-│   │   │   │                   ├── AbstractInMemoryRepository.java
-│   │   │   │                   ├── InMemoryCohortRepository.java
-│   │   │   │                   ├── InMemoryEventRepository.java
-│   │   │   │                   ├── InMemorySubscriptionRepository.java
-│   │   │   │                   ├── InMemoryUserRepository.java
-│   │   │   │                   └── InMemoryVenueRepository.java
+│   │   │   │               ├── inmemory/
+│   │   │   │               └── sql/
 │   │   │   └── resources/
+│   │   │       ├── db/
+│   │   │       ├── application-inmemory.properties
 │   │   │       └── application.properties
 │   │   └── test/
 │   │       └── java/
@@ -153,22 +105,18 @@ york-student-events/
 │   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
 │   │   ├── recommendations/
-│   │   ├── repositories/           # in-memory repository pattern (mirrors Java)
+│   │   ├── repositories/
 │   │   │   ├── __init__.py
-│   │   │   └── base.py
-│   │   └── bootstrap.py            # composition root: wires the service graph
+│   │   │   ├── base.py
+│   │   │   ├── inmemory.py
+│   │   │   └── sql/
+│   │   │      ├── __init__.py
+│   │   │      ├── engine.py
+│   │   │      ├── schema.py
+│   │   │      └── sql.py
+│   │   ├── bootstrap.py            # in-memory composition root
+│   │   └── bootstrap_sql.py        # db-backed composition root
 │   └── tests/
-│       ├── conftest.py
-│       ├── test_activity.py
-│       ├── test_attendance.py
-│       ├── test_badges.py
-│       ├── test_bridge_client.py
-│       ├── test_bridge_responder.py
-│       ├── test_bridge_integration.py
-│       ├── test_evaluation.py
-│       ├── test_friends.py
-│       ├── test_recommendations.py
-│       └── test_recommendations_integration.py
 │
 ├── docs/
 │   ├── api-spec.yaml
@@ -180,8 +128,8 @@ york-student-events/
 │   │   ├── feature.md
 │   │   └── bug.md
 │   ├── workflows/
-│   │   ├── build.yml
-│   │   ├── lint.yml
+│   │   ├── java-build.yml
+│   │   ├── python-build.yml
 │   │   ├── claude.yml
 │   │   ├── move-to-in-review.yml
 │   │   └── manage-blocked-label.yml
