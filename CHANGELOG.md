@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.5.0] - 2026-10-03
+## [v0.5.0] - 2026-10-03
 
 M5 - Persistence Layer: real database persistence for both services, backed by a shared PostgreSQL instance, plus the event-service service layer that was completed under M4.5. Business logic now reads and writes through database-backed repositories by default, with in-memory repositories kept for testing.
 
@@ -44,7 +44,9 @@ These M5 issues remain open and are not part of this release:
 - **#98** integration tests for the event-service repositories
 - **#97** write a seed data script
 
-## [0.4.1] - 2026-09-11
+[v0.5.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.5.0
+
+## [v0.4.1] - 2026-09-11
 
 Small bug patch prior to M5 to facilitate its stable release.
 
@@ -52,7 +54,9 @@ Small bug patch prior to M5 to facilitate its stable release.
 - Fixed a bug where an error would be raised if automatic badge re-evaluation failed when recording a Student's attendance to an Event, despite the record having been persisted.
 - Added a pytest step to the python build workflow to ensure that files are tested before their merge.
 
-## [0.4.0] - 2026-07-21
+[v0.4.1]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.4.1
+
+## [v0.4.0] - 2026-07-21
 
 M4 - Gamification: attendance tracking, the badge system, and automatic badge evaluation driven by user activity, plus the cross-service plumbing needed to support them and an explicit composition root for `api-core`. Still pure business logic, with no HTTP layer or real persistence yet.
 
@@ -83,7 +87,7 @@ M4 - Gamification: attendance tracking, the badge system, and automatic badge ev
 
 [v0.4.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.4.0
 
-## [0.3.0] - 2026-07-04
+## [v0.3.0] - 2026-07-04
 
 M3 - Social & Notification Layer: the friend graph, friend-based event recommendations, a polymorphic user model (students vs. hosts), and event subscriptions with Observer-pattern notification delivery. Still pure business logic — no HTTP layer or real persistence.
 
@@ -112,7 +116,7 @@ M3 - Social & Notification Layer: the friend graph, friend-based event recommend
 
 [v0.3.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.3.0
 
-## [0.2.0] - 2026-06-26
+## [v0.2.0] - 2026-06-26
 
 M2 - Core Domain Logic: concrete domain models, the in-memory repository layer, the first service-layer methods, and a bidirectional Python↔Java subprocess bridge. Pure business logic: no HTTP layer or real persistence yet.
 
@@ -144,7 +148,7 @@ M2 - Core Domain Logic: concrete domain models, the in-memory repository layer, 
 
 [v0.2.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.2.0
 
-## [0.1.0] - 2026-06-17
+## [v0.1.0] - 2026-06-17
 
 M1 - App Foundation: project scaffolding for both backend services.
 
@@ -182,11 +186,3 @@ persistence, and automated build, test, and style-guide enforcement.
 - **Generated API docs** — Javadoc HTML published under `docs/apidocs/`.
 
 [v1.0.0-alpha]: https://github.com/jamieramsell/york-student-events/releases/tag/v1.0.0-alpha
-[v0.1.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.1.0
-[v0.2.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.2.0
-[v0.3.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.3.0
-[v0.4.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.4.0
-[v0.4.1]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.4.1
-[v0.5.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.5.0
-
-
