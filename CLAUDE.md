@@ -13,7 +13,7 @@ Two backend services:
 | `api-core` | Python 3.12+ | Attendance tracking, badges, friend graph, interest matching |
 | `event-service` | Java 21 / Spring Boot 3.x | Users, events, venues, subscriptions |
 
-No frontend exists yet. A shared PostgreSQL database is configured for the project (M5), though both services still default to in-memory repositories while the database-backed repositories are wired in.
+No frontend exists yet, but a shared PostgreSQL database is configured for the project which is wired in to each service in the repository pattern.
 
 The two services talk to each other over a **subprocess bridge** — a JSON-over-stdio contract where one service spawns the other as a child process per call. api-core's `bridge/client.py` spawns the Java `SubprocessResponder`; api-core's `bridge/responder.py` answers requests issued by event-service. The envelope contract is documented in `docs/subprocess-contract.md`. Stdlib/standard-library only, in keeping with the no-dependencies convention.
 
@@ -28,7 +28,7 @@ pip install -r api-core/requirements.txt
 python -m pytest api-core/tests/
 ```
 
-**Persistence (M5).** api-core persists to the shared PostgreSQL database via SQLAlchemy Core (with psycopg as the production driver); the test suite runs against in-memory SQLite. The connection URL is read from the `DATABASE_URL` environment variable (see `.env.example`), never hardcoded. Alembic owns the schema — the api-core-side equivalent of event-service's Flyway:
+**Persistence.** api-core persists to the shared PostgreSQL database via SQLAlchemy Core (with psycopg as the production driver); the test suite runs against in-memory SQLite. The connection URL is read from the `DATABASE_URL` environment variable (see `.env.example`), never hardcoded. Alembic owns the schema, which is the api-core-side equivalent of event-service's Flyway:
 ```bash
 docker compose -f docker-compose.db.yml up -d    # start the local Postgres
 set -a; . .env; set +a                           # export DATABASE_URL (no dotenv dependency)
@@ -89,8 +89,8 @@ cd event-service
 ## Current State
 
 The domain models and service-layer business logic are implemented across both services:
-- **event-service:** concrete `Event`, `User` (abstract, with `Student` / `Host`), `Venue`, and `Cohort` entities; their services and in-memory repositories (`AbstractInMemoryRepository` + per-entity subclasses); the subscription / Observer stack; and the Java side of the subprocess bridge.
-- **api-core:** the `friends` graph; the `recommendations` slice; the `attendance` slice (`Attendance` record, `AttendanceService`, `InMemoryAttendanceRepository`); the `activity` in-process publish/subscribe registry; and the fully built `badges` slice — `Badge` / `AwardedBadge` entities, their in-memory repositories, a composable predicate DSL for award conditions (`predicates.py`: `IPredicate` + And/Or/Not combinators and `Min*` leaves, with JSON (de)serialisation via `predicate_from_dict`), `badge_service.py` (create/award/revoke/query plus condition-driven `evaluate_badges`), and `EvaluationService`, which subscribes to `activity` to auto-award badges when a user's activity changes. `bootstrap.py` is the composition root that wires the whole graph via constructor injection.
+- **event-service:** concrete `Event`, `User` (abstract, with `Student` / `Host`), `Venue`, and `Cohort` entities; their services, and both their in-memory and database-backed repositories; the subscription / Observer stack; and the Java side of the subprocess bridge.
+- **api-core:** the `friends` graph; the `recommendations` slice; the `attendance` slice (`Attendance` record, `AttendanceService`, `InMemoryAttendanceRepository`); the `activity` in-process publish/subscribe registry; and the fully built `badges` slice — `Badge` / `AwardedBadge` entities, their in-memory and db-backed repositories, a composable predicate DSL for award conditions (`predicates.py`: `IPredicate` + And/Or/Not combinators and `Min*` leaves, with JSON (de)serialisation via `predicate_from_dict`), `badge_service.py` (create/award/revoke/query plus condition-driven `evaluate_badges`), and `EvaluationService`, which subscribes to `activity` to auto-award badges when a user's activity changes. `bootstrap.py` is the composition root that wires the whole graph via constructor injection.
 
 Controllers exist but are thin and unwired (e.g. `EventController` is `@Deprecated`, with no Spring MVC request mappings), so no HTTP endpoints are live yet. `docs/api-spec.yaml` documents the *intended* REST contract ahead of implementation.
 
