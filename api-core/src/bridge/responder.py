@@ -8,11 +8,12 @@ result is written back as an ``ok`` or ``error`` envelope. The envelope contract
 is documented in ``docs/subprocess-contract.md``.
 """
 import collections.abc
-import seed
 import json
 import os
 import sys
 import uuid
+
+import seed
 
 # responder.py is launched as a standalone subprocess (by event-service and by
 # the test suite), so the api-core ``src`` root is not guaranteed to be on

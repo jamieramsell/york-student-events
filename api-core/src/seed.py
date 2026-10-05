@@ -1,11 +1,13 @@
-import bootstrap
+import datetime
 import json
+import uuid
+
 import attendance
 import badges
 import badges.predicates
+import bootstrap
 import friends
-import datetime
-import uuid
+
 
 def load_seed(services: bootstrap.Services,
               seed_path: str = "../data/seed.json") -> None:
