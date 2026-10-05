@@ -25,6 +25,7 @@ def load_seed(services: bootstrap.Services,
                 uuid.UUID(attendance_record["attendeeId"]),
                 uuid.UUID(attendance_record["eventId"]),
                 datetime.datetime.fromisoformat(attendance_record["recordedAt"])
+                    .replace(tzinfo=datetime.timezone.utc)
             )
         )
 
@@ -48,7 +49,8 @@ def load_seed(services: bootstrap.Services,
             friends.Friendship(
                 uuid.UUID(friendship_record["userId"]),
                 uuid.UUID(friendship_record["friendId"]),
-                datetime.datetime.fromisoformat(friendship_record["createdAt"]),
+                datetime.datetime.fromisoformat(friendship_record["createdAt"])
+                    .replace(tzinfo=datetime.timezone.utc),
                 friends.FriendshipStatus[friendship_record["status"]]
             )
         )
