@@ -329,8 +329,8 @@ class InMemorySeededDataTest {
   @Test
   void eventStartAndEndDateTimeAreLoaded() {
     IEvent event = eventRepository.findByID(FRESHERS_FAIR).orElseThrow();
-    assertEquals(LocalDateTime.of(2050, 9, 21, 10, 0), event.getStartDateTime());
-    assertEquals(LocalDateTime.of(2050, 9, 21, 16, 0), event.getEndDateTime());
+    assertEquals(LocalDateTime.of(2026, 9, 21, 10, 0), event.getStartDateTime());
+    assertEquals(LocalDateTime.of(2026, 9, 21, 16, 0), event.getEndDateTime());
   }
 
   @Test
