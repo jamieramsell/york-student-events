@@ -23,6 +23,7 @@ if _SRC not in sys.path:
 
 import bootstrap
 import bootstrap_sql
+import seed
 
 _services: bootstrap.Services | None = None
 
@@ -54,7 +55,14 @@ def _compose_services() -> bootstrap.Services:
             empty, non-persistent graph.
     """
     if os.getenv("YSE_BRIDGE_INMEMORY"):
-        return bootstrap.bootstrap(register=False)   # unit-test surface only
+        services = bootstrap.bootstrap(register=False)  # unit-test surface only
+
+        _SEED_PATH = os.path.join(os.path.dirname(__file__),
+                                  "../../../data/seed.json")
+        seed.load_seed(services, seed_path=_SEED_PATH)
+
+        return services
+    
     return bootstrap_sql.bootstrap_sql()             # SQL repos, register=True; raises w/o DATABASE_URL
 
 
@@ -97,6 +105,14 @@ type Handler = collections.abc.Callable[[IncomingPayload], OutgoingPayload]
 
 
 def get_user_badges(payload: IncomingPayload) -> OutgoingPayload:
+    """Returns the IDs of all badges awarded to a user.
+
+    Args:
+        payload: Must contain ``"userId"`` (UUID string).
+
+    Returns:
+        ``{"badges": [<badge-id-str>, ...]}``
+    """
     user_id = uuid.UUID(payload["userId"])
     return {
         "badges": [str(badge.get_id()) for badge
@@ -105,6 +121,14 @@ def get_user_badges(payload: IncomingPayload) -> OutgoingPayload:
 
 
 def get_user_friends(payload: IncomingPayload) -> OutgoingPayload:
+    """Returns the IDs of all accepted friends of a user.
+
+    Args:
+        payload: Must contain ``"userId"`` (UUID string).
+
+    Returns:
+        ``{"friends": [<user-id-str>, ...]}``
+    """
     user_id = uuid.UUID(payload["userId"])
     return {
         "friends": [str(friend_id) for friend_id
@@ -113,6 +137,14 @@ def get_user_friends(payload: IncomingPayload) -> OutgoingPayload:
 
 
 def award_badge(payload: IncomingPayload) -> OutgoingPayload:
+    """Awards a badge to a user.
+
+    Args:
+        payload: Must contain ``"userId"`` and ``"badgeId"`` (UUID strings).
+
+    Returns:
+        An empty payload ``{}``.
+    """
     user_id = uuid.UUID(payload["userId"])
     badge_id = uuid.UUID(payload["badgeId"])
     _services.badge_service.award_badge(user_id, badge_id)
@@ -120,6 +152,14 @@ def award_badge(payload: IncomingPayload) -> OutgoingPayload:
 
 
 def get_recommended_events(payload: IncomingPayload) -> OutgoingPayload:
+    """Returns event IDs recommended for a user based on their friend graph.
+
+    Args:
+        payload: Must contain ``"userId"`` (UUID string).
+
+    Returns:
+        ``{"events": [<event-id-str>, ...]}``
+    """
     user_id = uuid.UUID(payload["userId"])
     return {
         "events": [str(event_id) for event_id
@@ -128,6 +168,14 @@ def get_recommended_events(payload: IncomingPayload) -> OutgoingPayload:
 
 
 def record_attendance(payload: IncomingPayload) -> OutgoingPayload:
+    """Records that a user attended an event.
+
+    Args:
+        payload: Must contain ``"userId"`` and ``"eventId"`` (UUID strings).
+
+    Returns:
+        An empty payload ``{}``.
+    """
     attendee_id = uuid.UUID(payload["userId"])
     event_id = uuid.UUID(payload["eventId"])
     _services.attendance_service.record_attendance(attendee_id, event_id)
@@ -135,6 +183,14 @@ def record_attendance(payload: IncomingPayload) -> OutgoingPayload:
 
 
 def get_recommended_friends(payload: IncomingPayload) -> OutgoingPayload:
+    """Returns user IDs recommended as new friends for a user.
+
+    Args:
+        payload: Must contain ``"userId"`` (UUID string).
+
+    Returns:
+        ``{"friends": [<user-id-str>, ...]}``
+    """
     user_id = uuid.UUID(payload["userId"])
     return {
         "friends": [str(recommended_friend_id) for recommended_friend_id
@@ -187,6 +243,13 @@ class MessageHandlerFactory:
 
 
 def main():
+    """Entry point for the responder subprocess.
+
+    Reads newline-delimited JSON request envelopes from stdin, routes each to
+    its handler via ``MessageHandlerFactory``, and writes a JSON response
+    envelope to stdout. Exits with code 1 after the first error response so
+    event-service can detect failures without consuming additional output.
+    """
     factory = MessageHandlerFactory()
 
     for line in sys.stdin:
