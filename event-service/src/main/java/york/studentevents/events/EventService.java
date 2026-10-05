@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
+import org.springframework.stereotype.Service;
 import york.studentevents.exceptions.EventNotFoundException;
 
 /**
@@ -19,6 +20,7 @@ import york.studentevents.exceptions.EventNotFoundException;
  * @see IEventRepository
  * @see IEvent
  */
+@Service
 public class EventService {
 
   private IEventRepository eventRepository;
