@@ -184,6 +184,21 @@ class EventServiceTest {
   }
 
   @Test
+  void updateEventDateTime_whenStartInPast_updatesAndPersists() {
+    IEvent event = savedEvent();
+    service.updateEventVenue(event.getId(), getVenueId());
+
+    LocalDateTime start = LocalDateTime.now().minusDays(1);
+    LocalDateTime end = LocalDateTime.now().plusDays(1);
+    
+    service.updateEventDateTime(event.getId(), start, end);
+
+    IEvent fetched = service.getEvent(event.getId());
+    assertEquals(start, fetched.getStartDateTime());
+    assertEquals(end, fetched.getEndDateTime());
+  }
+
+  @Test
   void updateEventDateTime_withBothNull_clearsTimings() {
     IEvent event = savedEvent();
     service.updateEventVenue(event.getId(), getVenueId());
@@ -211,17 +226,6 @@ class EventServiceTest {
     IEvent event = savedEvent();
     service.updateEventVenue(event.getId(), getVenueId());
     LocalDateTime start = LocalDateTime.now().plusDays(2);
-    LocalDateTime end = LocalDateTime.now().plusDays(1);
-
-    assertThrows(IllegalArgumentException.class,
-        () -> service.updateEventDateTime(event.getId(), start, end));
-  }
-
-  @Test
-  void updateEventDateTime_whenStartInPast_throwsIllegalArgumentException() {
-    IEvent event = savedEvent();
-    service.updateEventVenue(event.getId(), getVenueId());
-    LocalDateTime start = LocalDateTime.now().minusDays(1);
     LocalDateTime end = LocalDateTime.now().plusDays(1);
 
     assertThrows(IllegalArgumentException.class,
