@@ -49,6 +49,6 @@ def load_seed(services: bootstrap.Services,
                 uuid.UUID(friendship_record["userId"]),
                 uuid.UUID(friendship_record["friendId"]),
                 datetime.datetime.fromisoformat(friendship_record["createdAt"]),
-                friends.FriendshipStatus(friendship_record["status"])
+                friends.FriendshipStatus[friendship_record["status"]]
             )
         )
