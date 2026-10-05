@@ -13,8 +13,6 @@ import os
 import sys
 import uuid
 
-import seed
-
 # responder.py is launched as a standalone subprocess (by event-service and by
 # the test suite), so the api-core ``src`` root is not guaranteed to be on
 # ``sys.path``. Anchor it relative to this file so the api-core packages below
@@ -25,6 +23,7 @@ if _SRC not in sys.path:
 
 import bootstrap
 import bootstrap_sql
+import seed
 
 _services: bootstrap.Services | None = None
 
