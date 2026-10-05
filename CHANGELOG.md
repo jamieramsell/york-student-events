@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [v0.5.1] - 2026-10-06
+
+Completes M5 by adding the shared seed dataset, and fixes event creation so that records of past events can be created.
+
+### Added
+- **Seed data (project):** a shared `data/seed.json` providing a realistic dataset for development and testing without a database, documented in the README.
+- **Seed data (`event-service`):** `InMemorySeededData`, a `CommandLineRunner` active only under the `inmemory` profile, which loads the venues, users, events, cohorts, and subscriptions arrays on startup.
+- **Seed data (`api-core`):** `seed.load_seed`, which loads the attendance, badges, and friendships arrays. `bridge/responder.py` calls it when `YSE_BRIDGE_INMEMORY` is set.
+- Tests for both seed loaders.
+
+### Changed
+- The visibility of the constructors which accept a UUID of all java-side entities has been widened to public so that the seed loader can construct them.
+- Added docstrings to the `api-core` bridge responder handlers and entry point.
+
+### Fixed
+- An `Event` can now be created with a start time in the past, so a record of a past event can be stored. The "must start in the future" check was removed from `Event` and `EventService`, and the tests and docs were updated to match.
+- The api-core bridge client now launches the Java responder with `event-service` as its working directory.
+
+### Docs
+- Added a small entry to the README on the seed data script
+
+### Pending before release
+These M5 issues remain open and are not part of this release:
+- **#204** validate that an event exists before recording attendance
+- **#98** integration tests for the event-service repositories
+
+[v0.5.1]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.5.1
+
 ## [v0.5.0] - 2026-10-03
 
 M5 - Persistence Layer: real database persistence for both services, backed by a shared PostgreSQL instance, plus the event-service service layer that was completed under M4.5. Business logic now reads and writes through database-backed repositories by default, with in-memory repositories kept for testing.
