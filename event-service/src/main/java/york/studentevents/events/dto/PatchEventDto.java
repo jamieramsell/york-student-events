@@ -27,12 +27,12 @@ public record PatchEventDto(
     @Size(min = 1, message = "Title cannot be empty or blank")
     String title,
 
-    @Size(min = 1, message = "Title cannot be empty or blank")
+    @Size(min = 1, message = "Descriptions cannot be empty or blank")
     String description,
 
     EventCategory category,
 
-    @Min(value = -1, message = "Capacity must be a non-negative integer or -1 for unlimited")
+    @Min(value = -1, message = "Capacity must be a non-negative integer, or -1 for unlimited")
     Integer capacity,
 
     LocalDateTime startDateTime,
@@ -49,14 +49,14 @@ public record PatchEventDto(
    * <p>If `startDateTime` is provided, `endDateTime` must also be provided and vice versa.
    * Also, `venueId` must be valid to set `startDateTime` and `endDateTime`.
    *
-   * @param title The new title of the event cannot be blank.
-   * @param description The new description of the event cannot be blank.
-   * @param category The new category of the event must be a valid {@code EventCategory}.
-   * @param capacity The new capacity of the event cannot be zero or less than -1,
+   * @param title The new title of the event; cannot be blank.
+   * @param description The new description of the event; cannot be blank.
+   * @param category The new category of the event; must be a valid {@code EventCategory}.
+   * @param capacity The new capacity of the event; cannot be zero or less than -1,
    *                 -1 for unlimited.
-   * @param startDateTime The new start date/time of the event must be before the end date/time.
-   * @param endDateTime The new end date/time of the event must be after the start date/time.
-   * @param venueId The new venue ID of the event must be a valid venue UUID.
+   * @param startDateTime The new start date/time of the event; must be before the end date/time.
+   * @param endDateTime The new end date/time of the event; must be after the start date/time.
+   * @param venueId The new venue ID of the event; must be a valid venue UUID.
    */
   public PatchEventDto {
     if (capacity != null) {
