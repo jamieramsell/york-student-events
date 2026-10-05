@@ -8,6 +8,7 @@ result is written back as an ``ok`` or ``error`` envelope. The envelope contract
 is documented in ``docs/subprocess-contract.md``.
 """
 import collections.abc
+import seed
 import json
 import os
 import sys
@@ -54,7 +55,10 @@ def _compose_services() -> bootstrap.Services:
             empty, non-persistent graph.
     """
     if os.getenv("YSE_BRIDGE_INMEMORY"):
-        return bootstrap.bootstrap(register=False)   # unit-test surface only
+        services = bootstrap.bootstrap(register=False)  # unit-test surface only
+        seed.load_seed(services)
+        return services
+    
     return bootstrap_sql.bootstrap_sql()             # SQL repos, register=True; raises w/o DATABASE_URL
 
 
