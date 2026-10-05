@@ -175,6 +175,7 @@ def _call_responder(request: dict, classpath: str) -> dict:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            cwd=str(_EVENT_SERVICE)
         )
     except FileNotFoundError as exc: # `java` not on PATH
         raise SubprocessError("Could not launch java;"
