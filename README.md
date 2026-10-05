@@ -2,7 +2,7 @@
  
 > A centralised event discovery and social platform exclusively for University of York students.
  
-[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
 [![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
 [![Python](https://img.shields.io/badge/python-3.12+-yellow.svg)](https://www.python.org)
@@ -245,6 +245,26 @@ Once a migration has been applied to any database, **never edit it**. Flyway rec
 
 The Flyway Maven plugin (`./mvnw flyway:info`, `flyway:migrate`) is also available for driving migrations outside the app. Unlike the runtime, it does **not** read `application.properties`, so pass the connection explicitly via the `FLYWAY_URL` / `FLYWAY_USER` / `FLYWAY_PASSWORD` environment variables (or `-Dflyway.url=…` flags).
  
+### Seed data
+
+Both services share a single seed file at [`data/seed.json`](data/seed.json) that provides a realistic in-memory dataset for development and testing without requiring a running database.
+
+**Which service loads which arrays:**
+
+| Array | Loaded by |
+|---|---|
+| `venues`, `users`, `events`, `cohorts`, `subscriptions` | event-service (`InMemorySeededData`) |
+| `attendance`, `badges`, `friendships` | api-core (`seed.load_seed`) |
+
+**When it is loaded:**
+
+- **event-service** - `InMemorySeededData` is a Spring `CommandLineRunner` active only under the `inmemory` profile. It runs automatically on startup.
+- **api-core** - `seed.load_seed` is called by `bridge/responder.py` when `YSE_BRIDGE_INMEMORY` is set, populating the responder's throwaway in-memory graph before it handles a request.
+
+**Adding seed entities:**
+
+Add the new object to the relevant array in `data/seed.json`. If you add an entity that should be referenced by another (e.g. a new event that a user hosts, or a subscription pointing to it), update those arrays too. Both services must be restarted (or tests re-run) to pick up the change.
+
 ---
  
 ## Versioning

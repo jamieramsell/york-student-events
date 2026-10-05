@@ -57,7 +57,7 @@ public class Event implements IEvent {
    * @throws IllegalArgumentException if any of the parameters are {@code null}, or
    *      if {@code capacity} is less than one.
    */
-  protected Event(UUID id, String title, int capacity, EventCategory category) {
+  public Event(UUID id, String title, int capacity, EventCategory category) {
     if (id == null) {
       throw new IllegalArgumentException("Event ID cannot be null");
     }
@@ -76,7 +76,7 @@ public class Event implements IEvent {
    *
    * @throws IllegalArgumentException if any of the parameters are {@code null}
    * */
-  protected Event(UUID id, String title, EventCategory category) {
+  public Event(UUID id, String title, EventCategory category) {
     if (id == null) {
       throw new IllegalArgumentException("Event ID cannot be null");
     }
@@ -84,7 +84,6 @@ public class Event implements IEvent {
     setTitle(title);
     setCategory(category);
   }
-
 
   /**
    * Creates an {@code Event} without a maximum attendee capacity.
@@ -179,10 +178,7 @@ public class Event implements IEvent {
             + " assign a date and time");
       } else if (startDateTime != null && startDateTime.compareTo(endDateTime) >= 0) {
         throw new IllegalArgumentException("startDateTime must be before endDateTime");
-      } else if (LocalDateTime.now().compareTo(startDateTime) >= 0) {
-        throw new IllegalArgumentException("The event must start in the future (startDateTime"
-            + " cannot be in the past)");
-      }
+      } 
     }
 
     this.startDateTime = startDateTime;
