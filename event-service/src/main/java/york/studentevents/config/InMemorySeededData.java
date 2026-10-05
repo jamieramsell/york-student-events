@@ -63,6 +63,9 @@ public class InMemorySeededData implements CommandLineRunner {
   @Autowired
   IVenueRepository venueRepository;
 
+  /** Seed file path — relative to the service working directory. Package-private for tests. */
+  String seedFilePath = "../data/seed.json";
+
   /**
    * Reads {@code data/seed.json}, parses it as a JSON object, and delegates to the per-entity
    * loader methods to populate each repository.
@@ -73,11 +76,12 @@ public class InMemorySeededData implements CommandLineRunner {
    *     to the service's working directory.
    * @throws IllegalArgumentException if the file does not contain a valid JSON object.
    */
+
   @Override
   public void run(String... args) throws FileNotFoundException {
 
     String json = "";
-    File myObj = new File("../data/seed.json");
+    File myObj = new File(seedFilePath);
 
     // try-with-resources: Scanner will be closed automatically
     try (Scanner myReader = new Scanner(myObj)) {
