@@ -236,11 +236,15 @@ class EventTest {
   }
 
   @Test
-  void setDateTime_withStartInPast_throwsIllegalArgumentException() {
+  void setDateTime_withStartInPast_updatesDateTime() {
     event.setVenue(UUID.fromString("632b4764-69e7-4ef6-9645-2789919c29ac"));
     LocalDateTime past = LocalDateTime.of(2020, 1, 1, 12, 0);
     LocalDateTime end = LocalDateTime.of(2020, 1, 1, 14, 0);
-    assertThrows(IllegalArgumentException.class, () -> event.setDateTime(past, end));
+
+    event.setDateTime(past, end);
+
+    assertEquals(past, event.getStartDateTime());
+    assertEquals(end, event.getEndDateTime());
   }
 
   // --- setCapacity ---
