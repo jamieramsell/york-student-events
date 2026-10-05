@@ -1,16 +1,22 @@
 package york.studentevents.events;
 
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.annotation.*;
-import york.studentevents.events.dto.CreateEventDTO;
-import york.studentevents.events.dto.EventDTO;
-import york.studentevents.events.dto.PatchEventDTO;
-import york.studentevents.exceptions.EventNotFoundException;
-
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import york.studentevents.events.dto.CreateEventDto;
+import york.studentevents.events.dto.EventDto;
+import york.studentevents.events.dto.PatchEventDto;
+import york.studentevents.exceptions.EventNotFoundException;
 
 /**
  * REST controller exposing event data over HTTP.
@@ -46,40 +52,66 @@ public class EventController {
    * <p>Returns an empty list (serialised as an empty JSON array) when no events exist, rather than
    * an error. A successful call responds with HTTP 200.
    *
-   * @return a list of all events, serialised by Spring into a JSON array
+   * @return a {@code List} of all events, serialised by Spring into a JSON array
    */
   @GetMapping
-  public List<EventDTO> getAllEvents() {
+  public List<EventDto> getAllEvents() {
     return eventService.getAllEvents().stream()
-            .map(EventDTO::fromEntity)
+            .map(EventDto::fromEntity)
             .toList();
   }
 
 
+  /**
+   * Handles {@code GET /events/{eventId}} HTTP requests and returns a specific event by its ID.
+   *
+   * <p>Returns a 404 (Not Found) response if the event does not exist.
+   *
+   * @param eventId The ID of the event to retrieve.
+   * @return A {@code ResponseEntity} containing the event, serialised by Spring into a JSON object.
+   */
   @GetMapping("/{eventId}")
-  public ResponseEntity<EventDTO> getEvent(@PathVariable UUID eventId) {
-    return ResponseEntity.ok(EventDTO.fromEntity(eventService.getEvent(eventId)));
+  public ResponseEntity<EventDto> getEvent(@PathVariable UUID eventId) {
+    return ResponseEntity.ok(EventDto.fromEntity(eventService.getEvent(eventId)));
   }
 
   /**
    * Handles {@code POST /events} HTTP requests to create a new event.
    *
-   * <p>The request body must contain a valid {@link CreateEventDTO} instance.
+   * <p>The request body must contain a valid {@link CreateEventDto} instance.
    *
    * <p>If the event is successfully created, the response contains the created event, serialised.
+   * Otherwise, a 400 (Bad Request) response is returned.
    *
-   * @param dto Thw DTO containing the event data.
+   * @param dto A {@code CreateEventDto} containing the details of the event to create.
    * @return The created event, serialised by Spring into a JSON object.
    */
   @PostMapping
-  public ResponseEntity<EventDTO> createEvent(@Valid @RequestBody CreateEventDTO dto) {
+  public ResponseEntity<EventDto> createEvent(
+      @Valid @RequestBody CreateEventDto dto
+  ) {
     return ResponseEntity.status(201).body(
-        EventDTO.fromEntity(eventService.createEvent(dto.title(), dto.category(), dto.capacity()))
+        EventDto.fromEntity(eventService.createEvent(dto.title(), dto.category(), dto.capacity()))
     );
   }
 
+  /**
+   * Handles {@code PATCH /events/{eventId}} HTTP requests to update a specific event by its ID.
+   *
+   * <p>The request body must contain a valid {@link PatchEventDto} instance.
+   * Missing fields and null values are not updated.
+   *
+   * <p>If the event exists and any of the fields are updated, the response contains the updated.
+   * Otherwise, a 204 (No Content) response is returned.
+   *
+   * @param dto A {@code PatchEventDto} containing the fields to update.
+   * @param eventId The ID of the event to update.
+   * @return The updated event, serialised by Spring into a JSON object.
+   */
   @PatchMapping("/{eventId}")
-  public ResponseEntity<EventDTO> updateEvent(@Valid @RequestBody PatchEventDTO dto, @PathVariable UUID eventId) {
+  public ResponseEntity<EventDto> updateEvent(
+      @Valid @RequestBody PatchEventDto dto, @PathVariable UUID eventId
+  ) {
     boolean changed = false;
     if (dto.title() != null) {
       eventService.updateEventTitle(eventId, dto.title());
@@ -106,7 +138,7 @@ public class EventController {
       changed = true;
     }
     if (changed) {
-      return ResponseEntity.ok(EventDTO.fromEntity(eventService.getEvent(eventId)));
+      return ResponseEntity.ok(EventDto.fromEntity(eventService.getEvent(eventId)));
     } else {
       return ResponseEntity.noContent().build();
     }
@@ -116,10 +148,11 @@ public class EventController {
    * Handles {@code DELETE /events/{eventId}} HTTP requests to delete a specific event by its ID.
    *
    * <p>If the event exists, the deletion is processed, and the response is empty
-   * with HTTP status 204 (No Content).
+   * with HTTP status 204 (No Content). Otherwise, a 404 (Not Found) response is returned.
    *
    * @param eventId the unique identifier of the event to delete; must not be null.
    * @return a {@code ResponseEntity} with HTTP status 204 if the deletion is successful.
+   *        Otherwise, a 404 (Not Found) response is returned.
    */
   @DeleteMapping("/{eventId}")
   public ResponseEntity<Void> deleteEvent(@PathVariable UUID eventId) {
@@ -127,11 +160,29 @@ public class EventController {
     return ResponseEntity.noContent().build();
   }
 
+
+  /**
+   * Handles exceptions of type {@code EventNotFoundException} thrown when a requested
+   * event cannot be found.
+   *
+   * <p>Returns an HTTP 404 (Not Found) response with a message indicating an invalid event ID.
+   *
+   * @param e the exception object representing the event not found error
+   * @return a {@code ResponseEntity} containing a message and the HTTP 404 status code
+   */
   @ExceptionHandler(EventNotFoundException.class)
   public ResponseEntity<String> handleEventNotFound(EventNotFoundException e) {
     return ResponseEntity.status(404).body("Invalid event ID");
   }
 
+  /**
+   * Handles exceptions of type {@code IllegalArgumentException} thrown when an illegal argument
+   * is provided in a request.
+   *
+   * @param e the exception object representing the illegal argument error
+   * @return a {@code ResponseEntity} containing the exception message with the HTTP 400
+   *        (Bad Request) status code
+   */
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
     return ResponseEntity.badRequest().body(e.getMessage());

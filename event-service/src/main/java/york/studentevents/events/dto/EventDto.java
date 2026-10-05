@@ -1,15 +1,14 @@
 package york.studentevents.events.dto;
 
-import york.studentevents.events.EventCategory;
-import york.studentevents.events.IEvent;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+import york.studentevents.events.EventCategory;
+import york.studentevents.events.IEvent;
 
 /**
  * Data Transfer Object for Event data.
  */
-public record EventDTO(
+public record EventDto(
     UUID id,
 
     String title,
@@ -26,8 +25,20 @@ public record EventDTO(
 
     EventCategory category
 ) {
-
-  public EventDTO {
+  /**
+   * Constructor for DTO.
+   *
+   * @param id The event ID.
+   * @param title The title of the event.
+   * @param description The description of the event.
+   * @param startDateTime The start date/time of the event.
+   * @param endDateTime The end date/time of the event.
+   * @param venueId The venue ID of the event.
+   * @param capacity The capacity of the event (or -1 for unlimited) cannot be
+   *                 zero or less than -1.
+   * @param category The category of the event {@see EventCategory}.
+   */
+  public EventDto {
     if (capacity == null) {
       capacity = -1;
     }
@@ -44,12 +55,12 @@ public record EventDTO(
    * @param event the event entity to map.
    * @return a new EventDTO containing the entity's data.
    */
-  public static EventDTO fromEntity(IEvent event) {
+  public static EventDto fromEntity(IEvent event) {
     if (event == null) {
       return null;
     }
 
-    return new EventDTO(
+    return new EventDto(
         event.getId(),
         event.getTitle(),
         event.getDescription(),
