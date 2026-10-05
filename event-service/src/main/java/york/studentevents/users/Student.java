@@ -39,7 +39,7 @@ public class Student extends User implements IStudent {
    * @param registeredEvents the user's registered events; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
    */
-  protected Student(UUID id, 
+  public Student(UUID id, 
       String username, 
       String email, 
       String passwordHash,

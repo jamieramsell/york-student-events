@@ -4,6 +4,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.0] - Unreleased
+
+M5 - Persistence Layer: real database persistence for both services, backed by a shared PostgreSQL instance, plus the event-service service layer that was completed under M4.5. Business logic now reads and writes through database-backed repositories by default, with in-memory repositories kept for testing.
+
+### Added
+- **Database (project):** PostgreSQL chosen and configured as the shared database, with a local `docker-compose.db.yml` for development and H2 for event-service tests.
+- **Persistence scaffolding (`api-core`):** SQLAlchemy Core persistence layer (psycopg in production, SQLite in tests), Alembic owning the schema, `DATABASE_URL` read from the environment, and a `scripts/check_db.py` smoke test.
+- **Persistence scaffolding (`event-service`):** Spring Data JPA and database dependencies, domain models annotated as JPA entities, and Flyway owning the schema through versioned migrations.
+- **Persistent repositories (`event-service`):** database-backed `EventRepository`, `UserRepository`, `VenueRepository`, `CohortRepository`, and `SubscriptionRepository`.
+- **Persistent repositories (`api-core`):** database-backed repositories for the friendship graph, badges, awarded badges, and attendance.
+- **Service layer (`event-service`):** full `EventService`, `UserService`, and `VenueService` implementations replacing the deprecated stubs, plus `HostEventService` as the host-side counterpart to `StudentEventService`.
+- **Capacity handling (`event-service`):** `EventCapacityService`, centralising venue assignment (guarded against oversubscription) and capacity changes (clamped to the venue ceiling).
+- **Composition root (`event-service`):** a Spring composition root wiring `SubprocessResponder` and the service graph.
+- **Bridge:** api-core `bridge.responder.py` fully wired to the SQL-backed bootstrap, and the Java `SubprocessResponder` canned handlers replaced with real service calls.
+- Integration tests covering api-core persistence.
+
+### Changed
+- **Breaking:** an `Event` now stores a `Venue` UUID rather than a location string, with a Flyway migration for the change.
+- **Breaking:** an `Event` now belongs to multiple categories via a `Set<EventCategory>` stored in a join table, replacing the single-category `getCategory()` / `setCategory()`.
+- Both services now default to database-backed repositories, with an explicit in-memory flag reserved for testing.
+- A user record now carries a password field, with a matching schema change.
+- Made the cohort setters public.
+- Bumped the project version to 0.5.0.
+
+### Fixed
+- Corrected `updateEventVenue_clearsAnyExistingDateTime()` so that it matches the new service contract.
+- Compared UUIDs directly rather than their string values in tests.
+
+### Docs
+- Fixed broken links in the generated Javadoc.
+
+### CI
+- The python build workflow now installs its dependencies before running.
+
+### Pending before release
+These M5 issues remain open and are not part of this release:
+- **#204** validate that an event exists before recording attendance
+- **#98** integration tests for the event-service repositories
+- **#97** write a seed data script
+
 ## [0.4.1] - 2026-09-11
 
 Small bug patch prior to M5 to facilitate its stable release.
@@ -142,3 +182,11 @@ persistence, and automated build, test, and style-guide enforcement.
 - **Generated API docs** — Javadoc HTML published under `docs/apidocs/`.
 
 [v1.0.0-alpha]: https://github.com/jamieramsell/york-student-events/releases/tag/v1.0.0-alpha
+[v0.1.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.1.0
+[v0.2.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.2.0
+[v0.3.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.3.0
+[v0.4.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.4.0
+[v0.4.1]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.4.1
+[v0.5.0]: https://github.com/jamieramsell/york-student-events/releases/tag/v0.5.0
+
+
