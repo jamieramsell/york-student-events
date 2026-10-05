@@ -1,0 +1,446 @@
+{
+  "venues": [
+    {
+      "id": "10000000-0000-4000-a000-000000000001",
+      "name": "Central Hall",
+      "address": "University of York, Heslington, York YO10 5DD",
+      "capacity": 500
+    },
+    {
+      "id": "10000000-0000-4000-a000-000000000002",
+      "name": "Ron Cooke Hub",
+      "address": "University of York, Heslington East, York YO10 5GE",
+      "capacity": 200
+    },
+    {
+      "id": "10000000-0000-4000-a000-000000000003",
+      "name": "Vanbrugh Dining Hall",
+      "address": "Vanbrugh College, University of York, York YO10 5DD",
+      "capacity": 150
+    },
+    {
+      "id": "10000000-0000-4000-a000-000000000004",
+      "name": "York Sport Village",
+      "address": "University of York, Heslington East, York YO10 5NA",
+      "capacity": 1000
+    },
+    {
+      "id": "10000000-0000-4000-a000-000000000005",
+      "name": "Spring Lane Building",
+      "address": "Spring Lane, University of York, York YO10 5NQ",
+      "capacity": 80
+    },
+    {
+      "id": "10000000-0000-4000-a000-000000000006",
+      "name": "Campus Lakeside",
+      "address": "University of York, Heslington, York YO10 5DD"
+    }
+  ],
+
+  "users": [
+    {
+      "id": "30000000-0000-4000-a000-000000000001",
+      "type": "HOST",
+      "username": "yusu",
+      "email": "events@yusu.org",
+      "passwordHash": "$seed$yusu",
+      "events": [
+        "40000000-0000-4000-a000-000000000001",
+        "40000000-0000-4000-a000-000000000002",
+        "40000000-0000-4000-a000-000000000004",
+        "40000000-0000-4000-a000-000000000007",
+        "40000000-0000-4000-a000-000000000008",
+        "40000000-0000-4000-a000-000000000009"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-a000-000000000002",
+      "type": "HOST",
+      "username": "yorksport",
+      "email": "sport@york.ac.uk",
+      "passwordHash": "$seed$yorksport",
+      "events": [
+        "40000000-0000-4000-a000-000000000003",
+        "40000000-0000-4000-a000-000000000006"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-a000-000000000003",
+      "type": "HOST",
+      "username": "careers",
+      "email": "careers@york.ac.uk",
+      "passwordHash": "$seed$careers",
+      "events": [
+        "40000000-0000-4000-a000-000000000005"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-a000-000000000001",
+      "type": "STUDENT",
+      "username": "alice.chen",
+      "email": "ac1234@york.ac.uk",
+      "passwordHash": "$seed$alice",
+      "events": [
+        "40000000-0000-4000-a000-000000000001",
+        "40000000-0000-4000-a000-000000000002",
+        "40000000-0000-4000-a000-000000000003",
+        "40000000-0000-4000-a000-000000000004",
+        "40000000-0000-4000-a000-000000000006"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-a000-000000000002",
+      "type": "STUDENT",
+      "username": "ben.okafor",
+      "email": "bo5678@york.ac.uk",
+      "passwordHash": "$seed$ben",
+      "events": [
+        "40000000-0000-4000-a000-000000000001",
+        "40000000-0000-4000-a000-000000000002",
+        "40000000-0000-4000-a000-000000000007"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-a000-000000000003",
+      "type": "STUDENT",
+      "username": "clara.johansson",
+      "email": "cj9012@york.ac.uk",
+      "passwordHash": "$seed$clara",
+      "events": [
+        "40000000-0000-4000-a000-000000000001",
+        "40000000-0000-4000-a000-000000000005"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-a000-000000000004",
+      "type": "STUDENT",
+      "username": "dev.patel",
+      "email": "dp3456@york.ac.uk",
+      "passwordHash": "$seed$dev",
+      "events": [
+        "40000000-0000-4000-a000-000000000001",
+        "40000000-0000-4000-a000-000000000004",
+        "40000000-0000-4000-a000-000000000005"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-a000-000000000005",
+      "type": "STUDENT",
+      "username": "emma.wright",
+      "email": "ew7890@york.ac.uk",
+      "passwordHash": "$seed$emma",
+      "events": [
+        "40000000-0000-4000-a000-000000000008"
+      ]
+    },
+    {
+      "id": "20000000-0000-4000-a000-000000000006",
+      "type": "STUDENT",
+      "username": "fiona.li",
+      "email": "fl2345@york.ac.uk",
+      "passwordHash": "$seed$fiona",
+      "events": []
+    },
+    {
+      "id": "30000000-0000-4000-a000-000000000004",
+      "type": "HOST",
+      "username": "dramasoc",
+      "email": "drama@yusu.org",
+      "passwordHash": "$seed$dramasoc",
+      "events": []
+    }
+  ],
+
+  "events": [
+    {
+      "id": "40000000-0000-4000-a000-000000000001",
+      "title": "Freshers Fair",
+      "category": "FRESHERS",
+      "description": "Browse over 200 student societies, sports clubs, and campus services all under one roof.",
+      "venueId": "10000000-0000-4000-a000-000000000001",
+      "capacity": 500,
+      "startDateTime": "2026-09-21T10:00:00",
+      "endDateTime": "2026-09-21T16:00:00"
+    },
+    {
+      "id": "40000000-0000-4000-a000-000000000002",
+      "title": "Welcome Drinks",
+      "category": "SOCIAL",
+      "description": "Kick off the new term with free mocktails and music at Vanbrugh.",
+      "venueId": "10000000-0000-4000-a000-000000000003",
+      "capacity": 150,
+      "startDateTime": "2026-09-22T19:00:00",
+      "endDateTime": "2026-09-22T23:00:00"
+    },
+    {
+      "id": "40000000-0000-4000-a000-000000000003",
+      "title": "Freshers Sports Day",
+      "category": "FRESHERS",
+      "description": "Try your hand at everything from football to fencing — no experience needed.",
+      "venueId": "10000000-0000-4000-a000-000000000004",
+      "capacity": 300,
+      "startDateTime": "2026-09-23T13:00:00",
+      "endDateTime": "2026-09-23T17:00:00"
+    },
+    {
+      "id": "40000000-0000-4000-a000-000000000004",
+      "title": "Open Mic Night",
+      "category": "MUSIC",
+      "description": "Acoustic sets, poetry, comedy — sign up on the night or just come to watch.",
+      "venueId": "10000000-0000-4000-a000-000000000005",
+      "capacity": 80,
+      "startDateTime": "2050-10-10T19:30:00",
+      "endDateTime": "2050-10-10T22:30:00"
+    },
+    {
+      "id": "40000000-0000-4000-a000-000000000005",
+      "title": "Autumn Careers Fair",
+      "category": "CAREERS",
+      "description": "Meet graduate recruiters from finance, tech, charity, and public sectors.",
+      "venueId": "10000000-0000-4000-a000-000000000002",
+      "capacity": 200,
+      "startDateTime": "2050-10-15T10:00:00",
+      "endDateTime": "2050-10-15T16:00:00"
+    },
+    {
+      "id": "40000000-0000-4000-a000-000000000006",
+      "title": "Yoga on Campus",
+      "category": "WELLBEING",
+      "description": "All-levels morning flow on the mats at York Sport Village. Bring water.",
+      "venueId": "10000000-0000-4000-a000-000000000004",
+      "capacity": 30,
+      "startDateTime": "2050-10-08T08:00:00",
+      "endDateTime": "2050-10-08T09:00:00"
+    },
+    {
+      "id": "40000000-0000-4000-a000-000000000007",
+      "title": "Big Campus Quiz",
+      "category": "SOCIAL",
+      "description": "Teams of up to six. Prizes for first, second, and best team name.",
+      "venueId": "10000000-0000-4000-a000-000000000003",
+      "capacity": 100,
+      "startDateTime": "2050-10-17T20:00:00",
+      "endDateTime": "2050-10-17T22:00:00"
+    },
+    {
+      "id": "40000000-0000-4000-a000-000000000008",
+      "title": "Charity Bake Sale",
+      "category": "FUNDRAISER",
+      "description": "Cakes, brownies, and flapjacks raising money for York Foodbank.",
+      "venueId": "10000000-0000-4000-a000-000000000005",
+      "startDateTime": "2050-10-20T11:00:00",
+      "endDateTime": "2050-10-20T15:00:00"
+    },
+    {
+      "id": "40000000-0000-4000-a000-000000000009",
+      "title": "Lakeside Film Screening",
+      "category": "ARTS_AND_CULTURE",
+      "description": "Outdoor screening of a cult classic by the lake. Bring blankets.",
+      "venueId": "10000000-0000-4000-a000-000000000006",
+      "startDateTime": "2050-10-24T19:30:00",
+      "endDateTime": "2050-10-24T22:00:00"
+    }
+  ],
+
+  "cohorts": [
+    {
+      "id": "50000000-0000-4000-a000-000000000001",
+      "name": "2nd Year Computer Science 2025/26",
+      "department": "Computer Science",
+      "academicYear": 2025,
+      "yearGroup": 2,
+      "members": [
+        "20000000-0000-4000-a000-000000000001",
+        "20000000-0000-4000-a000-000000000002",
+        "20000000-0000-4000-a000-000000000004"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-a000-000000000002",
+      "name": "3rd Year History 2024/25",
+      "department": "History",
+      "academicYear": 2024,
+      "yearGroup": 4,
+      "members": [
+        "20000000-0000-4000-a000-000000000003",
+        "20000000-0000-4000-a000-000000000005"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-a000-000000000003",
+      "name": "1st Year Mathematics 2026/27",
+      "department": "Mathematics",
+      "academicYear": 2026,
+      "yearGroup": 1,
+      "members": []
+    }
+  ],
+
+  "subscriptions": [
+    {
+      "id": "70000000-0000-4000-a000-000000000001",
+      "userId": "20000000-0000-4000-a000-000000000001",
+      "eventId": "40000000-0000-4000-a000-000000000004",
+      "source": "REGISTRATION"
+    },
+    {
+      "id": "70000000-0000-4000-a000-000000000002",
+      "userId": "20000000-0000-4000-a000-000000000001",
+      "eventId": "40000000-0000-4000-a000-000000000006",
+      "source": "EXPLICIT"
+    },
+    {
+      "id": "70000000-0000-4000-a000-000000000003",
+      "userId": "20000000-0000-4000-a000-000000000002",
+      "eventId": "40000000-0000-4000-a000-000000000007",
+      "source": "REGISTRATION"
+    },
+    {
+      "id": "70000000-0000-4000-a000-000000000004",
+      "userId": "20000000-0000-4000-a000-000000000003",
+      "eventId": "40000000-0000-4000-a000-000000000005",
+      "source": "REGISTRATION"
+    },
+    {
+      "id": "70000000-0000-4000-a000-000000000005",
+      "userId": "20000000-0000-4000-a000-000000000004",
+      "eventId": "40000000-0000-4000-a000-000000000004",
+      "source": "REGISTRATION"
+    },
+    {
+      "id": "70000000-0000-4000-a000-000000000006",
+      "userId": "20000000-0000-4000-a000-000000000004",
+      "eventId": "40000000-0000-4000-a000-000000000005",
+      "source": "EXPLICIT"
+    }
+  ],
+
+  "friendships": [
+    {
+      "userId": "20000000-0000-4000-a000-000000000001",
+      "friendId": "20000000-0000-4000-a000-000000000002",
+      "createdAt": "2026-09-21T12:30:00",
+      "status": "ACCEPTED"
+    },
+    {
+      "userId": "20000000-0000-4000-a000-000000000001",
+      "friendId": "20000000-0000-4000-a000-000000000003",
+      "createdAt": "2026-09-21T14:15:00",
+      "status": "ACCEPTED"
+    },
+    {
+      "userId": "20000000-0000-4000-a000-000000000001",
+      "friendId": "20000000-0000-4000-a000-000000000004",
+      "createdAt": "2026-09-22T20:00:00",
+      "status": "ACCEPTED"
+    },
+    {
+      "userId": "20000000-0000-4000-a000-000000000002",
+      "friendId": "20000000-0000-4000-a000-000000000003",
+      "createdAt": "2026-09-22T20:45:00",
+      "status": "ACCEPTED"
+    },
+    {
+      "userId": "20000000-0000-4000-a000-000000000002",
+      "friendId": "20000000-0000-4000-a000-000000000005",
+      "createdAt": "2026-09-25T09:00:00",
+      "status": "PENDING"
+    },
+    {
+      "userId": "20000000-0000-4000-a000-000000000004",
+      "friendId": "20000000-0000-4000-a000-000000000005",
+      "createdAt": "2026-09-24T11:30:00",
+      "status": "ACCEPTED"
+    }
+  ],
+
+  "badges": [
+    {
+      "id": "60000000-0000-4000-a000-000000000001",
+      "name": "Social Butterfly",
+      "description": "Make 3 friends on the platform.",
+      "repeatable": false,
+      "awardCondition": {
+        "type": "min_friends",
+        "threshold": 3
+      }
+    },
+    {
+      "id": "60000000-0000-4000-a000-000000000002",
+      "name": "Event Explorer",
+      "description": "Attend 5 different events.",
+      "repeatable": false,
+      "awardCondition": {
+        "type": "min_events_attended",
+        "threshold": 5,
+        "host_id": null,
+        "category": null,
+        "between": null
+      }
+    },
+    {
+      "id": "60000000-0000-4000-a000-000000000003",
+      "name": "Freshers Champion",
+      "description": "Attend 3 Freshers events. You clearly know how to kick off the year!",
+      "repeatable": false,
+      "awardCondition": {
+        "type": "min_events_attended",
+        "threshold": 3,
+        "host_id": null,
+        "category": "FRESHERS",
+        "between": null
+      }
+    },
+    {
+      "id": "60000000-0000-4000-a000-000000000004",
+      "name": "Regular",
+      "description": "Attend 3 events within a 30-day window.",
+      "repeatable": true,
+      "awardCondition": {
+        "type": "min_events_in_rolling_window",
+        "threshold": 3,
+        "window": 2592000,
+        "host_id": null,
+        "category": null
+      }
+    }
+  ],
+
+  "attendance": [
+    {
+      "attendeeId": "20000000-0000-4000-a000-000000000001",
+      "eventId": "40000000-0000-4000-a000-000000000001",
+      "recordedAt": "2026-09-21T10:05:00"
+    },
+    {
+      "attendeeId": "20000000-0000-4000-a000-000000000001",
+      "eventId": "40000000-0000-4000-a000-000000000002",
+      "recordedAt": "2026-09-22T19:10:00"
+    },
+    {
+      "attendeeId": "20000000-0000-4000-a000-000000000001",
+      "eventId": "40000000-0000-4000-a000-000000000003",
+      "recordedAt": "2026-09-23T13:05:00"
+    },
+    {
+      "attendeeId": "20000000-0000-4000-a000-000000000002",
+      "eventId": "40000000-0000-4000-a000-000000000001",
+      "recordedAt": "2026-09-21T10:20:00"
+    },
+    {
+      "attendeeId": "20000000-0000-4000-a000-000000000002",
+      "eventId": "40000000-0000-4000-a000-000000000002",
+      "recordedAt": "2026-09-22T19:30:00"
+    },
+    {
+      "attendeeId": "20000000-0000-4000-a000-000000000003",
+      "eventId": "40000000-0000-4000-a000-000000000001",
+      "recordedAt": "2026-09-21T11:00:00"
+    },
+    {
+      "attendeeId": "20000000-0000-4000-a000-000000000004",
+      "eventId": "40000000-0000-4000-a000-000000000001",
+      "recordedAt": "2026-09-21T10:45:00"
+    }
+  ]
+}
