@@ -56,7 +56,11 @@ def _compose_services() -> bootstrap.Services:
     """
     if os.getenv("YSE_BRIDGE_INMEMORY"):
         services = bootstrap.bootstrap(register=False)  # unit-test surface only
-        seed.load_seed(services)
+
+        _SEED_PATH = os.path.join(os.path.dirname(__file__),
+                                  "../../../data/seed.json")
+        seed.load_seed(services, seed_path=_SEED_PATH)
+
         return services
     
     return bootstrap_sql.bootstrap_sql()             # SQL repos, register=True; raises w/o DATABASE_URL
