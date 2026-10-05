@@ -57,7 +57,7 @@ public class Event implements IEvent {
    * @throws IllegalArgumentException if any of the parameters are {@code null}, or
    *      if {@code capacity} is less than one.
    */
-  protected Event(UUID id, String title, int capacity, EventCategory category) {
+  public Event(UUID id, String title, int capacity, EventCategory category) {
     if (id == null) {
       throw new IllegalArgumentException("Event ID cannot be null");
     }
@@ -76,7 +76,7 @@ public class Event implements IEvent {
    *
    * @throws IllegalArgumentException if any of the parameters are {@code null}
    * */
-  protected Event(UUID id, String title, EventCategory category) {
+  public Event(UUID id, String title, EventCategory category) {
     if (id == null) {
       throw new IllegalArgumentException("Event ID cannot be null");
     }
