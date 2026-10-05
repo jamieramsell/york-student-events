@@ -85,7 +85,6 @@ public class Event implements IEvent {
     setCategory(category);
   }
 
-
   /**
    * Creates an {@code Event} without a maximum attendee capacity.
    *
@@ -179,10 +178,7 @@ public class Event implements IEvent {
             + " assign a date and time");
       } else if (startDateTime != null && startDateTime.compareTo(endDateTime) >= 0) {
         throw new IllegalArgumentException("startDateTime must be before endDateTime");
-      } else if (LocalDateTime.now().compareTo(startDateTime) >= 0) {
-        throw new IllegalArgumentException("The event must start in the future (startDateTime"
-            + " cannot be in the past)");
-      }
+      } 
     }
 
     this.startDateTime = startDateTime;
