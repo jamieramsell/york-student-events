@@ -11,6 +11,8 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import org.springframework.lang.NonNull;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -23,6 +25,7 @@ import java.util.UUID;
 public abstract class User implements IUser {
   
   @Id
+  @NonNull
   protected UUID id;
 
   @Column(nullable = false)
