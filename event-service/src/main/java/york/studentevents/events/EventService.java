@@ -1,6 +1,6 @@
 package york.studentevents.events;
 
-import jakarta.annotation.Nonnull;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
+import org.springframework.lang.NonNull;
 import york.studentevents.exceptions.EventNotFoundException;
 
 /**
@@ -44,7 +45,7 @@ public class EventService {
    * @return the {@code IEvent} entity; never null
    * @throws EventNotFoundException if the given event does not exist
    */
-  @Nonnull
+  @NonNull
   public IEvent getEvent(UUID eventId) {
     Optional<IEvent> optionalEvent = eventRepository.findByID(eventId);
     if (optionalEvent.isEmpty()) {
@@ -64,7 +65,7 @@ public class EventService {
    * @throws IllegalArgumentException if any non-nullable argument is null, or if a capacity is
    *     given which is less than 1.
    */
-  @Nonnull
+  @NonNull
   public IEvent createEvent(String title, EventCategory category, Integer capacity) {
     IEvent event;
 
@@ -88,7 +89,7 @@ public class EventService {
    * @throws EventNotFoundException if an event with the given ID could not be found.
    * @throws IllegalArgumentException if title is null or empty.
    */
-  @Nonnull
+  @NonNull
   public IEvent updateEventTitle(UUID id, String title) {
     IEvent event = getEvent(id);
     event.setTitle(title);
@@ -107,7 +108,7 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
-  @Nonnull
+  @NonNull
   public IEvent updateEventDescription(UUID id, String description) {
     IEvent event = getEvent(id);
     event.setDescription(description);
@@ -136,7 +137,7 @@ public class EventService {
    * @throws IllegalArgumentException if only one datetime is provided. You must either provide both
    *     in order to assign event timings, or neither to remove them.
    */
-  @Nonnull
+  @NonNull
   public IEvent updateEventDateTime(
       UUID id,
       LocalDateTime startDateTime,
@@ -165,8 +166,8 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
-  @Nonnull
-  IEvent updateEventVenue(UUID eventId, UUID venueId) {
+  @NonNull
+  public IEvent updateEventVenue(UUID eventId, UUID venueId) {
     IEvent event = getEvent(eventId);
     if (venueId == null) {
       event.setDateTime(null, null);
@@ -191,8 +192,8 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
-  @Nonnull
-  IEvent updateEventCapacity(UUID id, Integer capacity) {
+  @NonNull
+  public IEvent updateEventCapacity(UUID id, Integer capacity) {
     IEvent event = getEvent(id);
     event.setCapacity(capacity);
     eventRepository.save(event);
@@ -208,7 +209,7 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
-  @Nonnull
+  @NonNull
   public IEvent updateEventCategory(UUID id, EventCategory category) {
     IEvent event = getEvent(id);
     event.setCategory(category);
@@ -222,7 +223,7 @@ public class EventService {
    * @return a {@link List} of all events; never {@code null}, but may be empty if no events have
    *     been saved
    */
-  @Nonnull
+  @NonNull
   public List<IEvent> getAllEvents() {
     return eventRepository.findAll();
   }
@@ -236,7 +237,7 @@ public class EventService {
    *
    * @see EventCategory
    */
-  @Nonnull
+  @NonNull
   public List<IEvent> getEventsByCategory(Set<EventCategory> categories) {
     Predicate<IEvent> isRelevant = (IEvent event) -> categories.contains(event.getCategory());
     return getAllEvents()
@@ -257,7 +258,7 @@ public class EventService {
    * @param end The (optional) end of the time window
    * @return All events which lie between the given points in time, inclusive.
    */
-  @Nonnull
+  @NonNull
   public List<IEvent> getEventsByDateTime(LocalDateTime start, LocalDateTime end) {
     return getAllEvents()
         .stream()
