@@ -43,7 +43,7 @@ public record EventDto(
       capacity = -1;
     }
     if (startDateTime != null && endDateTime != null) {
-      if (startDateTime.isBefore(endDateTime)) {
+      if (!startDateTime.isBefore(endDateTime)) {
         throw new IllegalArgumentException("Start date/time must be before end date/time");
       }
     }
