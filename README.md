@@ -2,7 +2,7 @@
  
 > A centralised event discovery and social platform exclusively for University of York students.
  
-[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)](CHANGELOG.md)
 [![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg)](https://semver.org)
 [![Code Style](https://img.shields.io/badge/code%20style-Google%20Java-blue.svg)](https://google.github.io/styleguide/javaguide.html)
 [![Python](https://img.shields.io/badge/python-3.12+-yellow.svg)](https://www.python.org)
@@ -65,69 +65,21 @@ york-student-events/
 │   │   │   │       └── studentevents/
 │   │   │   │           ├── Application.java
 │   │   │   │           ├── cohorts/
-│   │   │   │           │   ├── ICohort.java
-│   │   │   │           │   ├── ICohortRepository.java
-│   │   │   │           │   ├── Cohort.java
-│   │   │   │           │   ├── CohortService.java
-│   │   │   │           │   └── CohortController.java
+│   │   │   │           ├── config/
 │   │   │   │           ├── events/
-│   │   │   │           │   ├── IEvent.java
-│   │   │   │           │   ├── IEventRepository.java
-│   │   │   │           │   ├── Event.java
-│   │   │   │           │   ├── EventCategory.java
-│   │   │   │           │   ├── EventService.java
-│   │   │   │           │   ├── StudentEventService.java
-│   │   │   │           │   └── EventController.java
 │   │   │   │           ├── users/
-│   │   │   │           │   ├── IUser.java
-│   │   │   │           │   ├── IHost.java
-│   │   │   │           │   ├── IStudent.java
-│   │   │   │           │   ├── IUserRepository.java
-│   │   │   │           │   ├── User.java
-│   │   │   │           │   ├── Host.java
-│   │   │   │           │   ├── Student.java
-│   │   │   │           │   ├── UserService.java
-│   │   │   │           │   └── UserController.java
 │   │   │   │           ├── venues/
-│   │   │   │           │   ├── IVenue.java
-│   │   │   │           │   ├── IVenueRepository.java
-│   │   │   │           │   ├── Venue.java
-│   │   │   │           │   ├── VenueService.java
-│   │   │   │           │   └── VenueController.java
 │   │   │   │           ├── subscriptions/
-│   │   │   │           │   ├── IObserver.java
-│   │   │   │           │   ├── IObservable.java
-│   │   │   │           │   ├── ISubscription.java
-│   │   │   │           │   ├── ISubscriptionRepository.java
-│   │   │   │           │   ├── NotificationType.java
-│   │   │   │           │   ├── UserEventObserver.java
-│   │   │   │           │   ├── EventNotificationService.java
-│   │   │   │           │   └── SubscriptionService.java
 │   │   │   │           ├── subprocess/
-│   │   │   │           │   ├── RequestType.java
-│   │   │   │           │   ├── IPayload.java
-│   │   │   │           │   ├── UserIdPayload.java
-│   │   │   │           │   ├── AwardBadgePayload.java
 │   │   │   │           │   ├── SubprocessRequestFactory.java   # Java→Python: spawns api-core
 │   │   │   │           │   └── SubprocessResponder.java        # Python→Java: entry point for api-core
 │   │   │   │           ├── exceptions/
-│   │   │   │           │   ├── CapacityExceededException.java
-│   │   │   │           │   ├── CohortNotFoundException.java
-│   │   │   │           │   ├── EventNotFoundException.java
-│   │   │   │           │   ├── UserNotAuthorisedException.java
-│   │   │   │           │   ├── UserNotFoundException.java
-│   │   │   │           │   └── VenueNotFoundException.java
 │   │   │   │           └── repository/
-│   │   │   │               ├── IEntity.java
-│   │   │   │               ├── IRepository.java
-│   │   │   │               └── inmemory/
-│   │   │   │                   ├── AbstractInMemoryRepository.java
-│   │   │   │                   ├── InMemoryCohortRepository.java
-│   │   │   │                   ├── InMemoryEventRepository.java
-│   │   │   │                   ├── InMemorySubscriptionRepository.java
-│   │   │   │                   ├── InMemoryUserRepository.java
-│   │   │   │                   └── InMemoryVenueRepository.java
+│   │   │   │               ├── inmemory/
+│   │   │   │               └── sql/
 │   │   │   └── resources/
+│   │   │       ├── db/
+│   │   │       ├── application-inmemory.properties
 │   │   │       └── application.properties
 │   │   └── test/
 │   │       └── java/
@@ -153,22 +105,18 @@ york-student-events/
 │   │   │   └── responder.py        # Java→Python: handler factory (stubbed)
 │   │   ├── friends/
 │   │   ├── recommendations/
-│   │   ├── repositories/           # in-memory repository pattern (mirrors Java)
+│   │   ├── repositories/
 │   │   │   ├── __init__.py
-│   │   │   └── base.py
-│   │   └── bootstrap.py            # composition root: wires the service graph
+│   │   │   ├── base.py
+│   │   │   ├── inmemory.py
+│   │   │   └── sql/
+│   │   │      ├── __init__.py
+│   │   │      ├── engine.py
+│   │   │      ├── schema.py
+│   │   │      └── sql.py
+│   │   ├── bootstrap.py            # in-memory composition root
+│   │   └── bootstrap_sql.py        # db-backed composition root
 │   └── tests/
-│       ├── conftest.py
-│       ├── test_activity.py
-│       ├── test_attendance.py
-│       ├── test_badges.py
-│       ├── test_bridge_client.py
-│       ├── test_bridge_responder.py
-│       ├── test_bridge_integration.py
-│       ├── test_evaluation.py
-│       ├── test_friends.py
-│       ├── test_recommendations.py
-│       └── test_recommendations_integration.py
 │
 ├── docs/
 │   ├── api-spec.yaml
@@ -180,8 +128,8 @@ york-student-events/
 │   │   ├── feature.md
 │   │   └── bug.md
 │   ├── workflows/
-│   │   ├── build.yml
-│   │   ├── lint.yml
+│   │   ├── java-build.yml
+│   │   ├── python-build.yml
 │   │   ├── claude.yml
 │   │   ├── move-to-in-review.yml
 │   │   └── manage-blocked-label.yml
@@ -297,6 +245,26 @@ Once a migration has been applied to any database, **never edit it**. Flyway rec
 
 The Flyway Maven plugin (`./mvnw flyway:info`, `flyway:migrate`) is also available for driving migrations outside the app. Unlike the runtime, it does **not** read `application.properties`, so pass the connection explicitly via the `FLYWAY_URL` / `FLYWAY_USER` / `FLYWAY_PASSWORD` environment variables (or `-Dflyway.url=…` flags).
  
+### Seed data
+
+Both services share a single seed file at [`data/seed.json`](data/seed.json) that provides a realistic in-memory dataset for development and testing without requiring a running database.
+
+**Which service loads which arrays:**
+
+| Array | Loaded by |
+|---|---|
+| `venues`, `users`, `events`, `cohorts`, `subscriptions` | event-service (`InMemorySeededData`) |
+| `attendance`, `badges`, `friendships` | api-core (`seed.load_seed`) |
+
+**When it is loaded:**
+
+- **event-service** - `InMemorySeededData` is a Spring `CommandLineRunner` active only under the `inmemory` profile. It runs automatically on startup.
+- **api-core** - `seed.load_seed` is called by `bridge/responder.py` when `YSE_BRIDGE_INMEMORY` is set, populating the responder's throwaway in-memory graph before it handles a request.
+
+**Adding seed entities:**
+
+Add the new object to the relevant array in `data/seed.json`. If you add an entity that should be referenced by another (e.g. a new event that a user hosts, or a subscription pointing to it), update those arrays too. Both services must be restarted (or tests re-run) to pick up the change.
+
 ---
  
 ## Versioning
