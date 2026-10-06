@@ -30,7 +30,6 @@ public class EventService {
    * @param eventRepository the repository used to store and retrieve events; must not be
    *     {@code null}
    */
-  @Nonnull
   public EventService(IEventRepository eventRepository) {
     if (eventRepository == null) {
       throw new IllegalArgumentException("Injected eventRepository must not be null");
@@ -160,8 +159,8 @@ public class EventService {
    *     its start and end timings. An event must have a location in order to have been assigned
    *     start / end timings.
    *
-   * @param id The ID of the target event.
-   * @param location The (optional) new event location.
+   * @param eventId The ID of the target event.
+   * @param venueId The (optional) ID of new event location.
    * @return A copy of the updated event record.
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
