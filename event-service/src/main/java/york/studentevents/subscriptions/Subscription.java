@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
+
+import org.springframework.lang.NonNull;
 import york.studentevents.events.IEvent;
 import york.studentevents.users.IUser;
 
@@ -16,13 +18,16 @@ import york.studentevents.users.IUser;
 @Table(name = "student_event_subscriptions")
 public class Subscription implements ISubscription {
   
-  @Id 
+  @Id
+  @NonNull
   private UUID id;
 
   @Column(nullable = false)
+  @NonNull
   private UUID userId;
 
   @Column(nullable = false)
+  @NonNull
   private UUID eventId;
 
   @Enumerated(EnumType.STRING)
