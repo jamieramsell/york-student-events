@@ -16,6 +16,7 @@ replay_pid*
 # Postman
 # ===========================
 postman/
+.postman/
 
 # ===========================
 # Maven
