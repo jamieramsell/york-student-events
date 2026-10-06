@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import org.springframework.lang.NonNull;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -13,6 +15,7 @@ import java.util.UUID;
 public class Event implements IEvent {
   
   @Id
+  @NonNull
   private UUID id;
 
   @Column(nullable = false)
