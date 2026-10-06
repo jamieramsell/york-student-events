@@ -3,6 +3,7 @@ package york.studentevents.subscriptions;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 /**
  * An {@link IObserver} representing a single user's interest in an event's notifications.
@@ -20,6 +21,7 @@ public class UserEventObserver implements IObserver {
   
   private static final Logger LOGGER = LoggerFactory.getLogger(UserEventObserver.class);
 
+  @NonNull
   private final UUID userId;
 
   public UserEventObserver(UUID userId) {
