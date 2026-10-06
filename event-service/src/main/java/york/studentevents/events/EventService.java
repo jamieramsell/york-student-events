@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
+
+import jakarta.annotation.Nonnull;
 import york.studentevents.exceptions.EventNotFoundException;
 
 /**
@@ -29,6 +31,7 @@ public class EventService {
    * @param eventRepository the repository used to store and retrieve events; must not be
    *     {@code null}
    */
+  @Nonnull
   public EventService(IEventRepository eventRepository) {
     if (eventRepository == null) {
       throw new IllegalArgumentException("Injected eventRepository must not be null");
@@ -43,6 +46,7 @@ public class EventService {
    * @return the {@code IEvent} entity; never null
    * @throws EventNotFoundException if the given event does not exist
    */
+  @Nonnull
   public IEvent getEvent(UUID eventId) {
     Optional<IEvent> optionalEvent = eventRepository.findByID(eventId);
     if (optionalEvent.isEmpty()) {
@@ -62,6 +66,7 @@ public class EventService {
    * @throws IllegalArgumentException if any non-nullable argument is null, or if a capacity is
    *     given which is less than 1.
    */
+  @Nonnull
   public IEvent createEvent(String title, EventCategory category, Integer capacity) {
     IEvent event;
 
@@ -85,6 +90,7 @@ public class EventService {
    * @throws EventNotFoundException if an event with the given ID could not be found.
    * @throws IllegalArgumentException if title is null or empty.
    */
+  @Nonnull
   public IEvent updateEventTitle(UUID id, String title) {
     IEvent event = getEvent(id);
     event.setTitle(title);
@@ -103,6 +109,7 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
+  @Nonnull
   public IEvent updateEventDescription(UUID id, String description) {
     IEvent event = getEvent(id);
     event.setDescription(description);
@@ -132,6 +139,7 @@ public class EventService {
    * @throws IllegalArgumentException if only one datetime is provided. You must either provide both
    *     in order to assign event timings, or neither to remove them.
    */
+  @Nonnull
   public IEvent updateEventDateTime(
       UUID id,
       LocalDateTime startDateTime,
@@ -160,6 +168,7 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
+  @Nonnull
   IEvent updateEventVenue(UUID eventId, UUID venueId) {
     IEvent event = getEvent(eventId);
     if (venueId == null) {
@@ -185,6 +194,7 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
+  @Nonnull
   IEvent updateEventCapacity(UUID id, Integer capacity) {
     IEvent event = getEvent(id);
     event.setCapacity(capacity);
@@ -201,6 +211,7 @@ public class EventService {
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
    */
+  @Nonnull
   public IEvent updateEventCategory(UUID id, EventCategory category) {
     IEvent event = getEvent(id);
     event.setCategory(category);
@@ -214,6 +225,7 @@ public class EventService {
    * @return a {@link List} of all events; never {@code null}, but may be empty if no events have
    *     been saved
    */
+  @Nonnull
   public List<IEvent> getAllEvents() {
     return eventRepository.findAll();
   }
@@ -227,6 +239,7 @@ public class EventService {
    *
    * @see EventCategory
    */
+  @Nonnull
   public List<IEvent> getEventsByCategory(Set<EventCategory> categories) {
     Predicate<IEvent> isRelevant = (IEvent event) -> categories.contains(event.getCategory());
     return getAllEvents()
@@ -247,6 +260,7 @@ public class EventService {
    * @param end The (optional) end of the time window
    * @return All events which lie between the given points in time, inclusive.
    */
+  @Nonnull
   public List<IEvent> getEventsByDateTime(LocalDateTime start, LocalDateTime end) {
     return getAllEvents()
         .stream()
