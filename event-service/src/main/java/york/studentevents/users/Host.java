@@ -31,7 +31,7 @@ public class Host extends User implements IHost {
    * @param hostedEvents the events hosted by the user; no validation is performed
    * @throws IllegalArgumentException if the username or email is invalid
    */
-  protected Host(
+  public Host(
       UUID id,
       String username,
       String email,

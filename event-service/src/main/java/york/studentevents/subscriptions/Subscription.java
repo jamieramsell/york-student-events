@@ -58,7 +58,7 @@ public class Subscription implements ISubscription {
    * @see IEvent
    * @see SubscriptionSource
    */
-  protected Subscription(UUID id, UUID userId, UUID eventId, SubscriptionSource source) {
+  public Subscription(UUID id, UUID userId, UUID eventId, SubscriptionSource source) {
     // Validation
     if (id == null) {
       throw new IllegalArgumentException("Subscription ID cannot be null");

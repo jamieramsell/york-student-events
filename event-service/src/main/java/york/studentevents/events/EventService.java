@@ -133,8 +133,7 @@ public class EventService {
    * @throws EventNotFoundException if an event with the given ID could not be found.
    * @throws IllegalStateException if trying to assign event timings, despite the event not yet
    *     having an assigned location.
-   * @throws IllegalArgumentException if {@code endDateTime} is before {@code startDateTime}, or if
-   *     {@code startDateTime} is in the past.
+   * @throws IllegalArgumentException if {@code endDateTime} is before {@code startDateTime}
    * @throws IllegalArgumentException if only one datetime is provided. You must either provide both
    *     in order to assign event timings, or neither to remove them.
    */
