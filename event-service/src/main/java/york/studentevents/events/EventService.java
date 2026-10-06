@@ -1,5 +1,6 @@
 package york.studentevents.events;
 
+import jakarta.annotation.Nonnull;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -7,8 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
-
-import jakarta.annotation.Nonnull;
 import york.studentevents.exceptions.EventNotFoundException;
 
 /**
