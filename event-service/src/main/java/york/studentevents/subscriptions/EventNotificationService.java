@@ -1,5 +1,7 @@
 package york.studentevents.subscriptions;
 
+import org.springframework.lang.NonNull;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -23,6 +25,8 @@ import java.util.UUID;
 public class EventNotificationService implements IObservable {
 
   private final Set<IObserver> observers;
+
+  @NonNull
   private final UUID eventId;
 
   /**
