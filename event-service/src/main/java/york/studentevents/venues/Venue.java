@@ -3,6 +3,8 @@ package york.studentevents.venues;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import org.springframework.lang.NonNull;
+
 import java.util.UUID;
 
 /** Represents a venue at which events can be held, identified by name, address, and capacity. */
@@ -10,6 +12,7 @@ import java.util.UUID;
 public class Venue implements IVenue {
 
   @Id
+  @NonNull
   private UUID id;
 
   @Column(nullable = false)
