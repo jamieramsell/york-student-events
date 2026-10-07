@@ -1,8 +1,8 @@
 package york.studentevents.repository;
 
-import org.springframework.lang.NonNull;
 
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 /**
  * Represents an entity which can be stored in an {@link IRepository}.

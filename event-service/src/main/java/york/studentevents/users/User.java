@@ -11,11 +11,10 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
-import org.springframework.lang.NonNull;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 /** Represents a user of the platform. */
 @Entity

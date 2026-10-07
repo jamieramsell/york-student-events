@@ -1,10 +1,9 @@
 package york.studentevents.subscriptions;
 
-import org.springframework.lang.NonNull;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 /**
  * An {@link IObservable} that broadcasts notifications about a single event to its attached

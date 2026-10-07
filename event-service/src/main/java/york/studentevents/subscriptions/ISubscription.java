@@ -1,7 +1,6 @@
 package york.studentevents.subscriptions;
 
 import java.util.UUID;
-
 import org.springframework.lang.NonNull;
 import york.studentevents.repository.IEntity;
 

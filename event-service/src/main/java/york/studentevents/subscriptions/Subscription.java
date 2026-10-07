@@ -7,7 +7,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
-
 import org.springframework.lang.NonNull;
 import york.studentevents.events.IEvent;
 import york.studentevents.users.IUser;
@@ -46,7 +45,7 @@ public class Subscription implements ISubscription {
    * @see IEvent
    * @see SubscriptionSource
    */
-  public Subscription(@NonNull UUID userId,@NonNull UUID eventId, SubscriptionSource source) {
+  public Subscription(@NonNull UUID userId, @NonNull UUID eventId, SubscriptionSource source) {
     this(UUID.randomUUID(), userId, eventId, source);
   }
 
@@ -63,7 +62,10 @@ public class Subscription implements ISubscription {
    * @see IEvent
    * @see SubscriptionSource
    */
-  public Subscription(@NonNull UUID id,@NonNull UUID userId,@NonNull UUID eventId, SubscriptionSource source) {
+  public Subscription(@NonNull UUID id,
+                      @NonNull UUID userId,
+                      @NonNull UUID eventId,
+                      SubscriptionSource source) {
     // Validation
     if (id == null) {
       throw new IllegalArgumentException("Subscription ID cannot be null");

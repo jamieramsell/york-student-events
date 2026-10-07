@@ -6,11 +6,10 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import org.springframework.lang.NonNull;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 /**
  * Represents a cohort of students grouped by department, academic year, and year group.
