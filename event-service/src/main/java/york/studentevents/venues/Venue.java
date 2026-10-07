@@ -48,7 +48,7 @@ public class Venue implements IVenue {
    * @throws IllegalArgumentException if any of the parameters are {@code null}, blank, or empty, or
    *      if {@code capacity} is less than one.
    */
-  public Venue(UUID id, String name, String address, int capacity) {
+  public Venue(@NonNull UUID id, String name, String address, int capacity) {
     if (id == null) {
       throw new IllegalArgumentException("Venue ID cannot be null");
     }
@@ -79,7 +79,7 @@ public class Venue implements IVenue {
    * 
    * @throws IllegalArgumentException if any of the parameters are {@code null}, blank, or empty.
    */
-  public Venue(UUID id, String name, String address) {
+  public Venue(@NonNull UUID id, String name, String address) {
     if (id == null) {
       throw new IllegalArgumentException("Venue ID cannot be null");
     }
