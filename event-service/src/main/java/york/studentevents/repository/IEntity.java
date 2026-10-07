@@ -1,5 +1,7 @@
 package york.studentevents.repository;
 
+import org.springframework.lang.NonNull;
+
 import java.util.UUID;
 
 /**
@@ -10,6 +12,7 @@ import java.util.UUID;
 public interface IEntity {
 
   /** Retrieves the unique identifier of this {@code Entity}. */
+  @NonNull
   UUID getId();
   
 }
