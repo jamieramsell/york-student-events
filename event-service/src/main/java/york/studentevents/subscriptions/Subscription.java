@@ -46,7 +46,7 @@ public class Subscription implements ISubscription {
    * @see IEvent
    * @see SubscriptionSource
    */
-  public Subscription(UUID userId, UUID eventId, SubscriptionSource source) {
+  public Subscription(@NonNull UUID userId,@NonNull UUID eventId, SubscriptionSource source) {
     this(UUID.randomUUID(), userId, eventId, source);
   }
 
@@ -63,7 +63,7 @@ public class Subscription implements ISubscription {
    * @see IEvent
    * @see SubscriptionSource
    */
-  public Subscription(UUID id, UUID userId, UUID eventId, SubscriptionSource source) {
+  public Subscription(@NonNull UUID id,@NonNull UUID userId,@NonNull UUID eventId, SubscriptionSource source) {
     // Validation
     if (id == null) {
       throw new IllegalArgumentException("Subscription ID cannot be null");
