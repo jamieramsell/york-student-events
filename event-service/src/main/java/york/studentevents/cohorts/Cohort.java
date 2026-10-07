@@ -82,7 +82,7 @@ public class Cohort implements ICohort {
    *     </ul>
    * @throws IllegalArgumentException if the name, department, academic year, or stage is invalid
    */
-  public Cohort(UUID id, String name, String department, int academicYear, int stage) {
+  public Cohort(@NonNull UUID id, String name, String department, int academicYear, int stage) {
     if (id == null) {
       throw new IllegalArgumentException("Cohort ID cannot be null");
     }
