@@ -14,7 +14,7 @@ import york.studentevents.users.IUser;
  */
 @Entity 
 @Table(name = "student_event_subscriptions")
-public class Subscription implements ISubscription {
+public class Subscription extends ISubscription {
   
   @Id 
   private UUID id;
