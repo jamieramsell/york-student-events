@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 /** Represents a venue at which events can be held, identified by name, address, and capacity. */
 @Entity
@@ -92,7 +93,11 @@ public class Venue implements IVenue {
   // Getters //
 
   @Override
+  @NonNull 
   public UUID getId() {
+    if (id == null) {
+      throw new IllegalStateException("Entity has been instantiated without an id");
+    }
     return id;
   }
 

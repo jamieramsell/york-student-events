@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 /** Represents a user of the platform. */
 @Entity
@@ -75,7 +76,11 @@ public abstract class User implements IUser {
   protected User() {}
 
   @Override
+  @NonNull 
   public UUID getId() {
+    if (id == null) {
+      throw new IllegalStateException("Entity has been instantiated without an id");
+    }
     return id;
   }
 
