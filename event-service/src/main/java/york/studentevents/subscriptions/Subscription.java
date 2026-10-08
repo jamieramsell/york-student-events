@@ -18,15 +18,12 @@ import york.studentevents.users.IUser;
 public class Subscription implements ISubscription {
   
   @Id
-  @NonNull
   private UUID id;
 
   @Column(nullable = false)
-  @NonNull
   private UUID userId;
 
   @Column(nullable = false)
-  @NonNull
   private UUID eventId;
 
   @Enumerated(EnumType.STRING)
@@ -66,17 +63,6 @@ public class Subscription implements ISubscription {
                       @NonNull UUID userId,
                       @NonNull UUID eventId,
                       SubscriptionSource source) {
-    // Validation
-    if (id == null) {
-      throw new IllegalArgumentException("Subscription ID cannot be null");
-    } else if (userId == null) {
-      throw new IllegalArgumentException("userId cannot be null");
-    } else if (eventId == null) {
-      throw new IllegalArgumentException("eventId cannot be null");
-    } else if (source == null) {
-      throw new IllegalArgumentException("source cannot be null");
-    }
-
     this.id = id;
     this.userId = userId;
     this.eventId = eventId;
@@ -89,16 +75,19 @@ public class Subscription implements ISubscription {
   // Getters //
 
   @Override
+  @NonNull
   public UUID getId() {
     return id;
   }
 
   @Override
+  @NonNull
   public UUID getUserId() {
     return userId;
   }
 
   @Override
+  @NonNull
   public UUID getEventId() {
     return eventId;
   }
