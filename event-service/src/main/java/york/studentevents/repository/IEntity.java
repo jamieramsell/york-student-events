@@ -10,6 +10,20 @@ import java.util.UUID;
 public abstract class IEntity {
 
   /** Retrieves the unique identifier of this {@code Entity}. */
-public abstract UUID getId();
+  public abstract UUID getId();
+
+  @Override 
+  public int hashCode() {
+    return getId().hashCode();
+  }
+
+  @Override 
+  public boolean equals(Object other) {
+    if (!(other instanceof IEntity)) {
+      return false;
+    }
+    IEntity otherEntity = (IEntity) other;
+    return getId().equals(otherEntity.getId());
+  }
   
 }
