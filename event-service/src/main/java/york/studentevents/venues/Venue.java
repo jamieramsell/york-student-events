@@ -3,9 +3,9 @@ package york.studentevents.venues;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import java.util.UUID;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 import org.springframework.lang.NonNull;
 
 /** Represents a venue at which events can be held, identified by name, address, and capacity. */
