@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.lang.NonNull;
@@ -14,9 +15,9 @@ import org.springframework.lang.NonNull;
 public class Event implements IEvent {
   
   @Id
-  @NonNull
   private UUID id;
 
+  @NotBlank
   @Column(nullable = false)
   private String title;
 
@@ -49,6 +50,18 @@ public class Event implements IEvent {
   }
 
   /**
+   * Creates an {@code Event} without a maximum attendee capacity.
+   *
+   * @param title the event title; must not be {@code null}.
+   * @param category the event category; must not be {@code null}.
+   *
+   * @throws IllegalArgumentException if any of the parameters are {@code null}
+   * */
+  public Event(String title, EventCategory category) {
+    this(UUID.randomUUID(), title, category);
+  }
+
+  /**
    * Creates an {@code Event} with a maximum attendee capacity.
    *
    * @param id the event ID; must not be {@code null}.
@@ -60,9 +73,6 @@ public class Event implements IEvent {
    *      if {@code capacity} is less than one.
    */
   public Event(@NonNull UUID id, String title, int capacity, EventCategory category) {
-    if (id == null) {
-      throw new IllegalArgumentException("Event ID cannot be null");
-    }
     this.id = id;
     setTitle(title);
     setCapacity(capacity);
@@ -79,25 +89,11 @@ public class Event implements IEvent {
    * @throws IllegalArgumentException if any of the parameters are {@code null}
    * */
   public Event(@NonNull UUID id, String title, EventCategory category) {
-    if (id == null) {
-      throw new IllegalArgumentException("Event ID cannot be null");
-    }
     this.id = id;
     setTitle(title);
     setCategory(category);
   }
 
-  /**
-   * Creates an {@code Event} without a maximum attendee capacity.
-   *
-   * @param title the event title; must not be {@code null}.
-   * @param category the event category; must not be {@code null}.
-   *
-   * @throws IllegalArgumentException if any of the parameters are {@code null}
-   * */
-  public Event(String title, EventCategory category) {
-    this(UUID.randomUUID(), title, category);
-  }
 
   /** No-args constructor for JPA use only. */
   protected Event() {}
@@ -105,11 +101,13 @@ public class Event implements IEvent {
   // Getters //
 
   @Override
+  @NonNull
   public UUID getId() {
     return id;
   }
 
   @Override
+  @NotBlank
   public String getTitle() {
     return title;
   }
@@ -148,7 +146,7 @@ public class Event implements IEvent {
 
   @Override
   public void setTitle(String title) {
-    if (title == null || title.isBlank() || title.isEmpty()) {
+    if (title == null || title.isBlank()) {
       throw new IllegalArgumentException("title cannot be blank, empty, or null");
     }
     this.title = title;
@@ -174,11 +172,11 @@ public class Event implements IEvent {
     
     // If times have been provided, validate that a Venue has been assigned, and that the timings
     // are correctly ordered.
-    if (startDateTime != null && endDateTime != null) {
+    if (startDateTime != null) {
       if (this.venueId == null) {
         throw new IllegalStateException("The event must have been assigned a Venue in order to"
             + " assign a date and time");
-      } else if (startDateTime != null && startDateTime.compareTo(endDateTime) >= 0) {
+      } else if (!startDateTime.isBefore(endDateTime)) {
         throw new IllegalArgumentException("startDateTime must be before endDateTime");
       } 
     }
