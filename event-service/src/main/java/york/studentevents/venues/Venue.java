@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import java.util.UUID;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.lang.NonNull;
 
 /** Represents a venue at which events can be held, identified by name, address, and capacity. */
@@ -11,13 +13,14 @@ import org.springframework.lang.NonNull;
 public class Venue implements IVenue {
 
   @Id
-  @NonNull
   private UUID id;
 
   @Column(nullable = false)
+  @NotBlank
   private String name;
 
   @Column(nullable = false)
+  @NotBlank
   private String address;
 
   private Integer capacity;
@@ -32,7 +35,7 @@ public class Venue implements IVenue {
    * @throws IllegalArgumentException if any of the parameters are {@code null}, blank, or empty, or
    *      if {@code capacity} is less than one.
    */
-  public Venue(String name, String address, int capacity) {
+  public Venue(@NotBlank String name, @NotBlank String address, int capacity) {
     this(UUID.randomUUID(), name, address, capacity);
   }
 
@@ -47,10 +50,7 @@ public class Venue implements IVenue {
    * @throws IllegalArgumentException if any of the parameters are {@code null}, blank, or empty, or
    *      if {@code capacity} is less than one.
    */
-  public Venue(@NonNull UUID id, String name, String address, int capacity) {
-    if (id == null) {
-      throw new IllegalArgumentException("Venue ID cannot be null");
-    }
+  public Venue(@NonNull UUID id, @NotBlank String name, @NotBlank String address, int capacity) {
     this.id = id;
     setName(name);
     setAddress(address);
@@ -65,7 +65,7 @@ public class Venue implements IVenue {
    * 
    * @throws IllegalArgumentException if any of the parameters are {@code null}, blank, or empty
    */
-  public Venue(String name, String address) {
+  public Venue(@NotBlank String name, @NotBlank String address) {
     this(UUID.randomUUID(), name, address);
   }
 
@@ -78,10 +78,7 @@ public class Venue implements IVenue {
    * 
    * @throws IllegalArgumentException if any of the parameters are {@code null}, blank, or empty.
    */
-  public Venue(@NonNull UUID id, String name, String address) {
-    if (id == null) {
-      throw new IllegalArgumentException("Venue ID cannot be null");
-    }
+  public Venue(@NonNull UUID id, @NotBlank String name, @NotBlank String address) {
     this.id = id;
     setName(name);
     setAddress(address);
@@ -92,18 +89,20 @@ public class Venue implements IVenue {
   protected Venue() {}
 
   // Getters //
-
   @Override
+  @NonNull
   public UUID getId() {
     return id;
   }
 
   @Override
+  @NotNull
   public String getName() {
     return name;
   }
 
   @Override
+  @NotBlank
   public String getAddress() {
     return address;
   }
@@ -116,18 +115,12 @@ public class Venue implements IVenue {
   // Setters //
   
   @Override
-  public void setName(String name) {
-    if (name == null || name.isBlank() || name.isEmpty()) {
-      throw new IllegalArgumentException("Venue name cannot be null, blank, or empty.");
-    }
+  public void setName(@NotBlank String name) {
     this.name = name;
   }
 
   @Override
-  public void setAddress(String address) {
-    if (address == null || address.isBlank() || address.isEmpty()) {
-      throw new IllegalArgumentException("Venue address cannot be null, blank, or empty.");
-    }
+  public void setAddress(@NotBlank String address) {
     this.address = address;
   }
 
