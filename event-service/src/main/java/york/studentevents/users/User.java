@@ -20,7 +20,7 @@ import java.util.UUID;
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "user_type")
-public abstract class User implements IUser {
+public abstract class User extends IUser {
   
   @Id
   protected UUID id;
