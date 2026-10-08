@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 /** Concrete implementation of {@link IEvent} representing a social event. */
 @Entity
@@ -103,7 +104,11 @@ public class Event implements IEvent {
   // Getters //
 
   @Override
+  @NonNull 
   public UUID getId() {
+    if (id == null) {
+      throw new IllegalStateException("Entity has been instantiated without an id");
+    }
     return id;
   }
 
