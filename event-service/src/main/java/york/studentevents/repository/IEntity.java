@@ -7,9 +7,9 @@ import java.util.UUID;
  * 
  * <p>This common interface enforces that all entities have a UUID which can be used as a key.
  */
-public interface IEntity {
+public abstract class IEntity {
 
   /** Retrieves the unique identifier of this {@code Entity}. */
-  UUID getId();
+public abstract UUID getId();
   
 }

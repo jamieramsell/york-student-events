@@ -16,7 +16,7 @@ import java.util.UUID;
  * <p>A cohort maintains the set of member user IDs belonging to it.
  */
 @Entity
-public class Cohort implements ICohort {
+public class Cohort extends ICohort {
 
   @Id
   private UUID id;

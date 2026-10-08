@@ -7,7 +7,7 @@ import java.util.UUID;
 
 /** Represents a venue at which events can be held, identified by name, address, and capacity. */
 @Entity
-public class Venue implements IVenue {
+public class Venue extends IVenue {
 
   @Id
   private UUID id;
