@@ -24,7 +24,6 @@ import org.springframework.lang.NonNull;
 public abstract class User implements IUser {
   
   @Id
-  @NonNull
   protected UUID id;
 
   @Column(nullable = false)
@@ -64,9 +63,6 @@ public abstract class User implements IUser {
    * @throws IllegalArgumentException if a given parameter is null, blank, or empty.
    */
   protected User(@NonNull UUID id, String username, String email, String passwordHash) {
-    if (id == null) {
-      throw new IllegalArgumentException("User ID cannot be null");
-    }
     this.id = id;
     setUsername(username);
     setEmail(email);
@@ -77,6 +73,7 @@ public abstract class User implements IUser {
   protected User() {}
 
   @Override
+  @NonNull
   public UUID getId() {
     return id;
   }
@@ -88,7 +85,7 @@ public abstract class User implements IUser {
 
   @Override
   public void setUsername(String username) {
-    if (username == null || username.isBlank() || username.isEmpty()) {
+    if (username == null || username.isBlank()) {
       throw new IllegalArgumentException("Username cannot be null, blank, or empty.");
     }
     this.username = username;
@@ -101,7 +98,7 @@ public abstract class User implements IUser {
 
   @Override
   public void setEmail(String email) throws IllegalArgumentException {
-    if (email == null || email.isBlank() || email.isEmpty()) {
+    if (email == null || email.isBlank()) {
       throw new IllegalArgumentException("email cannot be null, blank, or empty.");
     } else if (email.split("@").length != 2) {
       throw new IllegalArgumentException("email provided is not valid");
