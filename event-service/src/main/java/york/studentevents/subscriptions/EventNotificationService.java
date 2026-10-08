@@ -33,7 +33,7 @@ public class EventNotificationService implements IObservable {
    *
    * @param eventId the ID of the event this observable broadcasts notifications for
    */
-  public EventNotificationService(UUID eventId) {
+  public EventNotificationService(@NonNull UUID eventId) {
     observers = new HashSet<>();
     this.eventId = eventId;
   }
@@ -56,6 +56,7 @@ public class EventNotificationService implements IObservable {
   }
 
   @Override
+  @NonNull
   public UUID getEventId() {
     return eventId;
   }
