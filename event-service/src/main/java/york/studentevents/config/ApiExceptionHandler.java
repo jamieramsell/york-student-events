@@ -92,7 +92,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     ApiErrorResponse response = new ApiErrorResponse(
-        ex.getMessage(),
+        messageOrDefault(ex.getMessage(), errorCode),
         errorCode,
         Instant.now(),
         request.getRequestURI()
@@ -114,7 +114,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
       MissingVenueException ex, HttpServletRequest request
   ) {
     ApiErrorResponse response = new ApiErrorResponse(
-        ex.getMessage(),
+        messageOrDefault(ex.getMessage(), ApiErrorCode.MISSING_VENUE),
         ApiErrorCode.MISSING_VENUE,
         Instant.now(),
         request.getRequestURI()
@@ -136,7 +136,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
       CapacityExceededException ex, HttpServletRequest request
   ) {
     ApiErrorResponse response = new ApiErrorResponse(
-        ex.getMessage(),
+        messageOrDefault(ex.getMessage(), ApiErrorCode.CAPACITY_EXCEEDED),
         ApiErrorCode.CAPACITY_EXCEEDED,
         Instant.now(),
         request.getRequestURI()
@@ -158,7 +158,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
       UserNotAuthorisedException ex, HttpServletRequest request
   ) {
     ApiErrorResponse response = new ApiErrorResponse(
-        ex.getMessage(),
+        messageOrDefault(ex.getMessage(), ApiErrorCode.USER_NOT_AUTHORISED),
         ApiErrorCode.USER_NOT_AUTHORISED,
         Instant.now(),
         request.getRequestURI()
@@ -180,7 +180,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
       ConflictException ex, HttpServletRequest request
   ) {
     ApiErrorResponse response = new ApiErrorResponse(
-        ex.getMessage(),
+        messageOrDefault(ex.getMessage(), ApiErrorCode.CONFLICT),
         ApiErrorCode.CONFLICT,
         Instant.now(),
         request.getRequestURI()
@@ -201,7 +201,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
       IllegalArgumentException ex, HttpServletRequest request
   ) {
     ApiErrorResponse response = new ApiErrorResponse(
-        ex.getMessage(),
+        messageOrDefault(ex.getMessage(), ApiErrorCode.VALIDATION_FAILED),
         ApiErrorCode.VALIDATION_FAILED,
         Instant.now(),
         request.getRequestURI()
@@ -337,6 +337,41 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     return (request instanceof ServletWebRequest servletRequest)
         ? servletRequest.getRequest().getRequestURI()
         : null;
+  }
+
+  /**
+   * Returns the exception's message, or a default for the given code when the exception has none.
+   *
+   * <p>Exceptions can be constructed without a message, and a missing message would otherwise be
+   * omitted from the serialised response, breaking the standard error shape.
+   *
+   * @param message the exception's message; may be {@code null} or blank
+   * @param code the error code the response will carry
+   * @return {@code message} if it has content, otherwise {@link #defaultMessageFor}
+   */
+  private static String messageOrDefault(String message, ApiErrorCode code) {
+    return (message == null || message.isBlank()) ? defaultMessageFor(code) : message;
+  }
+
+  /**
+   * Provides a generic, client-safe message for an error code.
+   *
+   * @param code the error code
+   * @return a default message describing the category of error
+   */
+  private static String defaultMessageFor(ApiErrorCode code) {
+    return switch (code) {
+      case EVENT_NOT_FOUND -> "The requested event could not be found.";
+      case USER_NOT_FOUND -> "The requested user could not be found.";
+      case VENUE_NOT_FOUND -> "The requested venue could not be found.";
+      case COHORT_NOT_FOUND -> "The requested cohort could not be found.";
+      case CAPACITY_EXCEEDED -> "The request would exceed the available capacity.";
+      case USER_NOT_AUTHORISED -> "You do not have permission to perform this action.";
+      case MISSING_VENUE -> "The event must be assigned a venue before this can be done.";
+      case CONFLICT -> "The request conflicts with the current state of the resource.";
+      case VALIDATION_FAILED -> "The request was invalid.";
+      default -> "The request could not be processed.";
+    };
   }
 
   /**
