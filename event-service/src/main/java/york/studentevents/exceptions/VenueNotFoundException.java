@@ -1,7 +1,7 @@
 package york.studentevents.exceptions;
 
 /** Thrown when a requested venue cannot be found. */
-public class VenueNotFoundException extends RuntimeException {
+public class VenueNotFoundException extends EntityNotFoundException {
 
   /**
    * Constructs the exception with a detail message.
