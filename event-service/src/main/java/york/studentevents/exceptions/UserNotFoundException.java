@@ -1,7 +1,7 @@
 package york.studentevents.exceptions;
 
 /** Thrown when a requested user cannot be found. */
-public class UserNotFoundException extends RuntimeException {
+public class UserNotFoundException extends EntityNotFoundException {
 
   /**
    * Constructs the exception with a detail message.

@@ -8,6 +8,7 @@ import java.util.function.Function;
 import york.studentevents.events.IEvent;
 import york.studentevents.events.IEventRepository;
 import york.studentevents.exceptions.CohortNotFoundException;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.users.IStudent;
@@ -59,7 +60,7 @@ public class CohortService {
    * @throws UserNotFoundException if the user is not found
    * @throws UserNotAuthorisedException if the given user is not a Student
    * @throws CohortNotFoundException if the cohort is not found
-   * @throws IllegalArgumentException if the user is already in the cohort
+   * @throws ConflictException if the user is already in the cohort
    *
    * @see IStudent
    */
@@ -89,7 +90,7 @@ public class CohortService {
    * @throws UserNotFoundException if the user is not found
    * @throws UserNotAuthorisedException if the given user is not a Student
    * @throws CohortNotFoundException if the Cohort is not found
-   * @throws IllegalArgumentException if the Student is not in the cohort
+   * @throws ConflictException if the Student is not in the cohort
    *
    * @see IStudent
    */

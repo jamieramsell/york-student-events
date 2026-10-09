@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import york.studentevents.exceptions.CapacityExceededException;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
@@ -86,12 +87,12 @@ class StudentEventServiceTest {
   }
 
   @Test
-  void registerForEvent_whenAlreadyRegistered_throwsIllegalArgumentException() {
+  void registerForEvent_whenAlreadyRegistered_throwsConflictException() {
     Student student = newStudent();
     Event event = newEvent(5);
     service.registerForEvent(student.getId(), event.getId());
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ConflictException.class,
         () -> service.registerForEvent(student.getId(), event.getId()));
   }
 
@@ -158,11 +159,11 @@ class StudentEventServiceTest {
   }
 
   @Test
-  void deregisterFromEvent_whenNotRegistered_throwsIllegalArgumentException() {
+  void deregisterFromEvent_whenNotRegistered_throwsConflictException() {
     Student student = newStudent();
     Event event = newEvent(5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ConflictException.class,
         () -> service.deregisterFromEvent(student.getId(), event.getId()));
   }
 

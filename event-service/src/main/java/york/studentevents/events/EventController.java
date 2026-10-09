@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import york.studentevents.events.dto.CreateEventDto;
 import york.studentevents.events.dto.EventDto;
 import york.studentevents.events.dto.PatchEventDto;
-import york.studentevents.exceptions.EventNotFoundException;
 
 /**
  * REST controller exposing event data over HTTP.
@@ -160,32 +158,5 @@ public class EventController {
     return ResponseEntity.noContent().build();
   }
 
-
-  /**
-   * Handles exceptions of type {@code EventNotFoundException} thrown when a requested
-   * event cannot be found.
-   *
-   * <p>Returns an HTTP 404 (Not Found) response with a message indicating an invalid event ID.
-   *
-   * @param e the exception object representing the event not found error
-   * @return a {@code ResponseEntity} containing a message and the HTTP 404 status code
-   */
-  @ExceptionHandler(EventNotFoundException.class)
-  public ResponseEntity<String> handleEventNotFound(EventNotFoundException e) {
-    return ResponseEntity.status(404).body("Invalid event ID");
-  }
-
-  /**
-   * Handles exceptions of type {@code IllegalArgumentException} thrown when an illegal argument
-   * is provided in a request.
-   *
-   * @param e the exception object representing the illegal argument error
-   * @return a {@code ResponseEntity} containing the exception message with the HTTP 400
-   *        (Bad Request) status code
-   */
-  @ExceptionHandler(IllegalArgumentException.class)
-  public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
-    return ResponseEntity.badRequest().body(e.getMessage());
-  }
 }
 

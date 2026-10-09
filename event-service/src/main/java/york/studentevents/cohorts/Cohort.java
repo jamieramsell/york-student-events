@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.lang.NonNull;
+import york.studentevents.exceptions.ConflictException;
 
 /**
  * Represents a cohort of students grouped by department, academic year, and year group.
@@ -133,7 +134,7 @@ public class Cohort extends ICohort {
   public void addMember(UUID memberId) {
     boolean successfullyAdded = members.add(memberId);
     if (!successfullyAdded) {
-      throw new IllegalArgumentException("Member is already a member of this cohort.");
+      throw new ConflictException("Member is already a member of this cohort.");
     }
   }
 
@@ -141,7 +142,7 @@ public class Cohort extends ICohort {
   public void removeMember(UUID memberId) {
     boolean successfullyRemoved = members.remove(memberId);
     if (!successfullyRemoved) {
-      throw new IllegalArgumentException("Member is not a member of this cohort.");
+      throw new ConflictException("Member is not a member of this cohort.");
     }
   }
 

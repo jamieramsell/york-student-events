@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
+import york.studentevents.exceptions.SubprocessException;
 
 /** Builds JSON requests for the subprocess and sends them, returning the subprocess's response. */
 class SubprocessRequestFactory {
@@ -184,7 +185,7 @@ class SubprocessRequestFactory {
    *
    * @return the JSON response from the subprocess.
    *
-   * @throws RuntimeException if the subprocess fails to process the request.
+   * @throws SubprocessException if the subprocess fails to process the request.
    */
   public static String sendRequest(String requestJson) {
 
@@ -230,12 +231,12 @@ class SubprocessRequestFactory {
       exitCode = process.waitFor();
 
     } catch (Exception e) {
-      throw new RuntimeException(String.format("Failed to process JSON: %s", requestJson), e);
+      throw new SubprocessException(String.format("Failed to process JSON: %s", requestJson), e);
     }
 
     // A non-zero exit code means the subprocess returned an error envelope; surface its message.
     if (exitCode != 0) {
-      throw new RuntimeException(
+      throw new SubprocessException(
           "Subprocess failed (exit code " + exitCode + "): " + extractError(response));
     }
 
