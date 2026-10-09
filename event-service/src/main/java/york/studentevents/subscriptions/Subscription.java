@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 import york.studentevents.events.IEvent;
 import york.studentevents.users.IUser;
 
@@ -82,7 +83,11 @@ public class Subscription extends ISubscription {
   // Getters //
 
   @Override
+  @NonNull 
   public UUID getId() {
+    if (id == null) {
+      throw new IllegalStateException("Entity has been instantiated without an id");
+    }
     return id;
   }
 
