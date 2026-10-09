@@ -123,9 +123,6 @@ public class EventCapacityService {
       throw new IllegalStateException("The given Event has more attendees enrolled than the"
         + " given capacity. To assign this capacity, you must first unassign some Students.");
     }
-    
-    // Must manually overwrite the repository record, rather than routing through EventService, as
-    // the EventService does not expose a setCapacity method.
 
     // Capacity ceiling = venue capacity
     if (venue != null && venue.getCapacity() != null) { 
