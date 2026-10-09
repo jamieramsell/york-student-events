@@ -17,6 +17,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.repository.inmemory.InMemorySubscriptionRepository;
 
 /** Tests {@link SubscriptionService} against a real in-memory subscription repository. */
@@ -102,7 +103,7 @@ class SubscriptionServiceTest {
   void subscribe_explicit_whenAlreadyExplicit_throws() {
     service.subscribe(userA, eventX, EXPLICIT);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ConflictException.class,
         () -> service.subscribe(userA, eventX, EXPLICIT));
   }
 
@@ -161,7 +162,7 @@ class SubscriptionServiceTest {
 
   @Test
   void unsubscribe_explicit_whenNotSubscribed_throws() {
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ConflictException.class,
         () -> service.unsubscribe(userA, eventX, EXPLICIT));
   }
 
