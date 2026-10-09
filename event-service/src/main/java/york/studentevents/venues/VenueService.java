@@ -1,9 +1,14 @@
 package york.studentevents.venues;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import york.studentevents.exceptions.VenueNotFoundException;
 
 /**
@@ -57,7 +62,7 @@ public class VenueService {
    * @return a copy of the created {@code IVenue} entity.
    *
    * @throws IllegalArgumentException if any non-nullable argument is null, or if a capacity is
-   *     given which is less than 1.
+   *     given, which is less than 1.
    */
   public IVenue createVenue(String name, String address, Integer capacity) {
     IVenue venue;
@@ -73,14 +78,14 @@ public class VenueService {
   }
 
   /**
-   * Retrieves a Venue record, and updates its name field.
+   * Retrieves a Venue record and updates its name field.
    *
    * @param id The ID of the target Venue.
    * @param name The new Venue name; must not be null or empty.
    * @return A copy of the updated Venue record.
    *
-   * @throws VenueNotFoundException if an Venue with the given ID could not be found.
-   * @throws IllegalArgumentException if name is null or empty.
+   * @throws VenueNotFoundException if a Venue with the given ID could not be found.
+   * @throws IllegalArgumentException if the name is null or empty.
    */
   public IVenue updateVenueName(UUID id, String name) {
     IVenue venue = getVenue(id);
@@ -124,19 +129,26 @@ public class VenueService {
   }
 
   /**
-   * Retrieves every Venue currently held by the backing repository.
+   * Retrieves every Venue currently held by the backing repository in pages.
    *
-   * @return a {@link List} of all Venues; never {@code null}, but may be empty if no Venues have
+   * @return a {@link Page} of all Venues; never {@code null}, but may be empty if no Venues have
    *     been saved
+   * @throws IllegalArgumentException if {@code pageNumber} is negative, or if {@code pageSize} is.
    */
-  public List<IVenue> getAllVenues() {
-    return repository.findAll();
+  public Page<IVenue> getAllVenues(int pageNumber, int pageSize) {
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+    return repository.findAll(pageNumber, pageSize);
   }
 
   /**
-   * Retrieves all Venues which have a capacity within the given bounds. The two boundaries are
-   * inclusive, so a Venue which has a capacity identical to the {@code minimum} boundary for
-   * example will be retrieved.
+   * Retrieves all Venues which have a capacity within the given bounds in pages. The two
+   * boundaries are inclusive, so a Venue which has a capacity identical to the {@code minimum}
+   * boundary for example will be retrieved.
    *
    * <p>The capacity boundaries are nullable, meaning you can have a minimum bound without a maximum
    * one, and vice versa.
@@ -144,12 +156,43 @@ public class VenueService {
    * @param minimum The (optional) minimum venue capacity
    * @param maximum The (optional) maximum venue capacity
    * @return All venues which have a capacity between the two specified bounds, inclusive.
+   * @throws IllegalArgumentException if {@code pageNumber} or {@code pageSize} is negative.
    */
-  public List<IVenue> getVenuesByCapacity(Integer minimum, Integer maximum) {
-    return getAllVenues()
-        .stream()
-        .filter(venue -> venueCapacityWithin(venue, minimum, maximum))
-        .toList();
+  public Page<IVenue> getAllVenuesByCapacity(
+      Integer minimum,
+      Integer maximum,
+      int pageNumber,
+      int pageSize
+  ) {
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+    int currentPage = 0;
+    Page<IVenue> page;
+    List<IVenue> returnList = new ArrayList<>(List.of());
+    do {
+      page = getAllVenues(currentPage, 100);
+      returnList.addAll(page.getContent());
+      currentPage++;
+    } while (page.hasNext());
+    returnList = returnList.stream()
+        .filter(venue -> venueCapacityWithin(venue, minimum, maximum)).toList();
+
+    long startIndexLong = (long) pageNumber * pageSize;
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+    if (startIndexLong >= returnList.size()) {
+      return new PageImpl<>(List.of(), pageable, returnList.size());
+    }
+
+    int startIndex = Math.toIntExact(startIndexLong);
+    int endIndex = Math.min(startIndex + pageSize, returnList.size());
+
+    List<IVenue> pageContent = new ArrayList<>(returnList.subList(startIndex, endIndex));
+    return new PageImpl<>(pageContent, pageable, returnList.size());
   }
 
   /**

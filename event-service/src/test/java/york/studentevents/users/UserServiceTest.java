@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.repository.inmemory.InMemoryUserRepository;
 
@@ -114,7 +115,7 @@ class UserServiceTest {
     IUser alice = savedStudent("alice", "alice@york.ac.uk");
     IUser host = service.createHost("su", "su@york.ac.uk", "pw");
 
-    List<IUser> users = service.getAllUsers();
+    Page<T> users = service.getAllUsers();
 
     assertEquals(2, users.size());
     assertTrue(users.contains(alice));
@@ -124,22 +125,22 @@ class UserServiceTest {
   // --- getUsersByType ---
 
   @Test
-  void getUsersByType_returnsOnlyUsersOfThatType() {
+  void getUsersByType_returnsOnlyAllUsersOfThatType() {
     IUser student = savedStudent("alice", "alice@york.ac.uk");
     IUser host = service.createHost("su", "su@york.ac.uk", "pw");
 
-    List<IUser> students = service.getUsersByType(IUser.UserType.STUDENT);
-    List<IUser> hosts = service.getUsersByType(IUser.UserType.HOST);
+    List<IUser> students = service.getAllUsersByType(IUser.UserType.STUDENT);
+    List<IUser> hosts = service.getAllUsersByType(IUser.UserType.HOST);
 
     assertEquals(List.of(student), students);
     assertEquals(List.of(host), hosts);
   }
 
   @Test
-  void getUsersByType_whenNoneOfThatType_returnsEmptyList() {
+  void getAllUsersByType_whenNoneOfThatType_returnsEmptyList() {
     savedStudent("alice", "alice@york.ac.uk");
 
-    assertTrue(service.getUsersByType(IUser.UserType.HOST).isEmpty());
+    assertTrue(service.getAllUsersByType(IUser.UserType.HOST).isEmpty());
   }
 
   // --- createStudent ---

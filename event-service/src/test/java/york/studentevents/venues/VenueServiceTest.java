@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
 import york.studentevents.exceptions.VenueNotFoundException;
 import york.studentevents.repository.inmemory.InMemoryVenueRepository;
 
@@ -223,7 +224,7 @@ class VenueServiceTest {
     IVenue first = savedVenue();
     IVenue second = savedVenue();
 
-    List<IVenue> venues = service.getAllVenues();
+    Page<T> venues = service.getAllVenues();
 
     assertEquals(2, venues.size());
     assertTrue(venues.contains(first));
@@ -233,11 +234,11 @@ class VenueServiceTest {
   // --- getVenuesByCapacity ---
 
   @Test
-  void getVenuesByCapacity_withBothBoundsNull_returnsAllVenues() {
+  void getVenuesByCapacity_withBothBoundsNull_returnsAllAllVenues() {
     IVenue capped = savedVenueWithCapacity(100);
     IVenue uncapped = savedVenueWithCapacity(null);
 
-    List<IVenue> results = service.getVenuesByCapacity(null, null);
+    List<IVenue> results = service.getAllVenuesByCapacity(null, null);
 
     assertEquals(2, results.size());
     assertTrue(results.contains(capped));
@@ -245,83 +246,83 @@ class VenueServiceTest {
   }
 
   @Test
-  void getVenuesByCapacity_withMinBoundOnly_returnsVenuesAtOrAboveIt() {
+  void getVenuesByCapacity_withMinBoundOnly_returnsAllVenuesAtOrAboveIt() {
     savedVenueWithCapacity(50); // below bound
     IVenue atOrAbove = savedVenueWithCapacity(200);
 
-    List<IVenue> results = service.getVenuesByCapacity(100, null);
+    List<IVenue> results = service.getAllVenuesByCapacity(100, null);
 
     assertEquals(List.of(atOrAbove), results);
   }
 
   @Test
-  void getVenuesByCapacity_withMinBoundOnly_includesUncappedVenues() {
+  void getVenuesByCapacity_withMinBoundOnly_includesUncappedAllVenues() {
     IVenue uncapped = savedVenueWithCapacity(null);
 
     // An uncapped (unlimited) venue always satisfies a lower bound.
-    List<IVenue> results = service.getVenuesByCapacity(100, null);
+    List<IVenue> results = service.getAllVenuesByCapacity(100, null);
 
     assertTrue(results.contains(uncapped));
   }
 
   @Test
-  void getVenuesByCapacity_withMaxBoundOnly_returnsVenuesAtOrBelowIt() {
+  void getVenuesByCapacity_withMaxBoundOnly_returnsAllVenuesAtOrBelowIt() {
     IVenue atOrBelow = savedVenueWithCapacity(50);
     savedVenueWithCapacity(200); // above bound
 
-    List<IVenue> results = service.getVenuesByCapacity(null, 100);
+    List<IVenue> results = service.getAllVenuesByCapacity(null, 100);
 
     assertEquals(List.of(atOrBelow), results);
   }
 
   @Test
-  void getVenuesByCapacity_withMaxBoundOnly_excludesUncappedVenues() {
+  void getVenuesByCapacity_withMaxBoundOnly_excludesUncappedAllVenues() {
     savedVenueWithCapacity(null);
 
     // An uncapped (unlimited) venue exceeds any finite upper bound.
-    assertTrue(service.getVenuesByCapacity(null, 100).isEmpty());
+    assertTrue(service.getAllVenuesByCapacity(null, 100).isEmpty());
   }
 
   @Test
-  void getVenuesByCapacity_withBothBounds_returnsOnlyVenuesWithinTheRange() {
+  void getVenuesByCapacity_withBothBounds_returnsOnlyAllVenuesWithinTheRange() {
     IVenue within = savedVenueWithCapacity(150);
     savedVenueWithCapacity(50); // below range
     savedVenueWithCapacity(500); // above range
 
-    List<IVenue> results = service.getVenuesByCapacity(100, 200);
+    List<IVenue> results = service.getAllVenuesByCapacity(100, 200);
 
     assertEquals(List.of(within), results);
   }
 
   @Test
-  void getVenuesByCapacity_minBoundIsInclusive() {
+  void getAllVenuesByCapacity_minBoundIsInclusive() {
     IVenue onBoundary = savedVenueWithCapacity(100);
 
-    List<IVenue> results = service.getVenuesByCapacity(100, null);
+    List<IVenue> results = service.getAllVenuesByCapacity(100, null);
 
     assertEquals(List.of(onBoundary), results);
   }
 
   @Test
-  void getVenuesByCapacity_maxBoundIsInclusive() {
+  void getAllVenuesByCapacity_maxBoundIsInclusive() {
     IVenue onBoundary = savedVenueWithCapacity(100);
 
-    List<IVenue> results = service.getVenuesByCapacity(null, 100);
+    List<IVenue> results = service.getAllVenuesByCapacity(null, 100);
 
     assertEquals(List.of(onBoundary), results);
   }
 
   @Test
-  void getVenuesByCapacity_whenNoVenueMatches_returnsEmptyList() {
+  void getAllVenuesByCapacity_whenNoVenueMatches_returnsEmptyList() {
     savedVenueWithCapacity(50);
     savedVenueWithCapacity(60);
 
-    assertTrue(service.getVenuesByCapacity(100, 200).isEmpty());
+    assertTrue(service.getAllVenuesByCapacity(100, 200).isEmpty());
   }
 
   @Test
-  void getVenuesByCapacity_whenNoVenuesSaved_returnsEmptyList() {
-    assertTrue(service.getVenuesByCapacity(100, 200).isEmpty());
+  void getVenuesByCapacity_whenNoAllVenuesSaved_returnsEmptyList() {
+    assertTrue(service.getAllVenuesByCapacity(100, 200).isEmpty());
   }
 
   // --- deleteVenue ---

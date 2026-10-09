@@ -1,11 +1,13 @@
 package york.studentevents.events;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
+import org.springframework.data.domain.Page;
 import york.studentevents.exceptions.CapacityExceededException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
@@ -198,8 +200,14 @@ public class StudentEventService {
     Predicate<IUser> isUserStudent = user -> user.getType() == UserType.STUDENT;
     Predicate<IStudent> isStudentRegisteredForEvent =
         student -> student.getRegisteredEvents().contains(eventId);
-
-    List<IUser> users = userRepository.findAll();
+    int currentPage = 0;
+    Page<IUser> page;
+    List<IUser> users = new ArrayList<>(List.of());
+    do {
+      page = userRepository.findAll(currentPage, 100);
+      users.addAll(page.getContent());
+      currentPage++;
+    } while (page.hasNext());
     return (int) users.stream()
         .filter(isUserStudent)
         .map(user -> (IStudent) user)
