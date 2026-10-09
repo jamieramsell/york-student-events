@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
@@ -156,14 +157,18 @@ class HostEventServiceTest {
   // --- getHostsForEvent ---
 
   @Test
-  void getHostsForEvent_returnsAllRegisteredAllHosts() {
+  void getAllHostsForEvent_returnsAllRegisteredHosts() {
     Event event = newEvent(5);
     Host first = newHost();
     Host second = newHost();
     hostEventService.registerForEvent(first.getId(), event.getId());
     hostEventService.registerForEvent(second.getId(), event.getId());
 
-    Set<IHost> hosts = hostEventService.getAllHostsForEvent(event.getId());
+    Set<IHost> hosts = new HashSet<>(
+        hostEventService.getAllHostsForEvent(
+            event.getId(), 0, 100
+        ).getContent()
+    );
 
     assertEquals(2, hosts.size());
     assertTrue(hosts.contains(first));
@@ -188,7 +193,11 @@ class HostEventServiceTest {
     hostEventService.registerForEvent(second.getId(), event.getId());
     studentEventService.registerForEvent(student.getId(), event.getId());
 
-    Set<IHost> hosts = hostEventService.getAllHostsForEvent(event.getId());
+    Set<IHost> hosts = new HashSet<>(
+        hostEventService.getAllHostsForEvent(
+            event.getId(), 0, 100
+        ).getContent()
+    );
 
     assertEquals(2, hosts.size());
     assertTrue(hosts.contains(first));
@@ -197,16 +206,16 @@ class HostEventServiceTest {
   }
 
   @Test
-  void getHostsForEvent_whenEventHasNoAllHosts_ReturnsEmptySet() {
+  void getAllHostsForEvent_whenEventHasNoHosts_ReturnsEmptyPage() {
     Event event = newEvent(1);
-    Set<IHost> hosts = hostEventService.getAllHostsForEvent(event.getId());
-    assertEquals(0, hosts.size());
+    Page<IHost> hosts = hostEventService.getAllHostsForEvent(event.getId(), 0, 100);
+    assertEquals(0, hosts.getTotalElements());
   }
 
   @Test
   void getAllHostsForEvent_whenEventDoesNotExist_throwsEventNotFoundException() {
     assertThrows(EventNotFoundException.class,
-        () -> hostEventService.getAllHostsForEvent(UUID.randomUUID()));
+        () -> hostEventService.getAllHostsForEvent(UUID.randomUUID(), 0, 100));
   }
 
   // --- Helpers ---
