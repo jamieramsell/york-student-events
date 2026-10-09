@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import york.studentevents.exceptions.ConflictException;
 
 class CohortTest {
 
@@ -207,10 +208,10 @@ class CohortTest {
   }
 
   @Test
-  void addMember_withExistingMember_throwsIllegalArgumentException() {
+  void addMember_withExistingMember_throwsConflictException() {
     UUID memberId = UUID.randomUUID();
     cohort.addMember(memberId);
-    assertThrows(IllegalArgumentException.class, () -> cohort.addMember(memberId));
+    assertThrows(ConflictException.class, () -> cohort.addMember(memberId));
   }
 
   @Test
@@ -222,8 +223,8 @@ class CohortTest {
   }
 
   @Test
-  void removeMember_withNonMember_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException.class, () -> cohort.removeMember(UUID.randomUUID()));
+  void removeMember_withNonMember_throwsConflictException() {
+    assertThrows(ConflictException.class, () -> cohort.removeMember(UUID.randomUUID()));
   }
 
   // getMembers

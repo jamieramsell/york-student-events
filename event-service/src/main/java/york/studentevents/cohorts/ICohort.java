@@ -2,6 +2,7 @@ package york.studentevents.cohorts;
 
 import java.util.Set;
 import java.util.UUID;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.repository.IEntity;
 
 /**
@@ -60,14 +61,14 @@ public abstract class ICohort extends IEntity {
   /** Adds a Student by UUID to this cohort.
    *
    * @param memberId the user ID of the member to add
-   * @throws IllegalArgumentException if the member is already a member of this cohort
+   * @throws ConflictException if the member is already a member of this cohort
    */
   public abstract void addMember(UUID memberId);
 
   /** Removes a Student by UUID from this cohort.
    *
    * @param memberId the user ID of the member to remove; must be a member of this cohort.
-   * @throws IllegalArgumentException if the member is not a member of this cohort
+   * @throws ConflictException if the member is not a member of this cohort
    */
   public abstract void removeMember(UUID memberId);
 
