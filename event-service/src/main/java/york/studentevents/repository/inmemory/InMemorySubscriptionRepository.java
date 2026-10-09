@@ -1,8 +1,14 @@
 package york.studentevents.repository.inmemory;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import york.studentevents.subscriptions.ISubscription;
 import york.studentevents.subscriptions.ISubscriptionRepository;
 
@@ -21,11 +27,10 @@ import york.studentevents.subscriptions.ISubscriptionRepository;
  */
 public class InMemorySubscriptionRepository extends AbstractInMemoryRepository<ISubscription>
     implements ISubscriptionRepository {
-  
+
   @Override
   public Optional<ISubscription> findByID(UUID userId, UUID eventId) {
-    List<ISubscription> targetSubscriptions = findAll()
-        .stream()
+    List<ISubscription> targetSubscriptions = hashMap.values().stream()
         .filter(sub -> sub.getUserId().equals(userId))
         .filter(sub -> sub.getEventId().equals(eventId))
         .toList();
@@ -35,28 +40,68 @@ public class InMemorySubscriptionRepository extends AbstractInMemoryRepository<I
       throw new IllegalStateException("The given user has multiple subscription records targeting"
       + " the specified event.");
     }
-    
+
     return targetSubscriptions.stream().findFirst();
   }
 
   @Override
-  public List<ISubscription> findAllByUserId(UUID userId) {
-    List<ISubscription> subscriptions = findAll()
-        .stream()
-        .filter(sub -> sub.getUserId().equals(userId))
-        .toList();
+  public Page<ISubscription> findAllByUserId(UUID userId, int pageNumber, int pageSize) {
+    if (userId == null) {
+      throw new IllegalArgumentException("userId cannot be null");
+    }
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
 
-    return subscriptions;
+    List<ISubscription> returnList = new ArrayList<>(hashMap.values());
+    returnList.sort(Comparator.comparing(ISubscription::getId));
+    returnList = returnList.stream().filter(sub -> sub.getUserId().equals(userId)).toList();
+
+    long startIndexLong = (long) pageNumber * pageSize;
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+    if (startIndexLong >= returnList.size()) {
+      return new PageImpl<>(List.of(), pageable, returnList.size());
+    }
+
+    int startIndex = Math.toIntExact(startIndexLong);
+    int endIndex = Math.min(startIndex + pageSize, returnList.size());
+
+    List<ISubscription> pageContent = new ArrayList<>(returnList.subList(startIndex, endIndex));
+    return new PageImpl<>(pageContent, pageable, returnList.size());
   }
 
   @Override
-  public List<ISubscription> findAllByEventId(UUID eventId) {
-    List<ISubscription> subscriptions = findAll()
-        .stream()
-        .filter(sub -> sub.getEventId().equals(eventId))
-        .toList();
+  public Page<ISubscription> findAllByEventId(UUID eventId, int pageNumber, int pageSize) {
+    if (eventId == null) {
+      throw new IllegalArgumentException("eventId cannot be null");
+    }
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
 
-    return subscriptions;
+    List<ISubscription> returnList = new ArrayList<>(hashMap.values());
+    returnList.sort(Comparator.comparing(ISubscription::getId));
+    returnList = returnList.stream().filter(sub -> sub.getUserId().equals(eventId)).toList();
+
+    long startIndexLong = (long) pageNumber * pageSize;
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+    if (startIndexLong >= returnList.size()) {
+      return new PageImpl<>(List.of(), pageable, returnList.size());
+    }
+
+    int startIndex = Math.toIntExact(startIndexLong);
+    int endIndex = Math.min(startIndex + pageSize, returnList.size());
+
+    List<ISubscription> pageContent = new ArrayList<>(returnList.subList(startIndex, endIndex));
+    return new PageImpl<>(pageContent, pageable, returnList.size());
   }
 
 }

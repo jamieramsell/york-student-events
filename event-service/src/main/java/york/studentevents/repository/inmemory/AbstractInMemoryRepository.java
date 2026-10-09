@@ -1,12 +1,17 @@
 package york.studentevents.repository.inmemory;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import york.studentevents.repository.IEntity;
 import york.studentevents.repository.IRepository;
 
@@ -26,9 +31,9 @@ import york.studentevents.repository.IRepository;
  */
 abstract class AbstractInMemoryRepository<T extends IEntity> implements IRepository<T> {
   
-  private Map<UUID, T> hashMap;
+  protected Map<UUID, T> hashMap;
 
-  /** Constructs a new, empty, memory implemented repository. */
+  /** Constructs a new, empty, memory-implemented repository. */
   public AbstractInMemoryRepository() {
     hashMap = new HashMap<>();
   }
@@ -52,10 +57,29 @@ abstract class AbstractInMemoryRepository<T extends IEntity> implements IReposit
   }
 
   @Override
-  public List<T> findAll() {
-    List<T> returnList = new ArrayList<>();
-    returnList.addAll(hashMap.values());
-    return returnList;
+  public Page<T> findAll(int pageNumber, int pageSize) {
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+
+    List<T> returnList = new ArrayList<>(hashMap.values());
+    returnList.sort(Comparator.comparing(T::getId));
+
+    long startIndexLong = (long) pageNumber * pageSize;
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+    if (startIndexLong >= returnList.size()) {
+      return new PageImpl<>(List.of(), pageable, returnList.size());
+    }
+
+    int startIndex = Math.toIntExact(startIndexLong);
+    int endIndex = Math.min(startIndex + pageSize, returnList.size());
+
+    List<T> pageContent = new ArrayList<>(returnList.subList(startIndex, endIndex));
+    return new PageImpl<>(pageContent, pageable, returnList.size());
   }
 
 }
