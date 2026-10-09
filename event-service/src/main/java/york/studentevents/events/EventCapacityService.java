@@ -1,6 +1,7 @@
 package york.studentevents.events;
 
 import java.util.UUID;
+import york.studentevents.exceptions.CapacityExceededException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.VenueNotFoundException;
 import york.studentevents.venues.IVenue;
@@ -66,7 +67,8 @@ public class EventCapacityService {
    *
    * @throws EventNotFoundException if an Event with the given ID could not be found.
    * @throws VenueNotFoundException if a Venue with the given ID could not be found.
-   * @throws IllegalStateException if the Event has more attendees than the capacity of the Venue.
+   * @throws CapacityExceededException if the Event has more attendees than the capacity of the
+   *     Venue.
    */
   public IEvent updateEventVenue(UUID eventId, UUID venueId) {
     eventService.getEvent(eventId); // Validate event existence first
@@ -78,7 +80,7 @@ public class EventCapacityService {
       int attendees = studentEventService.countRegisteredStudents(eventId);
 
       if (venue.getCapacity() != null && attendees > venue.getCapacity()) {
-        throw new IllegalStateException("The given Event has more attendees enrolled than the"
+        throw new CapacityExceededException("The given Event has more attendees enrolled than the"
           + " capacity of the Venue. To assign this Venue, you must first unassign some Students.");
       }
     }
@@ -107,7 +109,8 @@ public class EventCapacityService {
    * @return A copy of the updated event record.
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
-   * @throws IllegalStateException if the Event has more attendees than the given capacity allows.
+   * @throws CapacityExceededException if the Event has more attendees than the given capacity
+   *     allows.
    */
   public IEvent updateEventCapacity(UUID id, Integer capacity) {
     IEvent event = eventService.getEvent(id);
@@ -120,12 +123,9 @@ public class EventCapacityService {
     }
 
     if (capacity != null && attendees > capacity) {
-      throw new IllegalStateException("The given Event has more attendees enrolled than the"
+      throw new CapacityExceededException("The given Event has more attendees enrolled than the"
         + " given capacity. To assign this capacity, you must first unassign some Students.");
     }
-    
-    // Must manually overwrite the repository record, rather than routing through EventService, as
-    // the EventService does not expose a setCapacity method.
 
     // Capacity ceiling = venue capacity
     if (venue != null && venue.getCapacity() != null) { 

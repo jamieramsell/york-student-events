@@ -2,6 +2,7 @@ package york.studentevents.subscriptions;
 
 import java.util.Optional;
 import java.util.UUID;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.subscriptions.ISubscription.SubscriptionSource;
 
 /**
@@ -58,7 +59,7 @@ public class SubscriptionService {
    * @param userId The user's ID
    * @param eventId The event's ID
    * @param reason The reason why the subscription is being created.
-   * @throws IllegalArgumentException if {@code reason} is {@link SubscriptionSource#EXPLICIT} and
+   * @throws ConflictException if {@code reason} is {@link SubscriptionSource#EXPLICIT} and
    *     the user is already explicitly subscribed to the event.
    *
    * @see SubscriptionSource
@@ -81,7 +82,7 @@ public class SubscriptionService {
         if (existingSubscription.isPresent()) {
           // If the existing subscription is already EXPLICIT, throw
           if (existingSubscription.get().getSource() == SubscriptionSource.EXPLICIT) {
-            throw new IllegalArgumentException(String.format(
+            throw new ConflictException(String.format(
                 "User %s is already subscribed to event %s", userId, eventId
             ));
           }
@@ -118,7 +119,7 @@ public class SubscriptionService {
    * @param userId The user's ID
    * @param eventId The event's ID
    * @param reason The reason why the subscription is being removed.
-   * @throws IllegalArgumentException if {@code reason} is {@link SubscriptionSource#EXPLICIT} and
+   * @throws ConflictException if {@code reason} is {@link SubscriptionSource#EXPLICIT} and
    *     the user is not subscribed to the event.
    *
    * @see SubscriptionSource
@@ -140,7 +141,7 @@ public class SubscriptionService {
       case EXPLICIT -> {
         // EXPLICIT: removes the subscription regardless of how it was created.
         ISubscription subscription = existingSubscription.orElseThrow(() ->
-            new IllegalArgumentException(
+            new ConflictException(
                 String.format("User %s is not subscribed to event %s", userId, eventId)
             ));
         subscriptionRepository.delete(subscription.getId());
