@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 import org.springframework.stereotype.Service;
 import york.studentevents.exceptions.EventNotFoundException;
+import york.studentevents.exceptions.MissingVenueException;
 
 /**
  * Application service exposing event-related business operations.
@@ -127,7 +128,7 @@ public class EventService {
    * @return A copy of the updated event record.
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
-   * @throws IllegalStateException if trying to assign event timings, despite the event not yet
+   * @throws MissingVenueException if trying to assign event timings, despite the event not yet
    *     having an assigned location.
    * @throws IllegalArgumentException if {@code endDateTime} is before {@code startDateTime}
    * @throws IllegalArgumentException if only one datetime is provided. You must either provide both
