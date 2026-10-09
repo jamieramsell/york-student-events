@@ -44,6 +44,18 @@ public enum ApiErrorCode {
   /** The request body or parameters failed validation; field-level detail may be included. */
   VALIDATION_FAILED,
 
+  /** The request was malformed or otherwise could not be understood, e.g. unreadable JSON. */
+  BAD_REQUEST,
+
+  /** No endpoint exists at the requested path. */
+  ROUTE_NOT_FOUND,
+
+  /** The endpoint exists, but does not support the HTTP method used. */
+  METHOD_NOT_ALLOWED,
+
+  /** The endpoint does not support the content type of the request body. */
+  UNSUPPORTED_MEDIA_TYPE,
+
   /** An unexpected failure with the subprocess bridge between the two services. */
   SUBPROCESS_FAILURE,
 
