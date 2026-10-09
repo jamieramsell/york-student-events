@@ -35,6 +35,12 @@ public enum ApiErrorCode {
   /** The given event requires a venue for this operation, but does not yet have one. */
   MISSING_VENUE,
 
+  /** 
+   * The requested change conflicts with the current state of the system, such as adding
+   * something that already exists, or removing something that is not there.
+   */
+  CONFLICT,
+
   /** The request body or parameters failed validation; field-level detail may be included. */
   VALIDATION_FAILED,
 
