@@ -1,13 +1,11 @@
 package york.studentevents.venues;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.HashSet;
+import java.util.Set;
 
 import java.util.List;
 import java.util.UUID;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -109,7 +107,7 @@ class VenueServiceTest {
     assertThrows(IllegalArgumentException.class,
         () -> service.createVenue(null, "Campus West", 100));
 
-    assertTrue(service.getAllVenues().isEmpty());
+    assertEquals(0, service.getAllVenues(0, 100).getTotalElements());
   }
 
   // --- updateVenueName ---
@@ -215,8 +213,8 @@ class VenueServiceTest {
   // --- getAllVenues ---
 
   @Test
-  void getAllVenues_whenEmpty_returnsEmptyList() {
-    assertTrue(service.getAllVenues().isEmpty());
+  void getAllVenues_whenEmpty_returnsEmptyPage() {
+    assertEquals(0, service.getAllVenues(0, 100).getTotalElements());
   }
 
   @Test
@@ -224,72 +222,84 @@ class VenueServiceTest {
     IVenue first = savedVenue();
     IVenue second = savedVenue();
 
-    Page<T> venues = service.getAllVenues();
+    Page<IVenue> venues = service.getAllVenues(0, 100);
+    Set<IVenue> results = new HashSet<>(venues.getContent());
 
-    assertEquals(2, venues.size());
-    assertTrue(venues.contains(first));
-    assertTrue(venues.contains(second));
+    assertEquals(2, venues.getTotalElements());
+    assertTrue(results.contains(first));
+    assertTrue(results.contains(second));
   }
 
   // --- getVenuesByCapacity ---
 
   @Test
-  void getVenuesByCapacity_withBothBoundsNull_returnsAllAllVenues() {
+  void getAllVenuesByCapacity_withBothBoundsNull_returnsAllVenues() {
     IVenue capped = savedVenueWithCapacity(100);
     IVenue uncapped = savedVenueWithCapacity(null);
 
-    List<IVenue> results = service.getAllVenuesByCapacity(null, null);
+    Page<IVenue> venues = service.getAllVenuesByCapacity(null, null, 0, 100);
+    Set<IVenue> results = new HashSet<>(venues.getContent());
 
-    assertEquals(2, results.size());
+    assertEquals(2, venues.getTotalElements());
     assertTrue(results.contains(capped));
     assertTrue(results.contains(uncapped));
   }
 
   @Test
-  void getVenuesByCapacity_withMinBoundOnly_returnsAllVenuesAtOrAboveIt() {
+  void getAllVenuesByCapacity_withMinBoundOnly_returnsAllVenuesAtOrAboveIt() {
     savedVenueWithCapacity(50); // below bound
     IVenue atOrAbove = savedVenueWithCapacity(200);
 
-    List<IVenue> results = service.getAllVenuesByCapacity(100, null);
+    Page<IVenue> venues = service.getAllVenuesByCapacity(100, null, 0, 100);
 
-    assertEquals(List.of(atOrAbove), results);
+    assertEquals(List.of(atOrAbove), venues.getContent());
   }
 
   @Test
-  void getVenuesByCapacity_withMinBoundOnly_includesUncappedAllVenues() {
+  void getAllVenuesByCapacity_withMinBoundOnly_includesUncappedVenues() {
     IVenue uncapped = savedVenueWithCapacity(null);
 
     // An uncapped (unlimited) venue always satisfies a lower bound.
-    List<IVenue> results = service.getAllVenuesByCapacity(100, null);
+    Set<IVenue> results = new HashSet<>(
+        service.getAllVenuesByCapacity(
+        100, null, 0, 100
+        ).getContent()
+    );
 
     assertTrue(results.contains(uncapped));
   }
 
   @Test
-  void getVenuesByCapacity_withMaxBoundOnly_returnsAllVenuesAtOrBelowIt() {
+  void getAllVenuesByCapacity_withMaxBoundOnly_returnsAllVenuesAtOrBelowIt() {
     IVenue atOrBelow = savedVenueWithCapacity(50);
     savedVenueWithCapacity(200); // above bound
 
-    List<IVenue> results = service.getAllVenuesByCapacity(null, 100);
+    List<IVenue> results = service.getAllVenuesByCapacity(
+        null, 100, 0, 100
+    ).getContent();
 
     assertEquals(List.of(atOrBelow), results);
   }
 
   @Test
-  void getVenuesByCapacity_withMaxBoundOnly_excludesUncappedAllVenues() {
+  void getAllVenuesByCapacity_withMaxBoundOnly_excludesUncappedVenues() {
     savedVenueWithCapacity(null);
 
     // An uncapped (unlimited) venue exceeds any finite upper bound.
-    assertTrue(service.getAllVenuesByCapacity(null, 100).isEmpty());
+    assertEquals(0, service.getAllVenuesByCapacity(
+        null, 100, 0, 100
+    ).getTotalElements());
   }
 
   @Test
-  void getVenuesByCapacity_withBothBounds_returnsOnlyAllVenuesWithinTheRange() {
+  void getAllVenuesByCapacity_withBothBounds_returnsOnlyAllVenuesWithinTheRange() {
     IVenue within = savedVenueWithCapacity(150);
     savedVenueWithCapacity(50); // below range
     savedVenueWithCapacity(500); // above range
 
-    List<IVenue> results = service.getAllVenuesByCapacity(100, 200);
+    List<IVenue> results = service.getAllVenuesByCapacity(
+        100, 200, 0, 100
+    ).getContent();
 
     assertEquals(List.of(within), results);
   }
@@ -298,7 +308,9 @@ class VenueServiceTest {
   void getAllVenuesByCapacity_minBoundIsInclusive() {
     IVenue onBoundary = savedVenueWithCapacity(100);
 
-    List<IVenue> results = service.getAllVenuesByCapacity(100, null);
+    List<IVenue> results = service.getAllVenuesByCapacity(
+        100, null, 0, 100
+    ).getContent();
 
     assertEquals(List.of(onBoundary), results);
   }
@@ -307,22 +319,32 @@ class VenueServiceTest {
   void getAllVenuesByCapacity_maxBoundIsInclusive() {
     IVenue onBoundary = savedVenueWithCapacity(100);
 
-    List<IVenue> results = service.getAllVenuesByCapacity(null, 100);
+    List<IVenue> results = service.getAllVenuesByCapacity(
+        null, 100, 0, 100
+    ).getContent();
 
     assertEquals(List.of(onBoundary), results);
   }
 
   @Test
-  void getAllVenuesByCapacity_whenNoVenueMatches_returnsEmptyList() {
+  void getAllVenuesByCapacity_whenNoVenueMatches_returnsEmptyPage() {
     savedVenueWithCapacity(50);
     savedVenueWithCapacity(60);
 
-    assertTrue(service.getAllVenuesByCapacity(100, 200).isEmpty());
+    assertEquals(0,
+        service.getAllVenuesByCapacity(
+          100, 200, 0, 100
+        ).getTotalElements()
+    );
   }
 
   @Test
-  void getVenuesByCapacity_whenNoAllVenuesSaved_returnsEmptyList() {
-    assertTrue(service.getAllVenuesByCapacity(100, 200).isEmpty());
+  void getAllVenuesByCapacity_whenNoVenuesSaved_returnsEmptyPage() {
+    assertEquals(0,
+        service.getAllVenuesByCapacity(
+            100, 200, 0, 100
+        ).getTotalElements()
+    );
   }
 
   // --- deleteVenue ---
@@ -333,7 +355,6 @@ class VenueServiceTest {
 
     service.deleteVenue(venue.getId());
 
-    assertFalse(service.getAllVenues().contains(venue));
     assertThrows(VenueNotFoundException.class, () -> service.getVenue(venue.getId()));
   }
 
