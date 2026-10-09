@@ -1,5 +1,7 @@
 package york.studentevents.users;
 
+import java.util.HashSet;
+import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -106,8 +108,8 @@ class UserServiceTest {
   // --- getAllUsers ---
 
   @Test
-  void getAllUsers_whenEmpty_returnsEmptyList() {
-    assertTrue(service.getAllUsers().isEmpty());
+  void getAllUsers_whenEmpty_returnsEmptyPage() {
+    assertEquals(0, service.getAllUsers(0, 100).getTotalElements());
   }
 
   @Test
@@ -115,32 +117,33 @@ class UserServiceTest {
     IUser alice = savedStudent("alice", "alice@york.ac.uk");
     IUser host = service.createHost("su", "su@york.ac.uk", "pw");
 
-    Page<T> users = service.getAllUsers();
+    Page<IUser> users = service.getAllUsers(0, 100);
+    Set<IUser> usersSet = new HashSet<>(users.getContent());
 
-    assertEquals(2, users.size());
-    assertTrue(users.contains(alice));
-    assertTrue(users.contains(host));
+    assertEquals(2, users.getTotalElements());
+    assertTrue(usersSet.contains(alice));
+    assertTrue(usersSet.contains(host));
   }
 
   // --- getUsersByType ---
 
   @Test
-  void getUsersByType_returnsOnlyAllUsersOfThatType() {
+  void getAllUsersByType_returnsOnlyUsersOfThatType() {
     IUser student = savedStudent("alice", "alice@york.ac.uk");
     IUser host = service.createHost("su", "su@york.ac.uk", "pw");
 
-    List<IUser> students = service.getAllUsersByType(IUser.UserType.STUDENT);
-    List<IUser> hosts = service.getAllUsersByType(IUser.UserType.HOST);
+    List<IUser> students = service.getAllUsersByType(IUser.UserType.STUDENT, 0, 100).getContent();
+    List<IUser> hosts = service.getAllUsersByType(IUser.UserType.HOST, 0, 100).getContent();
 
     assertEquals(List.of(student), students);
     assertEquals(List.of(host), hosts);
   }
 
   @Test
-  void getAllUsersByType_whenNoneOfThatType_returnsEmptyList() {
+  void getAllUsersByType_whenNoneOfThatType_returnsEmptyPage() {
     savedStudent("alice", "alice@york.ac.uk");
 
-    assertTrue(service.getAllUsersByType(IUser.UserType.HOST).isEmpty());
+    assertEquals(0, service.getAllUsersByType(IUser.UserType.HOST, 0, 100).getTotalElements());
   }
 
   // --- createStudent ---
@@ -274,7 +277,6 @@ class UserServiceTest {
 
     service.deleteUser(user.getId());
 
-    assertFalse(service.getAllUsers().contains(user));
     assertThrows(UserNotFoundException.class, () -> service.getUserById(user.getId()));
   }
 
