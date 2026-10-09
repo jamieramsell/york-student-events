@@ -6,7 +6,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -98,7 +100,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         request.getRequestURI()
     );
 
-    return ResponseEntity.status(404).body(response);
+    return jsonResponse(HttpStatus.NOT_FOUND, response);
   }
 
   /**
@@ -120,7 +122,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         request.getRequestURI()
     );
 
-    return ResponseEntity.status(409).body(response);
+    return jsonResponse(HttpStatus.CONFLICT, response);
   }
 
   /**
@@ -142,7 +144,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         request.getRequestURI()
     );
 
-    return ResponseEntity.status(409).body(response);
+    return jsonResponse(HttpStatus.CONFLICT, response);
   }
 
   /**
@@ -164,7 +166,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         request.getRequestURI()
     );
 
-    return ResponseEntity.status(403).body(response);
+    return jsonResponse(HttpStatus.FORBIDDEN, response);
   }
 
   /**
@@ -186,7 +188,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         request.getRequestURI()
     );
 
-    return ResponseEntity.status(409).body(response);
+    return jsonResponse(HttpStatus.CONFLICT, response);
   }
 
   /**
@@ -207,7 +209,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         request.getRequestURI()
     );
 
-    return ResponseEntity.badRequest().body(response);
+    return jsonResponse(HttpStatus.BAD_REQUEST, response);
   }
 
   /**
@@ -233,7 +235,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     
     LOGGER.error("Subprocess exception on {}", request.getRequestURI(), ex);
 
-    return ResponseEntity.status(502).body(response);
+    return jsonResponse(HttpStatus.BAD_GATEWAY, response);
   }
 
   /**
@@ -275,7 +277,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         message, codeFor(code), Instant.now(), path
     );
 
-    return ResponseEntity.status(code).headers(headers).body(response);
+    return jsonResponse(code, headers, response);
   }
 
   /**
@@ -308,7 +310,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         fields
     );
 
-    return ResponseEntity.status(status).headers(headers).body(response);
+    return jsonResponse(status, headers, response);
   }
 
   /**
@@ -325,6 +327,41 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
       case 415 -> ApiErrorCode.UNSUPPORTED_MEDIA_TYPE;
       default -> status.is5xxServerError() ? ApiErrorCode.INTERNAL_ERROR : ApiErrorCode.BAD_REQUEST;
     };
+  }
+
+  /**
+   * Builds a JSON response with the given status and body, regardless of the request's
+   * {@code Accept} header.
+   *
+   * <p>Setting the content type explicitly stops Spring negotiating it from {@code Accept}. A
+   * client that accepts only a format this API cannot produce (e.g. {@code application/xml}) would
+   * otherwise make the error response itself unwritable, turning the real error into a bare
+   * {@code 500}.
+   *
+   * @param status the HTTP status
+   * @param body the response body
+   * @param <T> the body type
+   * @return the response entity
+   */
+  private static <T> ResponseEntity<T> jsonResponse(HttpStatusCode status, T body) {
+    return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(body);
+  }
+
+  /**
+   * Builds a JSON response as {@link #jsonResponse(HttpStatusCode, Object)} does, preserving the
+   * given headers.
+   *
+   * @param status the HTTP status
+   * @param headers headers to carry over, e.g. {@code Allow} for a {@code 405}
+   * @param body the response body
+   * @param <T> the body type
+   * @return the response entity
+   */
+  private static <T> ResponseEntity<T> jsonResponse(
+      HttpStatusCode status, HttpHeaders headers, T body
+  ) {
+    return ResponseEntity.status(status).headers(headers)
+        .contentType(MediaType.APPLICATION_JSON).body(body);
   }
 
   /**
@@ -397,7 +434,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     
     LOGGER.error("Unhandled exception on {}", request.getRequestURI(), ex);
 
-    return ResponseEntity.internalServerError().body(response);
+    return jsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, response);
   }
 
 }
