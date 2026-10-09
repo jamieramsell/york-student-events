@@ -12,7 +12,7 @@ import york.studentevents.exceptions.MissingVenueException;
 
 /** Concrete implementation of {@link IEvent} representing a social event. */
 @Entity
-public class Event implements IEvent {
+public class Event extends IEvent {
   
   @Id
   private UUID id;
