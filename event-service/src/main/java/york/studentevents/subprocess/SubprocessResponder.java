@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.UUID;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.data.domain.Page;
 import york.studentevents.Application;
 import york.studentevents.events.EventService;
 import york.studentevents.events.HostEventService;
@@ -569,11 +571,18 @@ public class SubprocessResponder {
    */
   private EventInfoPayload getRawEventInfo(UUID eventId) {
     IEvent event;
-    Set<IHost> hosts;
+    Set<IHost> hosts = new HashSet<>();
 
     try {
       event = eventService.getEvent(eventId);
-      hosts = hostEventService.getHostsForEvent(eventId);
+
+      // get all hosts for the event
+      int currentPage = 0;
+      Page<IHost> page;
+      do {
+        page = hostEventService.getAllHostsForEvent(eventId, currentPage, 100);
+        hosts.addAll(page.getContent());
+      } while (page.hasNext());
     } catch (EventNotFoundException e) {
       throw new IllegalArgumentException("The given event ID was not recognised");
     }
