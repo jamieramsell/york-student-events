@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import york.studentevents.exceptions.MissingVenueException;
 
 class EventTest {
 
@@ -214,10 +215,10 @@ class EventTest {
   }
 
   @Test
-  void setDateTime_whenNoLocationSet_throwsIllegalStateException() {
+  void setDateTime_whenNoLocationSet_throwsMissingVenueException() {
     LocalDateTime start = LocalDateTime.of(2050, 8, 1, 18, 0);
     LocalDateTime end = LocalDateTime.of(2050, 8, 1, 22, 0);
-    assertThrows(IllegalStateException.class, () -> event.setDateTime(start, end));
+    assertThrows(MissingVenueException.class, () -> event.setDateTime(start, end));
   }
 
   @Test

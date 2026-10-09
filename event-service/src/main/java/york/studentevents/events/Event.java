@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.lang.NonNull;
+import york.studentevents.exceptions.MissingVenueException;
 
 /** Concrete implementation of {@link IEvent} representing a social event. */
 @Entity
@@ -179,7 +180,7 @@ public class Event implements IEvent {
     // are correctly ordered.
     if (startDateTime != null && endDateTime != null) {
       if (this.venueId == null) {
-        throw new IllegalStateException("The event must have been assigned a Venue in order to"
+        throw new MissingVenueException("The event must have been assigned a Venue in order to"
             + " assign a date and time");
       } else if (startDateTime != null && startDateTime.compareTo(endDateTime) >= 0) {
         throw new IllegalArgumentException("startDateTime must be before endDateTime");
