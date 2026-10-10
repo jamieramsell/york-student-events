@@ -55,6 +55,7 @@ build/
 *.iml
 *.iws
 *.ipr
+.junie/
 
 # ===========================
 # macOS
