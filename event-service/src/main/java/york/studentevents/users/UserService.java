@@ -1,8 +1,5 @@
 package york.studentevents.users;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -62,10 +59,13 @@ public class UserService {
    *
    * @param username the user's username
    * @return the {@code IUser} entity; never null
-   * @throws IllegalArgumentException if username is invalid {@link NotBlank}
+   * @throws IllegalArgumentException if the username is null.
    * @throws UserNotFoundException if the given User does not exist.
    */
-  public IUser getUserByUsername(@Valid @NotBlank String username) {
+  public IUser getUserByUsername(String username) {
+    if (username == null) {
+      throw new IllegalArgumentException("username cannot be null");
+    }
     Predicate<IUser> usernameMatches = user -> user.getUsername().equals(username);
 
     int currentPage = 0;
@@ -88,11 +88,13 @@ public class UserService {
    *
    * @param email the user's email address.
    * @return the {@code IUser} entity; never null.
-   * @throws IllegalArgumentException if email is {@link NotBlank} or
-   *        not valid {@link Email}.
+   * @throws IllegalArgumentException if email is {@code null}.
    * @throws UserNotFoundException if the given User does not exist
    */
-  public IUser getUserByEmail(@Valid @Email @NotBlank String email) {
+  public IUser getUserByEmail(String email) {
+    if (email == null) {
+      throw new IllegalArgumentException("email cannot be null");
+    }
     Predicate<IUser> emailMatches = user -> user.getEmail().equals(email);
 
     int currentPage = 0;
