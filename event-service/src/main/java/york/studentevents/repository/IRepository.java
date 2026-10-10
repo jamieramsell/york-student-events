@@ -1,8 +1,8 @@
 package york.studentevents.repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 
 /**
  * Generic repository interface providing standard CRUD operations.
@@ -11,7 +11,6 @@ import java.util.UUID;
  * @param <T> the type of entity managed by this repository
  */
 public interface IRepository<T extends IEntity> {
-
   /**
    * Saves an entity to the repository. If an entity with the same ID already
    * exists, it is overwritten.
@@ -38,10 +37,13 @@ public interface IRepository<T extends IEntity> {
   Optional<T> findByID(UUID id);
 
   /**
-   * Retrieves all entities currently held in the repository.
+   * Retrieves all entities from the repository in pages.
    *
-   * @return a {@link List} of all entities; never {@code null}, but may be empty
+   * @param pageNumber the page number to retrieve; must be greater than or equal to 0.
+   * @param pageSize the number of entities to retrieve per page; must be greater than 0,
+   *                 and less than or equal to 100.
+   * @return a {@link Page} of entities; never {@code null}, but may be empty.
+   * @throws IllegalArgumentException if {@code pageNumber} or {@code pageSize} are invalid.
    */
-  List<T> findAll();
-
+  Page<T> findAll(int pageNumber, int pageSize);
 }

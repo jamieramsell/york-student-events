@@ -1,9 +1,11 @@
 package york.studentevents.repository.sql;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import york.studentevents.cohorts.Cohort;
 import york.studentevents.cohorts.ICohort;
 import york.studentevents.cohorts.ICohortRepository;
@@ -78,10 +80,9 @@ public class CohortRepositoryAdapter implements ICohortRepository {
   }
 
   @Override
-  public List<ICohort> findAll() {
-    return jpa.findAll()
-        .stream()
-        .map((e) -> (ICohort) e)
-        .toList();
+  public Page<ICohort> findAll(int pageNumber, int pageSize) {
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+    return jpa.findAll(pageable)
+        .map(e -> (ICohort) e);
   }
 }

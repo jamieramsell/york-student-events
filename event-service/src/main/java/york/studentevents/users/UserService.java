@@ -1,10 +1,15 @@
 package york.studentevents.users;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.function.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import york.studentevents.exceptions.UserNotFoundException;
 
 /**
@@ -54,8 +59,8 @@ public class UserService {
    *
    * @param username the user's username
    * @return the {@code IUser} entity; never null
-   * @throws IllegalArgumentException if username is {@code null}
-   * @throws UserNotFoundException if the given User does not exist
+   * @throws IllegalArgumentException if the username is null.
+   * @throws UserNotFoundException if the given User does not exist.
    */
   public IUser getUserByUsername(String username) {
     if (username == null) {
@@ -63,18 +68,26 @@ public class UserService {
     }
     Predicate<IUser> usernameMatches = user -> user.getUsername().equals(username);
 
-    return repository.findAll()
-        .stream()
-        .filter(usernameMatches)
-        .findFirst()
-        .orElseThrow(UserNotFoundException::new);
+    int currentPage = 0;
+    Page<IUser> page;
+    do {
+      page = repository.findAll(currentPage, 100);
+      if (page.getContent().stream().anyMatch(usernameMatches)) {
+        return page.getContent().stream()
+            .filter(usernameMatches)
+            .findFirst()
+            .orElseThrow(UserNotFoundException::new);
+      }
+      currentPage++;
+    } while (page.hasNext());
+    throw new UserNotFoundException();
   }
 
   /**
    * Retrieves a User from the injected UserRepository by their email.
    *
-   * @param email the user's email address
-   * @return the {@code IUser} entity; never null
+   * @param email the user's email address.
+   * @return the {@code IUser} entity; never null.
    * @throws IllegalArgumentException if email is {@code null}.
    * @throws UserNotFoundException if the given User does not exist
    */
@@ -84,40 +97,88 @@ public class UserService {
     }
     Predicate<IUser> emailMatches = user -> user.getEmail().equals(email);
 
-    return repository.findAll()
-        .stream()
-        .filter(emailMatches)
-        .findFirst()
-        .orElseThrow(UserNotFoundException::new);
+    int currentPage = 0;
+    Page<IUser> page;
+
+    do {
+      page = repository.findAll(currentPage, 100);
+      if (page.getContent().stream().anyMatch(emailMatches)) {
+        return page.getContent().stream()
+            .filter(emailMatches)
+            .findFirst()
+            .orElseThrow(UserNotFoundException::new);
+      }
+      currentPage++;
+    } while (page.hasNext());
+    throw new UserNotFoundException();
   }
 
   /**
-   * Retrieves every User currently held by the backing repository.
+   * Retrieves every User currently held by the backing repository in pages.
    *
-   * @return a {@link List} of all Users; never {@code null}, but may be empty if no Users have
+   * @param pageNumber the page number to retrieve.
+   * @param pageSize the number of users to retrieve per page.
+   * @return a {@link Page} of all Users; never {@code null}, but may be empty if no Users have
    *     been saved
+   * @throws IllegalArgumentException if {@code pageNumber} is negative, or if {@code pageSize} is
+   *        less than 1.
    */
-  public List<IUser> getAllUsers() {
-    return repository.findAll();
+  public Page<IUser> getAllUsers(int pageNumber, int pageSize) {
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+    return repository.findAll(pageNumber, pageSize);
   }
 
   /**
-   * Retrieves all Users of the given type (e.g. all Students)
+   * Retrieves all Users of the given type (e.g. all Students) in pages.
    *
    * @param type The type of users to retrieve; must not be {@code null}.
-   * @return a {@link List} of all Users; never {@code null}, but may be empty if no users of the
+   * @param pageNumber the page number to retrieve.
+   * @param pageSize the number of users to retrieve per page.
+   * @return a {@link Page} of all Users; never {@code null}, but may be empty if no users of the
    *     given type have been saved
+   * @throws IllegalArgumentException if {@code type} is {@code null}, if {@code pageNumber} is
+   *        negative, or if {@code pageSize} is less than 1.
    *
    * @see IUser.UserType
    */
-  public List<IUser> getUsersByType(IUser.UserType type) {
+  public Page<IUser> getAllUsersByType(IUser.UserType type, int pageNumber, int pageSize) {
     if (type == null) {
       throw new IllegalArgumentException("type cannot be null");
     }
-    return repository.findAll()
-        .stream()
-        .filter(user -> user.getType().equals(type))
-        .toList();
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+
+    int currentPage = 0;
+    Page<IUser> page;
+    List<IUser> returnList = new ArrayList<>(List.of());
+    do {
+      page = getAllUsers(currentPage, 100);
+      returnList.addAll(page.getContent());
+      currentPage++;
+    } while (page.hasNext());
+    returnList = returnList.stream().filter(user -> user.getType().equals(type)).toList();
+
+    long startIndexLong = (long) pageNumber * pageSize;
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+    if (returnList.isEmpty()) {
+      return new PageImpl<>(List.of(), pageable, 0);
+    }
+
+    int startIndex = Math.toIntExact(startIndexLong);
+    int endIndex = Math.min(startIndex + pageSize, returnList.size());
+
+    List<IUser> pageContent = new ArrayList<>(returnList.subList(startIndex, endIndex)) {};
+    return new PageImpl<>(pageContent, pageable, returnList.size());
   }
 
   /**

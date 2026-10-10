@@ -1,8 +1,10 @@
 package york.studentevents.events;
 
 import jakarta.validation.Valid;
-import java.util.List;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,22 +47,25 @@ public class EventController {
     }
     this.eventService = service;
   }
-  
+
   /**
-   * Handles {@code GET /events} HTTP requests and returns all events.
+   * Handles {@code GET /events} HTTP requests and returns a {@see Page} of {@see EventDto}.
    *
-   * <p>Returns an empty list (serialised as an empty JSON array) when no events exist, rather than
-   * an error. A successful call responds with HTTP 200.
+   * <p>Returns an empty {@see Page} if no events exist, rather than an error. A successful call
+   * responds with HTTP 200.
    *
+   * <p>Responds with HTTP 400 if the page number is less than 0, or the page size is less than 1.
+   *
+   * @param page the page number to retrieve; must be greater than or equal to 0.
+   * @param pageSize the number of events to retrieve per page; must be greater than 0,
    * @return a {@code List} of all events, serialised by Spring into a JSON array
    */
   @GetMapping
-  public List<EventDto> getAllEvents() {
-    return eventService.getAllEvents().stream()
-            .map(EventDto::fromEntity)
-            .toList();
+  public Page<EventDto> getAllEvents(
+      @Valid @PathVariable @Min(value = 0) int page,
+      @Valid @PathVariable @Min(value = 1) @Max(value = 100) int pageSize) {
+    return eventService.getAllEvents(page, pageSize).map(EventDto::fromEntity);
   }
-
 
   /**
    * Handles {@code GET /events/{eventId}} HTTP requests and returns a specific event by its ID.

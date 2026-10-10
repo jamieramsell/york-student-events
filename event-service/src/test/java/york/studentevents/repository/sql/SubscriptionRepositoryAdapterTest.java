@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
 import york.studentevents.events.Event;
 import york.studentevents.events.EventCategory;
 import york.studentevents.subscriptions.ISubscription;
@@ -212,13 +213,13 @@ public class SubscriptionRepositoryAdapterTest {
         ));
     jpa.saveAllAndFlush(subList); // Use JPA here to avoid relying on a separate adapter method
 
-    List<ISubscription> savedSubs = subscriptionRepository.findAll();
-    assertEquals(3, savedSubs.size());
+    Page<ISubscription> savedSubs = subscriptionRepository.findAll(0, 100);
+    assertEquals(3, savedSubs.getTotalElements());
   }
 
   @Test
-  void findAll_ReturnsEmptyList_ForEmptyRepository() {
-    assertTrue(subscriptionRepository.findAll().isEmpty());
+  void findAll_ReturnsEmptyPage_ForEmptyRepository() {
+    assertEquals(0, subscriptionRepository.findAll(0, 100).getTotalElements());
   }
 
   // --- findByID(userId, eventId) ---
@@ -261,7 +262,7 @@ public class SubscriptionRepositoryAdapterTest {
   @Test
   void findAllByUserId_RejectsNullUserId() {
     assertThrows(
-        IllegalArgumentException.class, () -> subscriptionRepository.findAllByUserId(null));
+        IllegalArgumentException.class, () -> subscriptionRepository.findAllByUserId(null, 0, 100));
   }
 
   @Test
@@ -277,16 +278,16 @@ public class SubscriptionRepositoryAdapterTest {
     jpa.saveAndFlush(
         new Subscription(otherStudentId, eventId, ISubscription.SubscriptionSource.EXPLICIT));
 
-    List<ISubscription> result = subscriptionRepository.findAllByUserId(studentId);
+    List<ISubscription> result = subscriptionRepository.findAllByUserId(studentId, 0, 100).getContent();
 
     assertEquals(2, result.size());
     assertTrue(result.stream().allMatch(sub -> sub.getUserId().equals(studentId)));
   }
 
   @Test
-  void findAllByUserId_ReturnsEmptyList_WhenUserHasNoSubscriptions() {
+  void findAllByUserId_ReturnsEmptyPage_WhenUserHasNoSubscriptions() {
     // The student exists but has no subscriptions.
-    assertTrue(subscriptionRepository.findAllByUserId(studentId).isEmpty());
+    assertEquals(0, subscriptionRepository.findAllByUserId(studentId, 0, 100).getTotalElements());
   }
 
   // --- findAllByEventId ---
@@ -294,7 +295,7 @@ public class SubscriptionRepositoryAdapterTest {
   @Test
   void findAllByEventId_RejectsNullEventId() {
     assertThrows(
-        IllegalArgumentException.class, () -> subscriptionRepository.findAllByEventId(null));
+        IllegalArgumentException.class, () -> subscriptionRepository.findAllByEventId(null, 0, 100));
   }
 
   @Test
@@ -310,15 +311,15 @@ public class SubscriptionRepositoryAdapterTest {
     jpa.saveAndFlush(
         new Subscription(studentId, otherEventId, ISubscription.SubscriptionSource.EXPLICIT));
 
-    List<ISubscription> result = subscriptionRepository.findAllByEventId(eventId);
+    List<ISubscription> result = subscriptionRepository.findAllByEventId(eventId, 0, 100).getContent();
 
     assertEquals(2, result.size());
     assertTrue(result.stream().allMatch(sub -> sub.getEventId().equals(eventId)));
   }
 
   @Test
-  void findAllByEventId_ReturnsEmptyList_WhenEventHasNoSubscriptions() {
+  void findAllByEventId_ReturnsEmptyPage_WhenEventHasNoSubscriptions() {
     // The event exists but has no subscriptions.
-    assertTrue(subscriptionRepository.findAllByEventId(eventId).isEmpty());
+    assertEquals(0, subscriptionRepository.findAllByEventId(eventId, 0, 100).getTotalElements());
   }
 }

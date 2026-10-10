@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import york.studentevents.subscriptions.ISubscription;
 import york.studentevents.subscriptions.ISubscriptionRepository;
 import york.studentevents.subscriptions.Subscription;
@@ -85,7 +88,7 @@ public class SubscriptionRepositoryAdapter implements ISubscriptionRepository {
     }
 
     List<Subscription> subList = jpa.findByUserIdAndEventId(userId, eventId);
-    
+
     // Retrieve the element, cast it to its interface, and wrap in an optional
     Optional<ISubscription> interfaceEntity;
 
@@ -103,32 +106,45 @@ public class SubscriptionRepositoryAdapter implements ISubscriptionRepository {
   }
 
   @Override
-  public List<ISubscription> findAll() {
-    return jpa.findAll()
-        .stream()
-        .map(sub -> (ISubscription) sub)
-        .toList();
+  public Page<ISubscription> findAll(int pageNumber, int pageSize) {
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+    return jpa.findAll(pageable)
+        .map(e -> (ISubscription) e);
   }
 
   @Override
-  public List<ISubscription> findAllByEventId(UUID eventId) {
+  public Page<ISubscription> findAllByEventId(UUID eventId, int pageNumber, int pageSize) {
     if (eventId == null) {
       throw new IllegalArgumentException("eventId cannot be null");
     }
-    return jpa.findByEventId(eventId)
-        .stream()
-        .map(sub -> (ISubscription) sub)
-        .toList();
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+    return jpa.findByEventId(eventId, pageNumber, pageSize)
+        .map(sub -> (ISubscription) sub);
   }
 
   @Override
-  public List<ISubscription> findAllByUserId(UUID userId) {
+  public Page<ISubscription> findAllByUserId(UUID userId, int pageNumber, int pageSize) {
     if (userId == null) {
       throw new IllegalArgumentException("userId cannot be null");
     }
-    return jpa.findByUserId(userId)
-        .stream()
-        .map(sub -> (ISubscription) sub)
-        .toList();
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+    return jpa.findByUserId(userId, pageNumber, pageSize)
+        .map(sub -> (ISubscription) sub);
   }
 }

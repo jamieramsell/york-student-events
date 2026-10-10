@@ -1,12 +1,17 @@
 package york.studentevents.events;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.MissingVenueException;
@@ -156,8 +161,8 @@ public class EventService {
    *     its start and end timings. An event must have a location in order to have been assigned
    *     start / end timings.
    *
-   * @param id The ID of the target event.
-   * @param location The (optional) new event location.
+   * @param eventId The ID of the target event.
+   * @param venueId The (optional) new event location.
    * @return A copy of the updated event record.
    *
    * @throws EventNotFoundException if an event with the given ID could not be found.
@@ -213,47 +218,122 @@ public class EventService {
   /**
    * Retrieves every event currently held by the backing repository.
    *
-   * @return a {@link List} of all events; never {@code null}, but may be empty if no events have
-   *     been saved
+   * @param pageNumber the page number to retrieve.
+   * @param pageSize the number of events to retrieve per page.
+   * @return a {@link Page} of all events; never {@code null}, but may be empty if no
+   *        events have been saved.
+   * @throws IllegalArgumentException if {@code pageNumber} is negative, or if {@code pageSize}
+   *        is less than 1.
    */
-  public List<IEvent> getAllEvents() {
-    return eventRepository.findAll();
+  public Page<IEvent> getAllEvents(int pageNumber, int pageSize) {
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+    return eventRepository.findAll(pageNumber, pageSize);
   }
 
   /**
-   * Retrieves all events which fall under any of the given set of categories.
+   * Retrieves all events which fall under any of the given set of categories in pages.
    *
    * @param categories The set of categories to retrieve
-   * @return a {@link List} of all events; never {@code null}, but may be empty if no events have
-   *     been saved
+   * @param pageNumber the page number to retrieve.
+   * @param pageSize the number of events to retrieve per page.
+   * @return a {@link Page} of all events; never {@code null}, but may be empty if no events have
+   *     been saved.
+   * @throws IllegalArgumentException if {@code pageNumber} is negative, or if
+   *        {@code pageSize} is less than 1.
    *
    * @see EventCategory
    */
-  public List<IEvent> getEventsByCategory(Set<EventCategory> categories) {
+
+
+  public Page<IEvent> getAllEventsByCategory(
+      Set<EventCategory> categories,
+      int pageNumber,
+      int pageSize
+  ) {
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+
     Predicate<IEvent> isRelevant = (IEvent event) -> categories.contains(event.getCategory());
-    return getAllEvents()
-        .stream()
-        .filter(isRelevant)
-        .toList();
+    int currentPage = 0;
+    Page<IEvent> page;
+    List<IEvent> returnList = new ArrayList<>(List.of());
+    do {
+      page = getAllEvents(currentPage, 100);
+      returnList.addAll(page.getContent());
+      currentPage++;
+    } while (page.hasNext());
+    returnList = returnList.stream().filter(isRelevant).toList();
+
+    long startIndexLong = (long) pageNumber * pageSize;
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+    if (startIndexLong >= returnList.size()) {
+      return new PageImpl<>(List.of(), pageable, returnList.size());
+    }
+
+    int startIndex = Math.toIntExact(startIndexLong);
+    int endIndex = Math.min(startIndex + pageSize, returnList.size());
+
+    List<IEvent> pageContent = new ArrayList<>(returnList.subList(startIndex, endIndex));
+    return new PageImpl<>(pageContent, pageable, returnList.size());
   }
 
   /**
-   * Retrieves all events which take place between two specified points in time. These two
-   * boundaries are inclusive, so an event which starts on the {@code start} boundary for example
-   * will be retrieved.
+   * Retrieves all events which take place between two specified points in time in pages.
+   * These two boundaries are inclusive, so an event which starts on the {@code start}
+   * boundary for example will be retrieved.
    *
    * <p>The datetime boundaries are nullable, meaning you can have a bound which an event must start
    *     at or after, without a restriction on when the event must finish, and vice versa.
    *
    * @param start The (optional) beginning of the time window
    * @param end The (optional) end of the time window
-   * @return All events which lie between the given points in time, inclusive.
+   * @return a {@see Page} of all events which lie between the given points in time, inclusive.
    */
-  public List<IEvent> getEventsByDateTime(LocalDateTime start, LocalDateTime end) {
-    return getAllEvents()
-        .stream()
-        .filter(event -> eventFallsBetween(event, start, end))
-        .toList();
+  public Page<IEvent> getAllEventsByDateTime(
+      LocalDateTime start,
+      LocalDateTime end,
+      int pageNumber,
+      int pageSize
+  ) {
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
+
+    int currentPage = 0;
+    Page<IEvent> page;
+    List<IEvent> returnList = new ArrayList<>(List.of());
+    do {
+      page = getAllEvents(currentPage, 100);
+      returnList.addAll(page.getContent());
+      currentPage++;
+    } while (page.hasNext());
+    returnList = returnList.stream().filter(e -> eventFallsBetween(e, start, end)).toList();
+
+    long startIndexLong = (long) pageNumber * pageSize;
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+    if (startIndexLong >= returnList.size()) {
+      return new PageImpl<>(List.of(), pageable, returnList.size());
+    }
+
+    int startIndex = Math.toIntExact(startIndexLong);
+    int endIndex = Math.min(startIndex + pageSize, returnList.size());
+
+    List<IEvent> pageContent = new ArrayList<>(returnList.subList(startIndex, endIndex));
+    return new PageImpl<>(pageContent, pageable, returnList.size());
   }
 
   /**

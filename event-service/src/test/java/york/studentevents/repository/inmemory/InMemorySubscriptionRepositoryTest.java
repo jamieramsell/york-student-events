@@ -57,8 +57,8 @@ class InMemorySubscriptionRepositoryTest {
     repository.save(new Subscription(userA, eventY, REGISTRATION));
     repository.save(new Subscription(userB, eventX, REGISTRATION));
 
-    assertEquals(2, repository.findAllByUserId(userA).size());
-    assertTrue(repository.findAllByUserId(userA).stream()
+    assertEquals(2, repository.findAllByUserId(userA, 0, 100).getTotalElements());
+    assertTrue(repository.findAllByUserId(userA, 0, 100).getContent().stream()
         .allMatch(sub -> sub.getUserId().equals(userA)));
   }
 
@@ -68,8 +68,8 @@ class InMemorySubscriptionRepositoryTest {
     repository.save(new Subscription(userB, eventX, REGISTRATION));
     repository.save(new Subscription(userA, eventY, REGISTRATION));
 
-    assertEquals(2, repository.findAllByEventId(eventX).size());
-    assertTrue(repository.findAllByEventId(eventX).stream()
+    assertEquals(2, repository.findAllByEventId(eventX, 0, 100).getTotalElements());
+    assertTrue(repository.findAllByEventId(eventX, 0, 100).getContent().stream()
         .allMatch(sub -> sub.getEventId().equals(eventX)));
   }
 

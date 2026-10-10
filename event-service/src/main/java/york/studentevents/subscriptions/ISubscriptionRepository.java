@@ -1,9 +1,11 @@
 package york.studentevents.subscriptions;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import york.studentevents.events.IEvent;
 import york.studentevents.repository.IRepository;
+import york.studentevents.users.IUser;
 
 /**
  * Repository for storing and retrieving {@link ISubscription} entities.
@@ -17,20 +19,30 @@ import york.studentevents.repository.IRepository;
 public interface ISubscriptionRepository extends IRepository<ISubscription> {
 
   /**
-   * Retrieves all subscriptions of a given User.
+   * Retrieves all subscriptions of a given {@link IUser} in pages.
    *
-   * @param userId the user's ID
-   * @return a {@link List} of the user's subscriptions; never {@code null}, but may be empty
+   * @param userId the user's ID.
+   * @param pageNumber the page number to retrieve; must be greater than or equal to 0.
+   * @param pageSize the number of entities to retrieve per page; must be greater than 0, and less
+   *     than or equal to 100.
+   * @return a {@link Page} of {@link IUser}; never {@code null}, but may be empty.
+   * @throws IllegalArgumentException if {@code pageNumber}, {@code pageSize}, or {@code userId}
+   *        are invalid or null.
    */
-  List<ISubscription> findAllByUserId(UUID userId);
+  Page<ISubscription> findAllByUserId(UUID userId, int pageNumber, int pageSize);
 
   /**
-   * Retrieves all subscriptions to a given Event.
+   * Retrieves all subscriptions to a given {@link IEvent} in pages.
    *
-   * @param eventId the events's ID
-   * @return a {@link List} of subscriptions to the Event; never {@code null}, but may be empty
+   * @param eventId the events' ID.
+   * @param pageNumber the page number to retrieve; must be greater than or equal to 0.
+   * @param pageSize the number of entities to retrieve per page; must be greater than 0,
+   *                 and less than or equal to 100.
+   * @return a {@link Page} of {@link IEvent}; never {@code null}, but may be empty.
+   * @throws IllegalArgumentException if {@code pageNumber}, {@code pageSize}, or {@code eventId}
+   *        are invalid or null.
    */
-  List<ISubscription> findAllByEventId(UUID eventId);
+  Page<ISubscription> findAllByEventId(UUID eventId, int pageNumber, int pageSize);
 
   /**
    * Looks up a Subscription by its user and event IDs.

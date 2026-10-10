@@ -1,5 +1,6 @@
 package york.studentevents.events;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -7,12 +8,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.users.IHost;
-import york.studentevents.users.IUser;
 import york.studentevents.users.IUser.UserType;
+import york.studentevents.users.IUser;
 import york.studentevents.users.IUserRepository;
 
 /**
@@ -138,27 +143,54 @@ public class HostEventService {
   }
 
   /**
-   * Returns the hosts for a given event.
+   * Returns the hosts for a given event in pages.
    *
-   * @param eventId the ID of the target event
+   * @param eventId the ID of the target event.
+   * @param pageNumber the page number to retrieve.
+   * @param pageSize the number of hosts to retrieve per page.
    * @return the set of hosts for a given event; may be empty, never null
-   * @throws EventNotFoundException if the event does not exist
+   * @throws EventNotFoundException if the event does not exist.
+   * @throws IllegalArgumentException if {@code pageNumber} is negative, or if
+   *        {@code pageSize} is less than 1.
    */
-  public Set<IHost> getHostsForEvent(UUID eventId) {
+  public Page<IHost> getAllHostsForEvent(UUID eventId, int pageNumber, int pageSize) {
+    if (pageNumber < 0) {
+      throw new IllegalArgumentException("pageNumber must not be negative");
+    }
+    if (pageSize <= 0) {
+      throw new IllegalArgumentException("pageSize must be greater than zero");
+    }
     eventService.getEvent(eventId); // Verify that the event does exist
 
     Predicate<IUser> isHost = user -> user.getType() == UserType.HOST;
     Predicate<IHost> isHostingSpecifiedEvent = host -> host.getHostedEvents().contains(eventId);
+    int currentPage = 0;
+    Page<IUser> page;
+    List<IUser> users = new ArrayList<>(List.of());
 
-    List<IUser> users = userRepository.findAll();
-
-    List<IHost> hostsOfEvent = users.stream()
+    do {
+      page = userRepository.findAll(currentPage, 100);
+      users.addAll(page.getContent());
+      currentPage++;
+    } while (page.hasNext());
+    List<IHost> hosts = users.stream()
         .filter(isHost)
-        .map(user -> (IHost) user)
+        .map(u -> (IHost) u)
         .filter(isHostingSpecifiedEvent)
         .toList();
 
-    return new HashSet<IHost>(hostsOfEvent);
+    long startIndexLong = (long) pageNumber * pageSize;
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+    if (hosts.isEmpty()) {
+      return new PageImpl<>(List.of(), PageRequest.of(pageNumber, pageSize), 0);
+    }
+
+    int startIndex = Math.toIntExact(startIndexLong);
+    int endIndex = Math.min(startIndex + pageSize, hosts.size());
+
+    List<IHost> pageContent = new ArrayList<>(hosts.subList(startIndex, endIndex)) {};
+    return new PageImpl<>(pageContent, pageable, hosts.size());
   }
 
   /**

@@ -2,6 +2,7 @@ package york.studentevents.subscriptions;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import york.studentevents.subscriptions.ISubscription.SubscriptionSource;
 
 /**
@@ -13,8 +14,8 @@ import york.studentevents.subscriptions.ISubscription.SubscriptionSource;
  * an event's subscribers by populating an {@link EventNotificationService} from the stored records.
  *
  * <p>A user holds at most one subscription per event. Explicit subscriptions are sticky:
- * registration never overwrites one and deregistration never removes one; only an explicit
- * unsubscribe does.
+ * registration never overwrites one, and deregistration never removes one; only an explicit
+ * unsubscribing does.
  *
  * <p>Note that no validation is performed against the user or event IDs passed in. That logic is
  * delegated to the {@code StudentEventService} which owns the instance of
@@ -106,7 +107,7 @@ public class SubscriptionService {
    *
    * <p>A {@link SubscriptionSource#REGISTRATION} request (a deregistration) removes only a
    * registration-based subscription. An explicit subscription is left untouched, and if no
-   * matching subscription exists the state is simply left unaffected: this is not an error.
+   * matching subscription exists, the state is simply left unaffected: this is not an error.
    *
    * <p>A {@link SubscriptionSource#EXPLICIT} request (an explicit unsubscription) removes the
    * user's subscription regardless of how it was created.
@@ -153,26 +154,29 @@ public class SubscriptionService {
   /**
    * Publish a notification to the subscribers of an event.
    *
-   * <p>Creates an instance of {@link EventNotificationService}, which is used to notify a
-   * {@link UserEventObserver} of each User subscribed to the Event.
+   * <p>Creates an instance of {@link EventNotificationService}, which is used to notify a {@link
+   * UserEventObserver} of each User subscribed to the Event.
    *
    * <p>Note that, due to the nature of {@code SubscriptionService}, no validation is performed to
-   * check whether an Event with the given ID exists; this logic should be delegated to the
-   * {@code StudentEventService} which owns the instance of {@code SubscriptionService}.
+   * check whether an Event with the given ID exists; this logic should be delegated to the {@code
+   * StudentEventService} which owns the instance of {@code SubscriptionService}.
    *
    * @param eventId The event about which to publish a notification.
    * @param reason The reason for the notification
-   *
    * @see NotificationType
    * @see EventNotificationService
    */
   public void publish(UUID eventId, NotificationType reason) {
     EventNotificationService channel = new EventNotificationService(eventId);
+    int pageNumber = 0;
+    Page<ISubscription> page;
 
-    // Attach all subscribers as UserEventObservers
-    subscriptionRepository.findAllByEventId(eventId)
-        .stream()
-        .forEach(subscription -> channel.attach(new UserEventObserver(subscription.getUserId())));
+    do {
+      page = subscriptionRepository.findAllByEventId(eventId, pageNumber, 100);
+      page.stream()
+          .forEach(subscription -> channel.attach(new UserEventObserver(subscription.getUserId())));
+      pageNumber++;
+    } while (page.hasNext());
 
     channel.notifyObservers(reason);
   }

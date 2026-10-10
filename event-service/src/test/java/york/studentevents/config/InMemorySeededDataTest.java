@@ -157,27 +157,27 @@ class InMemorySeededDataTest {
 
   @Test
   void loadsAllVenues() {
-    assertEquals(expectedVenueCount, venueRepository.findAll().size());
+    assertEquals(expectedVenueCount, venueRepository.findAll(0, 100).getTotalElements());
   }
 
   @Test
   void loadsAllUsers() {
-    assertEquals(expectedUserCount, userRepository.findAll().size());
+    assertEquals(expectedUserCount, userRepository.findAll(0, 100).getTotalElements());
   }
 
   @Test
   void loadsAllEvents() {
-    assertEquals(expectedEventCount, eventRepository.findAll().size());
+    assertEquals(expectedEventCount, eventRepository.findAll(0, 100).getTotalElements());
   }
 
   @Test
   void loadsAllCohorts() {
-    assertEquals(expectedCohortCount, cohortRepository.findAll().size());
+    assertEquals(expectedCohortCount, cohortRepository.findAll(0, 100).getTotalElements());
   }
 
   @Test
   void loadsAllSubscriptions() {
-    assertEquals(expectedSubscriptionCount, subscriptionRepository.findAll().size());
+    assertEquals(expectedSubscriptionCount, subscriptionRepository.findAll(0, 100).getTotalElements());
   }
 
   // B. Field mapping – spot-check one entity per type /////////////////////////////////////////
@@ -264,7 +264,7 @@ class InMemorySeededDataTest {
 
   @Test
   void allStudentsAreStudentInstances() {
-    long count = userRepository.findAll().stream()
+    long count = userRepository.findAll(0, 100).stream()
         .filter(u -> u.getType() == IUser.UserType.STUDENT)
         .peek(u -> assertInstanceOf(Student.class, u))
         .count();
@@ -273,7 +273,7 @@ class InMemorySeededDataTest {
 
   @Test
   void allHostsAreHostInstances() {
-    long count = userRepository.findAll().stream()
+    long count = userRepository.findAll(0, 100).stream()
         .filter(u -> u.getType() == IUser.UserType.HOST)
         .peek(u -> assertInstanceOf(Host.class, u))
         .count();
@@ -433,16 +433,16 @@ class InMemorySeededDataTest {
     sd.run();
     sd.run();
 
-    assertEquals(expectedVenueCount, vr.findAll().size());
-    assertEquals(expectedUserCount, ur.findAll().size());
-    assertEquals(expectedEventCount, er.findAll().size());
-    assertEquals(expectedCohortCount, cr.findAll().size());
-    assertEquals(expectedSubscriptionCount, sr.findAll().size());
+    assertEquals(expectedVenueCount, vr.findAll(0, 100).getTotalElements());
+    assertEquals(expectedUserCount, ur.findAll(0, 100).getTotalElements());
+    assertEquals(expectedEventCount, er.findAll(0, 100).getTotalElements());
+    assertEquals(expectedCohortCount, cr.findAll(0, 100).getTotalElements());
+    assertEquals(expectedSubscriptionCount, sr.findAll(0, 100).getTotalElements());
   }
 
   @Test
   void eventVenueIdsReferenceExistingVenues() {
-    eventRepository.findAll().forEach(event -> {
+    eventRepository.findAll(0, 100).forEach(event -> {
       if (event.getVenue() != null) {
         assertTrue(
             venueRepository.findByID(event.getVenue()).isPresent(),
