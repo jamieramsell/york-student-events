@@ -88,7 +88,7 @@ public class InMemorySubscriptionRepository extends AbstractInMemoryRepository<I
 
     List<ISubscription> returnList = new ArrayList<>(hashMap.values());
     returnList.sort(Comparator.comparing(ISubscription::getId));
-    returnList = returnList.stream().filter(sub -> sub.getUserId().equals(eventId)).toList();
+    returnList = returnList.stream().filter(sub -> sub.getEventId()Id().equals(eventId)).toList();
 
     long startIndexLong = (long) pageNumber * pageSize;
     Pageable pageable = PageRequest.of(pageNumber, pageSize);
