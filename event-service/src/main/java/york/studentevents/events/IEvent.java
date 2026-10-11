@@ -2,6 +2,7 @@ package york.studentevents.events;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import york.studentevents.exceptions.MissingVenueException;
 import york.studentevents.repository.IEntity;
 
 /** Represents a social event that can be attended by students. */
@@ -71,7 +72,7 @@ public abstract class IEvent extends IEntity {
    * @param startDateTime when the event begins
    * @param endDateTime when the event ends; must not be {@code null} if a {@code startDateTime} has
    *     been provided, and must occur after {@code startDateTime}
-   * @throws IllegalStateException if no location has been assigned to the event.
+   * @throws MissingVenueException if no location has been assigned to the event.
    * @throws IllegalArgumentException if {@code endDateTime} is before {@code startDateTime}, or if
    *     an {@code endDateTime} has been provided when {@code startDateTime == null}.
    */

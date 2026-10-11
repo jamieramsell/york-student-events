@@ -1,7 +1,7 @@
 package york.studentevents.exceptions;
 
 /** Thrown when a requested event cannot be found. */
-public class EventNotFoundException extends RuntimeException {
+public class EventNotFoundException extends EntityNotFoundException {
 
   /**
    * Constructs the exception with a detail message.

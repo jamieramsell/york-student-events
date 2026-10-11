@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 import york.studentevents.exceptions.CapacityExceededException;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
@@ -75,7 +76,7 @@ public class StudentEventService {
    * @throws UserNotFoundException if the user does not exist
    * @throws UserNotAuthorisedException if the given user is not a Student
    * @throws EventNotFoundException if the event does not exist
-   * @throws IllegalArgumentException if the student is already registered for the event
+   * @throws ConflictException if the student is already registered for the event
    * @throws CapacityExceededException if the event is full
    */
   public void registerForEvent(UUID userId, UUID eventId) {
@@ -90,7 +91,7 @@ public class StudentEventService {
     // Ensure that the student was not already registered for the event
     boolean successfullyAdded = studentEvents.add(eventId);
     if (!successfullyAdded) {
-      throw new IllegalArgumentException("The student is already registered for this event");
+      throw new ConflictException("The student is already registered for this event");
     }
 
     // Update the student's record
@@ -108,7 +109,7 @@ public class StudentEventService {
    * @throws UserNotFoundException if the user does not exist
    * @throws UserNotAuthorisedException if the given user is not a Student
    * @throws EventNotFoundException if the event does not exist.
-   * @throws IllegalArgumentException if the student is not registered for the event
+   * @throws ConflictException if the student is not registered for the event
    */
   public void deregisterFromEvent(UUID userId, UUID eventId) {
     IStudent student = getStudent(userId);
@@ -118,7 +119,7 @@ public class StudentEventService {
     // Ensure that the student was already signed up for the event
     boolean successfullyRemoved = studentEvents.remove(eventId);
     if (!successfullyRemoved) {
-      throw new IllegalArgumentException("The student is not registered for the given event");
+      throw new ConflictException("The student is not registered for the given event");
     }
 
     // Update the student's record

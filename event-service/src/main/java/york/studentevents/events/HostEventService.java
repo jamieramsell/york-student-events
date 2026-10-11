@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
@@ -60,7 +61,7 @@ public class HostEventService {
    * @throws UserNotFoundException if the user does not exist
    * @throws UserNotAuthorisedException if the given user is not a Host
    * @throws EventNotFoundException if the event does not exist
-   * @throws IllegalArgumentException if the Host is already registered for the event
+   * @throws ConflictException if the Host is already registered for the event
    */
   public void registerForEvent(UUID userId, UUID eventId) {
     IHost host = getHost(userId);
@@ -70,7 +71,7 @@ public class HostEventService {
     // Ensure that the Host was not already registered for the event
     boolean successfullyAdded = hostEvents.add(eventId);
     if (!successfullyAdded) {
-      throw new IllegalArgumentException("The Host is already registered for this event");
+      throw new ConflictException("The Host is already registered for this event");
     }
 
     // Update the Hosts's record
@@ -86,7 +87,7 @@ public class HostEventService {
    * @throws UserNotFoundException if the user does not exist
    * @throws UserNotAuthorisedException if the given user is not a Host
    * @throws EventNotFoundException if the event does not exist.
-   * @throws IllegalArgumentException if the host is not registered for the event
+   * @throws ConflictException if the host is not registered for the event
    */
   public void deregisterFromEvent(UUID userId, UUID eventId) {
     IHost host = getHost(userId);
@@ -96,7 +97,7 @@ public class HostEventService {
     // Ensure that the host was already signed up for the event
     boolean successfullyRemoved = hostEvents.remove(eventId);
     if (!successfullyRemoved) {
-      throw new IllegalArgumentException("The host is not registered for the given event");
+      throw new ConflictException("The host is not registered for the given event");
     }
 
     // Update the host's record

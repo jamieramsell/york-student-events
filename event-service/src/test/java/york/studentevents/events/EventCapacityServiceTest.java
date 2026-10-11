@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import york.studentevents.exceptions.CapacityExceededException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.VenueNotFoundException;
 import york.studentevents.repository.inmemory.InMemoryEventRepository;
@@ -103,12 +104,12 @@ public class EventCapacityServiceTest {
   }
 
   @Test
-  void updateEventVenue_whenAttendeesExceedVenueCapacity_throwsIllegalStateException() {
+  void updateEventVenue_whenAttendeesExceedVenueCapacity_throwsCapacityExceededException() {
     Event event = newUnlimitedEvent();
     Venue venue = newVenue(3);
     registerStudents(event.getId(), 5);
 
-    assertThrows(IllegalStateException.class,
+    assertThrows(CapacityExceededException.class,
         () -> eventCapacityService.updateEventVenue(event.getId(), venue.getId()));
   }
 
@@ -175,11 +176,11 @@ public class EventCapacityServiceTest {
   }
 
   @Test
-  void updateEventCapacity_whenAttendeesExceedNewCapacity_throwsIllegalStateException() {
+  void updateEventCapacity_whenAttendeesExceedNewCapacity_throwsCapacityExceededException() {
     Event event = newEvent(10);
     registerStudents(event.getId(), 4);
 
-    assertThrows(IllegalStateException.class,
+    assertThrows(CapacityExceededException.class,
         () -> eventCapacityService.updateEventCapacity(event.getId(), 3));
   }
 
