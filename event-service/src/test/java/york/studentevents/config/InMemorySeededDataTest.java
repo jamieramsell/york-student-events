@@ -69,15 +69,11 @@ class InMemorySeededDataTest {
       UUID.fromString("20000000-0000-4000-a000-000000000002");
   private static final UUID DEV =
       UUID.fromString("20000000-0000-4000-a000-000000000004");
-  private static final UUID FIONA =
-      UUID.fromString("20000000-0000-4000-a000-000000000006");
 
   // Host IDs
   private static final UUID YUSU =
       UUID.fromString("30000000-0000-4000-a000-000000000001");
-  private static final UUID DRAMASOC =
-      UUID.fromString("30000000-0000-4000-a000-000000000004");
-
+  
   // Event IDs
   private static final UUID FRESHERS_FAIR =
       UUID.fromString("40000000-0000-4000-a000-000000000001");
@@ -85,14 +81,10 @@ class InMemorySeededDataTest {
       UUID.fromString("40000000-0000-4000-a000-000000000004");
   private static final UUID BAKE_SALE =
       UUID.fromString("40000000-0000-4000-a000-000000000008");
-  private static final UUID LAKESIDE_FILM =
-      UUID.fromString("40000000-0000-4000-a000-000000000009");
 
   // Cohort IDs
   private static final UUID CS_COHORT =
       UUID.fromString("50000000-0000-4000-a000-000000000001");
-  private static final UUID HISTORY_COHORT =
-      UUID.fromString("50000000-0000-4000-a000-000000000002");
   private static final UUID MATHS_COHORT =
       UUID.fromString("50000000-0000-4000-a000-000000000003");
 

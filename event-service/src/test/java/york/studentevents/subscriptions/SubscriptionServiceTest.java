@@ -57,6 +57,7 @@ class SubscriptionServiceTest {
     observerLogger.detachAppender(logAppender);
   }
 
+  @SuppressWarnings("null")
   private List<String> loggedMessages() {
     return logAppender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
   }
