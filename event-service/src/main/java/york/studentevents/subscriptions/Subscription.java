@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 import york.studentevents.events.IEvent;
 import york.studentevents.users.IUser;
 
@@ -14,7 +15,7 @@ import york.studentevents.users.IUser;
  */
 @Entity 
 @Table(name = "student_event_subscriptions")
-public class Subscription implements ISubscription {
+public class Subscription extends ISubscription {
   
   @Id 
   private UUID id;
@@ -82,7 +83,11 @@ public class Subscription implements ISubscription {
   // Getters //
 
   @Override
+  @NonNull 
   public UUID getId() {
+    if (id == null) {
+      throw new IllegalStateException("Entity has been instantiated without an id");
+    }
     return id;
   }
 

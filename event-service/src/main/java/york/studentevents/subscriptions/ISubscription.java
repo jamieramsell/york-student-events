@@ -4,10 +4,10 @@ import java.util.UUID;
 import york.studentevents.repository.IEntity;
 
 /** Represents a Subscription, where a given user has subscribed to a given event. */
-public interface ISubscription extends IEntity {
+public abstract class ISubscription extends IEntity {
 
   /** Represents the reason why a given subscription instance was created. */
-  enum SubscriptionSource {
+  public enum SubscriptionSource {
 
     /** The subscription was created automatically, due to the user registering for the event. */
     REGISTRATION,
@@ -18,12 +18,12 @@ public interface ISubscription extends IEntity {
   }
 
   /** Retrieves the ID of the User that the subscription targets. */
-  UUID getUserId();
+  public abstract UUID getUserId();
 
   /** Retrieves the ID of the Event that the subscription targets. */
-  UUID getEventId();
+  public abstract UUID getEventId();
 
   /** Retrieves the reason why the subscription was generated. */
-  SubscriptionSource getSource();
+  public abstract SubscriptionSource getSource();
 
 }

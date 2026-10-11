@@ -3,20 +3,20 @@ package york.studentevents.venues;
 import york.studentevents.repository.IEntity;
 
 /** Represents a venue where events can be held. */
-public interface IVenue extends IEntity {
+public abstract class IVenue extends IEntity {
 
   /** Returns the name of the venue. */
-  String getName();
+  public abstract String getName();
 
   /** Returns the address of the venue. */
-  String getAddress();
+  public abstract String getAddress();
 
   /**
    * Returns the maximum number of attendees the venue can hold.
    *
    * @return the capacity of the venue, or {@code null} if the venue has no maximum capacity.
    */
-  Integer getCapacity();
+  public abstract Integer getCapacity();
 
   /**
    * Sets the address of the venue.
@@ -25,7 +25,7 @@ public interface IVenue extends IEntity {
    *
    * @throws IllegalArgumentException if the name is {@code null}, blank, or empty.
    */
-  void setName(String name);
+  public abstract void setName(String name);
 
   /**
    * Sets the address of the venue.
@@ -34,7 +34,7 @@ public interface IVenue extends IEntity {
    *
    * @throws IllegalArgumentException if the address is {@code null}, blank, or empty.
    */
-  void setAddress(String address);
+  public abstract void setAddress(String address);
 
   /**
    * Sets the capacity of the venue.
@@ -44,6 +44,6 @@ public interface IVenue extends IEntity {
    *
    * @throws IllegalArgumentException if capacity {@code <= 0}, and is not {@code null}.
    */
-  void setCapacity(Integer capacity);
+  public abstract void setCapacity(Integer capacity);
 
 }

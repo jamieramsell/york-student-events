@@ -8,7 +8,7 @@ import java.util.UUID;
 /** Represents a Host user of the platform, including their profile details, and hosted events. */
 @Entity
 @DiscriminatorValue("HOST")
-public class Host extends User implements IHost {
+public class Host extends IHost {
 
   /** Creates a {@code Host} with the given details.
    *

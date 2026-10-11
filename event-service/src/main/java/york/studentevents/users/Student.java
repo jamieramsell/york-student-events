@@ -11,7 +11,7 @@ import java.util.UUID;
  */
 @Entity
 @DiscriminatorValue("STUDENT")
-public class Student extends User implements IStudent {
+public class Student extends IStudent {
   
   /** Creates a {@code Student} with the given details.
    *

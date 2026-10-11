@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 /**
  * Represents a cohort of students grouped by department, academic year, and year group.
@@ -16,7 +17,7 @@ import java.util.UUID;
  * <p>A cohort maintains the set of member user IDs belonging to it.
  */
 @Entity
-public class Cohort implements ICohort {
+public class Cohort extends ICohort {
 
   @Id
   private UUID id;
@@ -95,7 +96,11 @@ public class Cohort implements ICohort {
   protected Cohort() {}
 
   @Override
+  @NonNull 
   public UUID getId() {
+    if (id == null) {
+      throw new IllegalStateException("Entity has been instantiated without an id");
+    }
     return id;
   }
 

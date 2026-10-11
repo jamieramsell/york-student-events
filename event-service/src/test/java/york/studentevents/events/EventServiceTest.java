@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import york.studentevents.exceptions.EventNotFoundException;
+import york.studentevents.exceptions.MissingVenueException;
 import york.studentevents.repository.inmemory.InMemoryEventRepository;
 import york.studentevents.venues.IVenue;
 import york.studentevents.venues.Venue;
@@ -214,11 +215,11 @@ class EventServiceTest {
   }
 
   @Test
-  void updateEventDateTime_whenNoLocationAssigned_throwsIllegalStateException() {
+  void updateEventDateTime_whenNoLocationAssigned_throwsMissingVenueException() {
     IEvent event = savedEvent();
     LocalDateTime start = LocalDateTime.now().plusDays(1);
 
-    assertThrows(IllegalStateException.class,
+    assertThrows(MissingVenueException.class,
         () -> service.updateEventDateTime(event.getId(), start, start.plusHours(2)));
   }
 

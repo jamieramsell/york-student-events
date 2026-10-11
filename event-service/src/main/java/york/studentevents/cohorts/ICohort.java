@@ -10,28 +10,28 @@ import york.studentevents.repository.IEntity;
  * <p>A cohort groups students who share an academic year, enabling targeted event discovery and
  * social features. Implementations are responsible for maintaining cohort identity and membership.
  */
-public interface ICohort extends IEntity {
+public abstract class ICohort extends IEntity {
 
   /**
    * Returns the display name of this cohort.
    *
    * @return the cohort name; never {@code null}
    */
-  String getName();
+  public abstract String getName();
 
   /**
    * Returns the name of the department which this cohort belongs to (e.g. Computer Science)
    *
    * @return the display name of the department; never {@code null}
    */
-  String getDepartment();
+  public abstract String getDepartment();
 
   /**
    * Returns the academic year associated with this cohort.
    *
    * @return the academic year (e.g. {@code 2025} for the 2025/26 cohort)
    */
-  int getAcademicYear();
+  public abstract int getAcademicYear();
 
   /**
    * Returns the year group / stage of the cohort.
@@ -48,49 +48,49 @@ public interface ICohort extends IEntity {
    *
    * @return the stage to which the cohort belongs
    */
-  int getYearGroup();
+  public abstract int getYearGroup();
 
   /**
    * Returns the IDs of all Students belonging to this cohort.
    *
    * @return a set of member user IDs; never {@code null}
    */
-  Set<UUID> getMembers();
+  public abstract Set<UUID> getMembers();
 
   /** Adds a Student by UUID to this cohort.
    *
    * @param memberId the user ID of the member to add
    * @throws IllegalArgumentException if the member is already a member of this cohort
    */
-  void addMember(UUID memberId);
+  public abstract void addMember(UUID memberId);
 
   /** Removes a Student by UUID from this cohort.
    *
    * @param memberId the user ID of the member to remove; must be a member of this cohort.
    * @throws IllegalArgumentException if the member is not a member of this cohort
    */
-  void removeMember(UUID memberId);
+  public abstract void removeMember(UUID memberId);
 
   /**
    * Set the display name of this cohort.
    *
    * @param name the cohort name; never {@code null}
    */
-  void setName(String name);
+  public abstract void setName(String name);
 
   /**
    * Set the name of the department which this cohort belongs to (e.g. Computer Science)
    *
    * @param departmentName the display name of the department; never {@code null}
    */
-  void setDepartment(String departmentName);
+  public abstract void setDepartment(String departmentName);
 
   /**
    * Set the academic year associated with this cohort.
    *
    * @param academicYear the academic year (e.g. {@code 2025} for the 2025/26 cohort); must be > 0.
    */
-  void setAcademicYear(int academicYear);
+  public abstract void setAcademicYear(int academicYear);
 
   /**
    * Set the year group / stage of the cohort.
@@ -109,6 +109,6 @@ public interface ICohort extends IEntity {
    * 
    * @throws IllegalArgumentException if stage is less than 0, or greater than 5.
    */
-  void setYearGroup(int stage);
+  public abstract void setYearGroup(int stage);
   
 }

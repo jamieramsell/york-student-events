@@ -5,28 +5,28 @@ import java.util.UUID;
 import york.studentevents.repository.IEntity;
 
 /** Represents a social event that can be attended by students. */
-public interface IEvent extends IEntity {
+public abstract class IEvent extends IEntity {
 
   // Getters //
 
   /** Returns the title of this event. */
-  String getTitle();
+  public abstract String getTitle();
 
   /** Returns an extended description of this event. */
-  String getDescription();
+  public abstract String getDescription();
 
   /** Returns the date and time at which this event begins. */
-  LocalDateTime getStartDateTime();
+  public abstract LocalDateTime getStartDateTime();
 
   /** Returns the date and time at which this event ends. */
-  LocalDateTime getEndDateTime();
+  public abstract LocalDateTime getEndDateTime();
 
   /** Returns the ID of the venue which is hosting the event.
    *
    * <p>Note that validation that the given venue exists must be handled by the EventService. This
    *     validation is not handled within the Event domain itself.
    */
-  UUID getVenue(); 
+  public abstract UUID getVenue(); 
 
   /**
    * Returns the maximum number of attendees for this event, or {@code null} if there is no limit.
@@ -35,14 +35,14 @@ public interface IEvent extends IEntity {
    *     be handled by the EventService. This validation is not handled within the Event domain
    *     itself.
    */
-  Integer getCapacity();
+  public abstract Integer getCapacity();
 
   /**
    * Returns the category that classifies this event.
    *
    * @see EventCategory
    */
-  EventCategory getCategory();
+  public abstract EventCategory getCategory();
 
   // Setters //
 
@@ -51,14 +51,14 @@ public interface IEvent extends IEntity {
    *
    * @param title the new title; must not be {@code null} or blank
    */
-  void setTitle(String title);
+  public abstract void setTitle(String title);
 
   /**
    * Sets the description of this event.
    *
    * @param description a human-readable summary of the event
    */
-  void setDescription(String description);
+  public abstract void setDescription(String description);
 
   /**
    * Sets the start and end date/time for this event.
@@ -75,7 +75,7 @@ public interface IEvent extends IEntity {
    * @throws IllegalArgumentException if {@code endDateTime} is before {@code startDateTime}, or if
    *     an {@code endDateTime} has been provided when {@code startDateTime == null}.
    */
-  void setDateTime(LocalDateTime startDateTime, LocalDateTime endDateTime);
+  public abstract void setDateTime(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
   /**
    * Sets the venue of this event.
@@ -88,7 +88,7 @@ public interface IEvent extends IEntity {
    * @throws IllegalStateException if trying to remove the location when the event has already been
    *     assigned a date and time.
    */
-  void setVenue(UUID venueId);
+  public abstract void setVenue(UUID venueId);
 
   /**
    * Sets the maximum number of attendees for this event.
@@ -101,7 +101,7 @@ public interface IEvent extends IEntity {
    *
    * @throws IllegalArgumentException if {@code capacity} is less than one.
    */
-  void setCapacity(Integer capacity);
+  public abstract void setCapacity(Integer capacity);
 
   /**
    * Sets the category that classifies this event.
@@ -110,6 +110,6 @@ public interface IEvent extends IEntity {
    * 
    * @see EventCategory
    */
-  void setCategory(EventCategory category);
+  public abstract void setCategory(EventCategory category);
 
 }
