@@ -16,8 +16,8 @@ import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.users.IHost;
-import york.studentevents.users.IUser.UserType;
 import york.studentevents.users.IUser;
+import york.studentevents.users.IUser.UserType;
 import york.studentevents.users.IUserRepository;
 
 /**

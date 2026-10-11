@@ -278,7 +278,8 @@ public class SubscriptionRepositoryAdapterTest {
     jpa.saveAndFlush(
         new Subscription(otherStudentId, eventId, ISubscription.SubscriptionSource.EXPLICIT));
 
-    List<ISubscription> result = subscriptionRepository.findAllByUserId(studentId, 0, 100).getContent();
+    List<ISubscription> result = 
+        subscriptionRepository.findAllByUserId(studentId, 0, 100).getContent();
 
     assertEquals(2, result.size());
     assertTrue(result.stream().allMatch(sub -> sub.getUserId().equals(studentId)));
@@ -295,7 +296,8 @@ public class SubscriptionRepositoryAdapterTest {
   @Test
   void findAllByEventId_RejectsNullEventId() {
     assertThrows(
-        IllegalArgumentException.class, () -> subscriptionRepository.findAllByEventId(null, 0, 100));
+        IllegalArgumentException.class,
+        () -> subscriptionRepository.findAllByEventId(null, 0, 100));
   }
 
   @Test
@@ -311,7 +313,8 @@ public class SubscriptionRepositoryAdapterTest {
     jpa.saveAndFlush(
         new Subscription(studentId, otherEventId, ISubscription.SubscriptionSource.EXPLICIT));
 
-    List<ISubscription> result = subscriptionRepository.findAllByEventId(eventId, 0, 100).getContent();
+    List<ISubscription> result = 
+        subscriptionRepository.findAllByEventId(eventId, 0, 100).getContent();
 
     assertEquals(2, result.size());
     assertTrue(result.stream().allMatch(sub -> sub.getEventId().equals(eventId)));

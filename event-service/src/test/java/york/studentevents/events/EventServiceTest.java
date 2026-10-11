@@ -1,18 +1,17 @@
 package york.studentevents.events;
 
-import java.util.HashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Page;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.repository.inmemory.InMemoryEventRepository;
 import york.studentevents.venues.IVenue;
@@ -431,7 +430,8 @@ class EventServiceTest {
     savedEvent(EventCategory.SPORTS);
     savedEvent(EventCategory.ACADEMIC);
 
-    List<IEvent> results = service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 100).getContent();
+    List<IEvent> results =
+        service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 100).getContent();
 
     assertEquals(List.of(music), results);
   }
@@ -442,8 +442,9 @@ class EventServiceTest {
     final IEvent sports = savedEvent(EventCategory.SPORTS);
     savedEvent(EventCategory.ACADEMIC);
 
-    List<IEvent> results =
-        service.getAllEventsByCategory(Set.of(EventCategory.MUSIC, EventCategory.SPORTS), 0, 100).getContent();
+    List<IEvent> results = service.getAllEventsByCategory(
+            Set.of(EventCategory.MUSIC, EventCategory.SPORTS), 0, 100
+        ).getContent();
 
     assertEquals(2, results.size());
     assertTrue(results.contains(music));
@@ -455,7 +456,8 @@ class EventServiceTest {
     savedEvent(EventCategory.MUSIC);
     savedEvent(EventCategory.SPORTS);
 
-    assertEquals(0, service.getAllEventsByCategory(Set.of(EventCategory.NIGHTLIFE), 0, 100).getTotalElements());
+    assertEquals(0,
+        service.getAllEventsByCategory(Set.of(EventCategory.NIGHTLIFE), 0, 100).getTotalElements());
   }
 
   @Test
@@ -467,7 +469,8 @@ class EventServiceTest {
 
   @Test
   void getAllEventsByCategory_whenNoEventsSaved_returnsEmptyPage() {
-    assertEquals(0, service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 100).getTotalElements());
+    assertEquals(0,
+        service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 100).getTotalElements());
   }
 
   // --- getEventsByDateTime ---
@@ -500,7 +503,8 @@ class EventServiceTest {
     savedScheduledEvent(base.plusHours(1), base.plusHours(2)); // starts before bound
     IEvent later = savedScheduledEvent(base.plusHours(5), base.plusHours(6));
 
-    List<IEvent> results = service.getAllEventsByDateTime(base.plusHours(3), null, 0, 100).getContent();
+    List<IEvent> results =
+        service.getAllEventsByDateTime(base.plusHours(3), null, 0, 100).getContent();
 
     assertEquals(List.of(later), results);
   }
@@ -511,7 +515,8 @@ class EventServiceTest {
     IEvent earlier = savedScheduledEvent(base.plusHours(1), base.plusHours(2));
     savedScheduledEvent(base.plusHours(5), base.plusHours(6)); // ends after bound
 
-    List<IEvent> results = service.getAllEventsByDateTime(null, base.plusHours(4), 0, 100).getContent();
+    List<IEvent> results =
+        service.getAllEventsByDateTime(null, base.plusHours(4), 0, 100).getContent();
 
     assertEquals(List.of(earlier), results);
   }
@@ -523,7 +528,8 @@ class EventServiceTest {
     savedScheduledEvent(base.plusMinutes(30), base.plusMinutes(45)); // starts before window
     savedScheduledEvent(base.plusHours(5), base.plusHours(6)); // ends after window
 
-    List<IEvent> results = service.getAllEventsByDateTime(base.plusHours(1), base.plusHours(4), 0, 100).getContent();
+    List<IEvent> results =
+        service.getAllEventsByDateTime(base.plusHours(1), base.plusHours(4), 0, 100).getContent();
 
     assertEquals(List.of(within), results);
   }
@@ -533,7 +539,8 @@ class EventServiceTest {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
     IEvent onBoundary = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
 
-    List<IEvent> results = service.getAllEventsByDateTime(base.plusHours(2), null, 0, 100).getContent();
+    List<IEvent> results =
+        service.getAllEventsByDateTime(base.plusHours(2), null, 0, 100).getContent();
 
     assertEquals(List.of(onBoundary), results);
   }
@@ -543,7 +550,8 @@ class EventServiceTest {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
     IEvent onBoundary = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
 
-    List<IEvent> results = service.getAllEventsByDateTime(null, base.plusHours(3), 0, 100).getContent();
+    List<IEvent> results =
+        service.getAllEventsByDateTime(null, base.plusHours(3), 0, 100).getContent();
 
     assertEquals(List.of(onBoundary), results);
   }
@@ -552,7 +560,8 @@ class EventServiceTest {
   void getAllEventsByDateTime_whenNoEventsSaved_returnsEmptyPage() {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
 
-    assertEquals(0, service.getAllEventsByDateTime(base, base.plusHours(1), 0, 100).getTotalElements());
+    assertEquals(0,
+        service.getAllEventsByDateTime(base, base.plusHours(1), 0, 100).getTotalElements());
   }
 
   // --- helpers ---

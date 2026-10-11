@@ -177,7 +177,8 @@ class InMemorySeededDataTest {
 
   @Test
   void loadsAllSubscriptions() {
-    assertEquals(expectedSubscriptionCount, subscriptionRepository.findAll(0, 100).getTotalElements());
+    assertEquals(expectedSubscriptionCount, 
+        subscriptionRepository.findAll(0, 100).getTotalElements());
   }
 
   // B. Field mapping – spot-check one entity per type /////////////////////////////////////////
