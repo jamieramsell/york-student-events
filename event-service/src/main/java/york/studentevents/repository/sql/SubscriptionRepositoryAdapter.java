@@ -129,7 +129,9 @@ public class SubscriptionRepositoryAdapter implements ISubscriptionRepository {
     if (pageSize <= 0) {
       throw new IllegalArgumentException("pageSize must be greater than zero");
     }
-    return jpa.findByEventId(eventId, pageNumber, pageSize)
+
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+    return jpa.findByEventId(eventId, pageable)
         .map(sub -> (ISubscription) sub);
   }
 
@@ -144,7 +146,9 @@ public class SubscriptionRepositoryAdapter implements ISubscriptionRepository {
     if (pageSize <= 0) {
       throw new IllegalArgumentException("pageSize must be greater than zero");
     }
-    return jpa.findByUserId(userId, pageNumber, pageSize)
+
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+    return jpa.findByUserId(userId, pageable)
         .map(sub -> (ISubscription) sub);
   }
 }
