@@ -171,6 +171,7 @@ def _call_responder(request: dict, classpath: str) -> dict:
     try:
         process = subprocess.Popen(
             command,
+            cwd=_EVENT_SERVICE,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
