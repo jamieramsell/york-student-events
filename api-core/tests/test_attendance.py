@@ -51,6 +51,15 @@ def _record(attendee_id=None, event_id=None):
     return attendee_id, event_id
 
 
+def _make_events_unknown(monkeypatch, bridge):
+    """Re-patches the stubbed bridge so every event lookup fails as unknown."""
+
+    def _unknown(_event_id: typing.Any) -> typing.NoReturn:
+        raise bridge.SubprocessError("The given event ID was not recognised")
+
+    monkeypatch.setattr(bridge, "get_event_info", _unknown)
+
+
 # ---------------------------------------------------------------------------
 # record_attendance
 # ---------------------------------------------------------------------------
@@ -135,6 +144,53 @@ class TestRecordAttendance:
 
         with pytest.raises(RuntimeError):
             attendance_service.record_attendance(uuid.uuid4(), uuid.uuid4())
+
+    def test_record_for_nonexistent_event_raises(self, monkeypatch):
+        import bridge
+
+        _make_events_unknown(monkeypatch, bridge)
+
+        with pytest.raises(ValueError, match="does not exist"):
+            attendance_service.record_attendance(uuid.uuid4(), uuid.uuid4())
+
+    def test_record_for_nonexistent_event_does_not_persist(self, monkeypatch):
+        import bridge
+
+        _make_events_unknown(monkeypatch, bridge)
+        attendee_id = uuid.uuid4()
+        event_id = uuid.uuid4()
+
+        with pytest.raises(ValueError):
+            attendance_service.record_attendance(attendee_id, event_id)
+
+        assert _repo().find_by_id((attendee_id, event_id)) is None
+        assert attendance_service.has_attended(attendee_id, event_id) is False
+
+    def test_record_for_nonexistent_event_does_not_publish(self, monkeypatch):
+        import activity
+        import bridge
+
+        _make_events_unknown(monkeypatch, bridge)
+        published: list[typing.Any] = []
+        activity.subscribe(published.append)
+
+        with pytest.raises(ValueError):
+            attendance_service.record_attendance(uuid.uuid4(), uuid.uuid4())
+
+        assert published == []
+
+    def test_duplicate_is_reported_before_the_event_is_looked_up(
+        self, monkeypatch
+    ):
+        import bridge
+
+        attendee_id, event_id = _record()
+        _make_events_unknown(monkeypatch, bridge)
+
+        # The local duplicate check comes first, so an already-recorded pair is
+        # reported as a duplicate without ever reaching across the bridge.
+        with pytest.raises(ValueError, match="already been recorded"):
+            attendance_service.record_attendance(attendee_id, event_id)
 
 # ---------------------------------------------------------------------------
 # withdraw_attendance
