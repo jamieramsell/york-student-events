@@ -26,8 +26,10 @@ public interface ISubscriptionRepository extends IRepository<ISubscription> {
    * @param pageSize the number of entities to retrieve per page; must be greater than 0, and less
    *     than or equal to 100.
    * @return a {@link Page} of {@link IUser}; never {@code null}, but may be empty.
-   * @throws IllegalArgumentException if {@code pageNumber}, {@code pageSize}, or {@code userId}
-   *        are invalid or null.
+   * @throws york.studentevents.exceptions.pages.IllegalPageSizeException
+   *        if {@code pageSize} is invalid.
+   * @throws york.studentevents.exceptions.pages.IllegalPageException
+   *        if {@code pageNumber} is invalid.
    */
   Page<ISubscription> findAllByUserId(UUID userId, int pageNumber, int pageSize);
 
@@ -39,8 +41,10 @@ public interface ISubscriptionRepository extends IRepository<ISubscription> {
    * @param pageSize the number of entities to retrieve per page; must be greater than 0,
    *                 and less than or equal to 100.
    * @return a {@link Page} of {@link IEvent}; never {@code null}, but may be empty.
-   * @throws IllegalArgumentException if {@code pageNumber}, {@code pageSize}, or {@code eventId}
-   *        are invalid or null.
+   * @throws york.studentevents.exceptions.pages.IllegalPageSizeException
+   *        if {@code pageSize} is invalid.
+   * @throws york.studentevents.exceptions.pages.IllegalPageException
+   *        if {@code pageNumber} is invalid.
    */
   Page<ISubscription> findAllByEventId(UUID eventId, int pageNumber, int pageSize);
 
