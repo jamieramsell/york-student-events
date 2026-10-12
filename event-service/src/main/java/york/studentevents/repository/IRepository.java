@@ -3,6 +3,7 @@ package york.studentevents.repository;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
+import york.studentevents.exceptions.pages.IllegalPageException;
 
 /**
  * Generic repository interface providing standard CRUD operations.
@@ -43,7 +44,10 @@ public interface IRepository<T extends IEntity> {
    * @param pageSize the number of entities to retrieve per page; must be greater than 0,
    *                 and less than or equal to 100.
    * @return a {@link Page} of entities; never {@code null}, but may be empty.
-   * @throws IllegalArgumentException if {@code pageNumber} or {@code pageSize} are invalid.
+   * @throws york.studentevents.exceptions.pages.IllegalPageSizeException
+   *        if {@code pageSize} is invalid.
+   * @throws york.studentevents.exceptions.pages.IllegalPageException
+   *        if {@code pageNumber} is invalid.
    */
   Page<T> findAll(int pageNumber, int pageSize);
 }

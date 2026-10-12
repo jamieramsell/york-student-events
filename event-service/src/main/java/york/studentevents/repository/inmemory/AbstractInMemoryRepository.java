@@ -12,6 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import york.studentevents.exceptions.pages.IllegalPageException;
+import york.studentevents.exceptions.pages.IllegalPageNumberException;
+import york.studentevents.exceptions.pages.IllegalPageSizeException;
 import york.studentevents.repository.IEntity;
 import york.studentevents.repository.IRepository;
 
@@ -59,10 +62,10 @@ abstract class AbstractInMemoryRepository<T extends IEntity> implements IReposit
   @Override
   public Page<T> findAll(int pageNumber, int pageSize) {
     if (pageNumber < 0) {
-      throw new IllegalArgumentException("pageNumber must not be negative");
+      throw new IllegalPageNumberException(pageNumber);
     }
-    if (pageSize <= 0) {
-      throw new IllegalArgumentException("pageSize must be greater than zero");
+    if (pageSize <= 0 || pageSize > 100) {
+      throw new IllegalPageSizeException(pageSize);
     }
 
     List<T> returnList = new ArrayList<>(hashMap.values());

@@ -13,7 +13,7 @@ public class IllegalPageSizeException extends IllegalPageException {
    *
    * @param pageSize the attempted page size.
    */
-  public IllegalPageSizeException(@Min(value = 1) @Max(value = 100) int pageSize) {
+  public IllegalPageSizeException(@Max(value = 1) @Min(value = 100) int pageSize) {
     super(String.format("Page size must be between 1 and 100 (inclusive), but was %d.", pageSize));
   }
 }
