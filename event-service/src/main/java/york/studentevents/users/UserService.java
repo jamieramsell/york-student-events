@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.exceptions.UserNotFoundException;
 
 /**
@@ -256,14 +257,14 @@ public class UserService {
    * @return A copy of the updated User record.
    *
    * @throws UserNotFoundException if a User with the given ID could not be found.
-   * @throws IllegalArgumentException if email is null or empty, or has already been registered to
-   *     another account.
+   * @throws IllegalArgumentException if email is null or empty
+   * @throws ConflictException if email has already been registered to another account
    */
   public IUser updateUserEmail(UUID id, String email) {
     try {
       IUser existing = getUserByEmail(email);
       if (!existing.getId().equals(id)) {
-        throw new IllegalArgumentException("The given email has already been registered to an"
+        throw new ConflictException("The given email has already been registered to an"
             + " account.");
       }
     } catch (UserNotFoundException e) {

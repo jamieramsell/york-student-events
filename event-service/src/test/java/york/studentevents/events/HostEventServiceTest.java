@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.UserNotAuthorisedException;
 import york.studentevents.exceptions.UserNotFoundException;
@@ -73,12 +74,12 @@ class HostEventServiceTest {
   }
 
   @Test
-  void registerForEvent_whenAlreadyRegistered_throwsIllegalArgumentException() {
+  void registerForEvent_whenAlreadyRegistered_throwsConflictException() {
     Host host = newHost();
     Event event = newEvent(5);
     hostEventService.registerForEvent(host.getId(), event.getId());
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ConflictException.class,
         () -> hostEventService.registerForEvent(host.getId(), event.getId()));
   }
 
@@ -95,11 +96,11 @@ class HostEventServiceTest {
   }
 
   @Test
-  void deregisterFromEvent_whenNotRegistered_throwsIllegalArgumentException() {
+  void deregisterFromEvent_whenNotRegistered_throwsConflictException() {
     Host host = newHost();
     Event event = newEvent(5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ConflictException.class,
         () -> hostEventService.deregisterFromEvent(host.getId(), event.getId()));
   }
 

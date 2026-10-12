@@ -1,7 +1,7 @@
 package york.studentevents.exceptions;
 
 /** Thrown when a requested cohort cannot be found. */
-public class CohortNotFoundException extends RuntimeException {
+public class CohortNotFoundException extends EntityNotFoundException {
 
   /**
    * Constructs the exception with a detail message.

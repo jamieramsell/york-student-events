@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
+import york.studentevents.exceptions.ConflictException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.repository.inmemory.InMemoryUserRepository;
 
@@ -236,11 +237,11 @@ class UserServiceTest {
   }
 
   @Test
-  void updateUserEmail_whenEmailBelongsToAnotherUser_throwsIllegalArgumentException() {
+  void updateUserEmail_whenEmailBelongsToAnotherUser_throwsConflictException() {
     savedStudent("bob", "bob@york.ac.uk");
     IUser alice = savedStudent("alice", "alice@york.ac.uk");
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ConflictException.class,
         () -> service.updateUserEmail(alice.getId(), "bob@york.ac.uk"));
   }
 
