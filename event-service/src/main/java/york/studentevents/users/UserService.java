@@ -12,6 +12,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import york.studentevents.exceptions.ConflictException;
 import york.studentevents.exceptions.UserNotFoundException;
+import york.studentevents.exceptions.pages.IllegalPageNumberException;
+import york.studentevents.exceptions.pages.IllegalPageSizeException;
+import york.studentevents.exceptions.pages.IllegalPageException;
 
 /**
  * Application service exposing user account related business operations.
@@ -121,16 +124,9 @@ public class UserService {
    * @param pageSize the number of users to retrieve per page.
    * @return a {@link Page} of all Users; never {@code null}, but may be empty if no Users have
    *     been saved
-   * @throws IllegalArgumentException if {@code pageNumber} is negative, or if {@code pageSize} is
-   *        less than 1.
+   * @throws IllegalPageException if the page parameters are invalid.
    */
   public Page<IUser> getAllUsers(int pageNumber, int pageSize) {
-    if (pageNumber < 0) {
-      throw new IllegalArgumentException("pageNumber must not be negative");
-    }
-    if (pageSize <= 0) {
-      throw new IllegalArgumentException("pageSize must be greater than zero");
-    }
     return repository.findAll(pageNumber, pageSize);
   }
 
@@ -142,8 +138,7 @@ public class UserService {
    * @param pageSize the number of users to retrieve per page.
    * @return a {@link Page} of all Users; never {@code null}, but may be empty if no users of the
    *     given type have been saved
-   * @throws IllegalArgumentException if {@code type} is {@code null}, if {@code pageNumber} is
-   *        negative, or if {@code pageSize} is less than 1.
+   * @throws IllegalPageException if the page parameters are invalid.
    *
    * @see IUser.UserType
    */
@@ -152,10 +147,10 @@ public class UserService {
       throw new IllegalArgumentException("type cannot be null");
     }
     if (pageNumber < 0) {
-      throw new IllegalArgumentException("pageNumber must not be negative");
+      throw new IllegalPageNumberException(pageNumber);
     }
-    if (pageSize <= 0) {
-      throw new IllegalArgumentException("pageSize must be greater than zero");
+    if (pageSize <= 0 || pageSize > 100) {
+      throw new IllegalPageSizeException(pageSize);
     }
 
     int currentPage = 0;

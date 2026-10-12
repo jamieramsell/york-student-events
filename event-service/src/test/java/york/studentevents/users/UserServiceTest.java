@@ -125,6 +125,21 @@ class UserServiceTest {
     assertTrue(usersSet.contains(host));
   }
 
+  @Test
+  void getAllUsers_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsers(-1, 100));
+  }
+
+  @Test
+  void getAllUsers_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsers(0, 0));
+  }
+
+  @Test
+  void getAllUsers_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsers(0, 1000));
+  }
+
   // --- getUsersByType ---
 
   @Test
@@ -144,6 +159,21 @@ class UserServiceTest {
     savedStudent("alice", "alice@york.ac.uk");
 
     assertEquals(0, service.getAllUsersByType(IUser.UserType.HOST, 0, 100).getTotalElements());
+  }
+
+  @Test
+  void getAllUsersByType_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsersByType(IUser.UserType.HOST, -1, 100));
+  }
+
+  @Test
+  void getAllUsersByType_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsersByType(IUser.UserType.HOST, 0, 0));
+  }
+
+  @Test
+  void getAllUsersByType_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsersByType(IUser.UserType.HOST, 0, 1000));
   }
 
   // --- createStudent ---
