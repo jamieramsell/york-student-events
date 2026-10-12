@@ -14,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.MissingVenueException;
+import york.studentevents.exceptions.pages.IllegalPageNumberException;
+import york.studentevents.exceptions.pages.IllegalPageSizeException;
 import york.studentevents.repository.inmemory.InMemoryEventRepository;
 import york.studentevents.venues.IVenue;
 import york.studentevents.venues.Venue;
@@ -406,6 +408,21 @@ class EventServiceTest {
     assertTrue(events.contains(second));
   }
 
+  @Test
+  void getAllEvents_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalPageNumberException.class, () -> service.getAllEvents(-1, 100));
+  }
+
+  @Test
+  void getAllEvents_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllEvents(0, 0));
+  }
+
+  @Test
+  void getAllEvents_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllEvents(0, 1000));
+  }
+
   // --- deleteEvent ---
 
   @Test
@@ -423,10 +440,10 @@ class EventServiceTest {
         () -> service.deleteEvent(UUID.randomUUID()));
   }
 
-  // --- getEventsByCategory ---
+  // --- getAllEventsByCategory ---
 
   @Test
-  void getEventsByCategory_returnsAllEventsInSingleCategory() {
+  void getAllEventsByCategory_returnsAllEventsInSingleCategory() {
     IEvent music = savedEvent(EventCategory.MUSIC);
     savedEvent(EventCategory.SPORTS);
     savedEvent(EventCategory.ACADEMIC);
@@ -472,6 +489,24 @@ class EventServiceTest {
   void getAllEventsByCategory_whenNoEventsSaved_returnsEmptyPage() {
     assertEquals(0,
         service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 100).getTotalElements());
+  }
+
+  @Test
+  void getAllEventsByCategory_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalPageNumberException.class,
+        () -> service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), -1, 100));
+  }
+
+  @Test
+  void getAllEventsByCategory_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class,
+        () -> service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 0));
+  }
+
+  @Test
+  void getAllEventsByCategory_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalPageSizeException.class,
+        () -> service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 1000));
   }
 
   // --- getEventsByDateTime ---
@@ -563,6 +598,21 @@ class EventServiceTest {
 
     assertEquals(0,
         service.getAllEventsByDateTime(base, base.plusHours(1), 0, 100).getTotalElements());
+  }
+
+  @Test
+  void getAllEventsByDateTime_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalPageNumberException.class, () -> service.getAllEventsByDateTime(null, null, -1, 100));
+  }
+
+  @Test
+  void getAllEventsByDateTime_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllEventsByDateTime(null, null, 0, 0));
+  }
+
+  @Test
+  void getAllEventsByDateTime_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllEventsByDateTime(null, null, 0, 1000));
   }
 
   // --- helpers ---

@@ -15,6 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.MissingVenueException;
+import york.studentevents.exceptions.pages.IllegalPageException;
+import york.studentevents.exceptions.pages.IllegalPageNumberException;
+import york.studentevents.exceptions.pages.IllegalPageSizeException;
 
 /**
  * Application service exposing event-related business operations.
@@ -222,15 +225,14 @@ public class EventService {
    * @param pageSize the number of events to retrieve per page.
    * @return a {@link Page} of all events; never {@code null}, but may be empty if no
    *        events have been saved.
-   * @throws IllegalArgumentException if {@code pageNumber} is negative, or if {@code pageSize}
-   *        is less than 1.
+   * @throws IllegalPageException if the page parameters are invalid.
    */
   public Page<IEvent> getAllEvents(int pageNumber, int pageSize) {
     if (pageNumber < 0) {
-      throw new IllegalArgumentException("pageNumber must not be negative");
+      throw new IllegalPageNumberException(pageNumber);
     }
-    if (pageSize <= 0) {
-      throw new IllegalArgumentException("pageSize must be greater than zero");
+    if (pageSize <= 0 || pageSize > 100) {
+      throw new IllegalPageSizeException(pageSize);
     }
     return eventRepository.findAll(pageNumber, pageSize);
   }
@@ -243,8 +245,7 @@ public class EventService {
    * @param pageSize the number of events to retrieve per page.
    * @return a {@link Page} of all events; never {@code null}, but may be empty if no events have
    *     been saved.
-   * @throws IllegalArgumentException if {@code pageNumber} is negative, or if
-   *        {@code pageSize} is less than 1.
+   * @throws IllegalPageException if the page parameters are invalid.
    *
    * @see EventCategory
    */
@@ -256,10 +257,10 @@ public class EventService {
       int pageSize
   ) {
     if (pageNumber < 0) {
-      throw new IllegalArgumentException("pageNumber must not be negative");
+      throw new IllegalPageNumberException(pageNumber);
     }
-    if (pageSize <= 0) {
-      throw new IllegalArgumentException("pageSize must be greater than zero");
+    if (pageSize <= 0 || pageSize > 100) {
+      throw new IllegalPageSizeException(pageSize);
     }
 
     Predicate<IEvent> isRelevant = (IEvent event) -> categories.contains(event.getCategory());
@@ -298,6 +299,8 @@ public class EventService {
    * @param start The (optional) beginning of the time window
    * @param end The (optional) end of the time window
    * @return a {@see Page} of all events which lie between the given points in time, inclusive.
+   * @throws IllegalPageException if the page parameters are invalid.
+   *
    */
   public Page<IEvent> getAllEventsByDateTime(
       LocalDateTime start,
@@ -306,10 +309,10 @@ public class EventService {
       int pageSize
   ) {
     if (pageNumber < 0) {
-      throw new IllegalArgumentException("pageNumber must not be negative");
+      throw new IllegalPageNumberException(pageNumber);
     }
-    if (pageSize <= 0) {
-      throw new IllegalArgumentException("pageSize must be greater than zero");
+    if (pageSize <= 0 || pageSize > 100) {
+      throw new IllegalPageSizeException(pageSize);
     }
 
     int currentPage = 0;
