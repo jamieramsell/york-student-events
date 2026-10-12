@@ -59,8 +59,8 @@ class AttendanceService:
         # over the bridge.
         try:
             bridge.get_event_info(event_id)
-        except bridge.SubprocessError:
-            raise ValueError("The given Event does not exist.")
+        except bridge.SubprocessError as exc:
+            raise ValueError("The given Event does not exist.") from exc
 
         # Finally, create the record and store it, before publishing the user's
         # activity to all listeners
