@@ -78,7 +78,7 @@ class SubscriptionServiceTest {
     service.subscribe(userA, eventX, REGISTRATION);
 
     assertTrue(service.isSubscribed(userA, eventX));
-    assertEquals(1, repository.findAllByEventId(eventX).size());
+    assertEquals(1, repository.findAllByEventId(eventX, 0, 100).getTotalElements());
   }
 
   @Test
@@ -86,7 +86,7 @@ class SubscriptionServiceTest {
     service.subscribe(userA, eventX, EXPLICIT);
     service.subscribe(userA, eventX, REGISTRATION);
 
-    assertEquals(1, repository.findAllByEventId(eventX).size());
+    assertEquals(1, repository.findAllByEventId(eventX, 0, 100).getTotalElements());
     assertEquals(EXPLICIT, repository.findByID(userA, eventX).orElseThrow().getSource());
   }
 
@@ -113,7 +113,7 @@ class SubscriptionServiceTest {
     service.subscribe(userA, eventX, REGISTRATION);
     service.subscribe(userA, eventX, EXPLICIT);
 
-    assertEquals(1, repository.findAllByEventId(eventX).size());
+    assertEquals(1, repository.findAllByEventId(eventX, 0, 100).getTotalElements());
     assertEquals(EXPLICIT, repository.findByID(userA, eventX).orElseThrow().getSource());
   }
 

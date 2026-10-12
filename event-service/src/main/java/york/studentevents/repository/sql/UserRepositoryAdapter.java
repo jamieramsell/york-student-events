@@ -1,9 +1,11 @@
 package york.studentevents.repository.sql;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import york.studentevents.users.IUser;
 import york.studentevents.users.IUserRepository;
 import york.studentevents.users.User;
@@ -78,10 +80,9 @@ public class UserRepositoryAdapter implements IUserRepository {
   }
 
   @Override
-  public List<IUser> findAll() {
-    return jpa.findAll()
-        .stream()
-        .map((e) -> (IUser) e)
-        .toList();
+  public Page<IUser> findAll(int pageNumber, int pageSize) {
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+    return jpa.findAll(pageable)
+        .map(e -> (IUser) e);
   }
 }

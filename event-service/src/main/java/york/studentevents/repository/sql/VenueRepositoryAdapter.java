@@ -1,9 +1,11 @@
 package york.studentevents.repository.sql;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import york.studentevents.venues.IVenue;
 import york.studentevents.venues.IVenueRepository;
 import york.studentevents.venues.Venue;
@@ -78,10 +80,9 @@ public class VenueRepositoryAdapter implements IVenueRepository {
   }
 
   @Override
-  public List<IVenue> findAll() {
-    return jpa.findAll()
-        .stream()
-        .map((e) -> (IVenue) e)
-        .toList();
+  public Page<IVenue> findAll(int pageNumber, int pageSize) {
+    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+    return jpa.findAll(pageable)
+        .map(e -> (IVenue) e);
   }
 }

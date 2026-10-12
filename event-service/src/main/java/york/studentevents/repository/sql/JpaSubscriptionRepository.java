@@ -2,6 +2,8 @@ package york.studentevents.repository.sql;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import york.studentevents.subscriptions.Subscription;
@@ -24,8 +26,8 @@ public interface JpaSubscriptionRepository extends JpaRepository<Subscription, U
 
   List<Subscription> findByUserIdAndEventId(UUID userId, UUID eventId);
 
-  List<Subscription> findByEventId(UUID eventId);
+  Page<Subscription> findByEventId(UUID eventId, Pageable pageable);
 
-  List<Subscription> findByUserId(UUID userId);
+  Page<Subscription> findByUserId(UUID userId, Pageable pageable);
 
 }

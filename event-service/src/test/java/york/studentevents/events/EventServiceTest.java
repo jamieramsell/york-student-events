@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import york.studentevents.exceptions.EventNotFoundException;
 import york.studentevents.exceptions.MissingVenueException;
+import york.studentevents.exceptions.pages.IllegalPageNumberException;
+import york.studentevents.exceptions.pages.IllegalPageSizeException;
 import york.studentevents.repository.inmemory.InMemoryEventRepository;
 import york.studentevents.venues.IVenue;
 import york.studentevents.venues.Venue;
@@ -105,7 +108,7 @@ class EventServiceTest {
     assertThrows(IllegalArgumentException.class,
         () -> service.createEvent(null, EventCategory.MUSIC, 10));
 
-    assertTrue(service.getAllEvents().isEmpty());
+    assertEquals(0, service.getAllEvents(0, 100).getTotalElements());
   }
 
   // --- updateEventTitle ---
@@ -389,8 +392,8 @@ class EventServiceTest {
   // --- getAllEvents ---
 
   @Test
-  void getAllEvents_whenEmpty_returnsEmptyList() {
-    assertTrue(service.getAllEvents().isEmpty());
+  void getAllEvents_whenEmpty_returnsEmptyPage() {
+    assertEquals(0, service.getAllEvents(0, 100).getTotalElements());
   }
 
   @Test
@@ -398,11 +401,26 @@ class EventServiceTest {
     IEvent first = savedEvent();
     IEvent second = savedEvent();
 
-    List<IEvent> events = service.getAllEvents();
+    Set<IEvent> events = new HashSet<>(service.getAllEvents(0, 100).getContent());
 
     assertEquals(2, events.size());
     assertTrue(events.contains(first));
     assertTrue(events.contains(second));
+  }
+
+  @Test
+  void getAllEvents_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalPageNumberException.class, () -> service.getAllEvents(-1, 100));
+  }
+
+  @Test
+  void getAllEvents_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllEvents(0, 0));
+  }
+
+  @Test
+  void getAllEvents_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllEvents(0, 1000));
   }
 
   // --- deleteEvent ---
@@ -422,27 +440,29 @@ class EventServiceTest {
         () -> service.deleteEvent(UUID.randomUUID()));
   }
 
-  // --- getEventsByCategory ---
+  // --- getAllEventsByCategory ---
 
   @Test
-  void getEventsByCategory_returnsEventsInSingleCategory() {
+  void getAllEventsByCategory_returnsAllEventsInSingleCategory() {
     IEvent music = savedEvent(EventCategory.MUSIC);
     savedEvent(EventCategory.SPORTS);
     savedEvent(EventCategory.ACADEMIC);
 
-    List<IEvent> results = service.getEventsByCategory(Set.of(EventCategory.MUSIC));
+    List<IEvent> results =
+        service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 100).getContent();
 
     assertEquals(List.of(music), results);
   }
 
   @Test
-  void getEventsByCategory_matchesAnyOfTheGivenCategories() {
+  void getAllEventsByCategory_matchesAnyOfTheGivenCategories() {
     final IEvent music = savedEvent(EventCategory.MUSIC);
     final IEvent sports = savedEvent(EventCategory.SPORTS);
     savedEvent(EventCategory.ACADEMIC);
 
-    List<IEvent> results =
-        service.getEventsByCategory(Set.of(EventCategory.MUSIC, EventCategory.SPORTS));
+    List<IEvent> results = service.getAllEventsByCategory(
+            Set.of(EventCategory.MUSIC, EventCategory.SPORTS), 0, 100
+        ).getContent();
 
     assertEquals(2, results.size());
     assertTrue(results.contains(music));
@@ -450,34 +470,54 @@ class EventServiceTest {
   }
 
   @Test
-  void getEventsByCategory_whenNoEventMatches_returnsEmptyList() {
+  void getAllEventsByCategory_whenNoEventMatches_returnsEmptyPage() {
     savedEvent(EventCategory.MUSIC);
     savedEvent(EventCategory.SPORTS);
 
-    assertTrue(service.getEventsByCategory(Set.of(EventCategory.NIGHTLIFE)).isEmpty());
+    assertEquals(0,
+        service.getAllEventsByCategory(Set.of(EventCategory.NIGHTLIFE), 0, 100).getTotalElements());
   }
 
   @Test
-  void getEventsByCategory_withEmptyCategorySet_returnsEmptyList() {
+  void getAllEventsByCategory_withEmptyCategorySet_returnsEmptyPage() {
     savedEvent(EventCategory.MUSIC);
 
-    assertTrue(service.getEventsByCategory(Set.of()).isEmpty());
+    assertEquals(0, service.getAllEventsByCategory(Set.of(), 0, 100).getTotalElements());
   }
 
   @Test
-  void getEventsByCategory_whenNoEventsSaved_returnsEmptyList() {
-    assertTrue(service.getEventsByCategory(Set.of(EventCategory.MUSIC)).isEmpty());
+  void getAllEventsByCategory_whenNoEventsSaved_returnsEmptyPage() {
+    assertEquals(0,
+        service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 100).getTotalElements());
+  }
+
+  @Test
+  void getAllEventsByCategory_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalPageNumberException.class,
+        () -> service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), -1, 100));
+  }
+
+  @Test
+  void getAllEventsByCategory_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class,
+        () -> service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 0));
+  }
+
+  @Test
+  void getAllEventsByCategory_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalPageSizeException.class,
+        () -> service.getAllEventsByCategory(Set.of(EventCategory.MUSIC), 0, 1000));
   }
 
   // --- getEventsByDateTime ---
 
   @Test
-  void getEventsByDateTime_withBothBoundsNull_returnsAllEvents() {
+  void getAllEventsByDateTime_withBothBoundsNull_returnsAllEvents() {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
     IEvent first = savedScheduledEvent(base, base.plusHours(1));
     IEvent second = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
 
-    List<IEvent> results = service.getEventsByDateTime(null, null);
+    List<IEvent> results = service.getAllEventsByDateTime(null, null, 0, 100).getContent();
 
     assertEquals(2, results.size());
     assertTrue(results.contains(first));
@@ -485,73 +525,94 @@ class EventServiceTest {
   }
 
   @Test
-  void getEventsByDateTime_withBothBoundsNull_includesUnscheduledEvents() {
+  void getAllEventsByDateTime_withBothBoundsNull_includesUnscheduledEvents() {
     IEvent unscheduled = savedEvent(EventCategory.MUSIC); // no start/end datetime
 
-    List<IEvent> results = service.getEventsByDateTime(null, null);
+    List<IEvent> results = service.getAllEventsByDateTime(null, null, 0, 100).getContent();
 
     assertTrue(results.contains(unscheduled));
   }
 
   @Test
-  void getEventsByDateTime_withStartBoundOnly_returnsEventsStartingAtOrAfterIt() {
+  void getAllEventsByDateTime_withStartBoundOnly_returnsAllEventsStartingAtOrAfterIt() {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
     savedScheduledEvent(base.plusHours(1), base.plusHours(2)); // starts before bound
     IEvent later = savedScheduledEvent(base.plusHours(5), base.plusHours(6));
 
-    List<IEvent> results = service.getEventsByDateTime(base.plusHours(3), null);
+    List<IEvent> results =
+        service.getAllEventsByDateTime(base.plusHours(3), null, 0, 100).getContent();
 
     assertEquals(List.of(later), results);
   }
 
   @Test
-  void getEventsByDateTime_withEndBoundOnly_returnsEventsEndingAtOrBeforeIt() {
+  void getAllEventsByDateTime_withEndBoundOnly_returnsAllEventsEndingAtOrBeforeIt() {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
     IEvent earlier = savedScheduledEvent(base.plusHours(1), base.plusHours(2));
     savedScheduledEvent(base.plusHours(5), base.plusHours(6)); // ends after bound
 
-    List<IEvent> results = service.getEventsByDateTime(null, base.plusHours(4));
+    List<IEvent> results =
+        service.getAllEventsByDateTime(null, base.plusHours(4), 0, 100).getContent();
 
     assertEquals(List.of(earlier), results);
   }
 
   @Test
-  void getEventsByDateTime_withBothBounds_returnsOnlyEventsWhollyWithinTheWindow() {
+  void getAllEventsByDateTime_withBothBounds_returnsOnlyAllEventsWhollyWithinTheWindow() {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
     IEvent within = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
     savedScheduledEvent(base.plusMinutes(30), base.plusMinutes(45)); // starts before window
     savedScheduledEvent(base.plusHours(5), base.plusHours(6)); // ends after window
 
-    List<IEvent> results = service.getEventsByDateTime(base.plusHours(1), base.plusHours(4));
+    List<IEvent> results =
+        service.getAllEventsByDateTime(base.plusHours(1), base.plusHours(4), 0, 100).getContent();
 
     assertEquals(List.of(within), results);
   }
 
   @Test
-  void getEventsByDateTime_startBoundIsInclusive() {
+  void getAllEventsByDateTime_startBoundIsInclusive() {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
     IEvent onBoundary = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
 
-    List<IEvent> results = service.getEventsByDateTime(base.plusHours(2), null);
+    List<IEvent> results =
+        service.getAllEventsByDateTime(base.plusHours(2), null, 0, 100).getContent();
 
     assertEquals(List.of(onBoundary), results);
   }
 
   @Test
-  void getEventsByDateTime_endBoundIsInclusive() {
+  void getAllEventsByDateTime_endBoundIsInclusive() {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
     IEvent onBoundary = savedScheduledEvent(base.plusHours(2), base.plusHours(3));
 
-    List<IEvent> results = service.getEventsByDateTime(null, base.plusHours(3));
+    List<IEvent> results =
+        service.getAllEventsByDateTime(null, base.plusHours(3), 0, 100).getContent();
 
     assertEquals(List.of(onBoundary), results);
   }
 
   @Test
-  void getEventsByDateTime_whenNoEventsSaved_returnsEmptyList() {
+  void getAllEventsByDateTime_whenNoEventsSaved_returnsEmptyPage() {
     LocalDateTime base = LocalDateTime.now().plusDays(1);
 
-    assertTrue(service.getEventsByDateTime(base, base.plusHours(1)).isEmpty());
+    assertEquals(0,
+        service.getAllEventsByDateTime(base, base.plusHours(1), 0, 100).getTotalElements());
+  }
+
+  @Test
+  void getAllEventsByDateTime_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalPageNumberException.class, () -> service.getAllEventsByDateTime(null, null, -1, 100));
+  }
+
+  @Test
+  void getAllEventsByDateTime_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllEventsByDateTime(null, null, 0, 0));
+  }
+
+  @Test
+  void getAllEventsByDateTime_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllEventsByDateTime(null, null, 0, 1000));
   }
 
   // --- helpers ---

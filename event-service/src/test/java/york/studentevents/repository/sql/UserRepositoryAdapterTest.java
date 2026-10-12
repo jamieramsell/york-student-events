@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
 import york.studentevents.users.IUser;
 import york.studentevents.users.IUserRepository;
 import york.studentevents.users.Student;
@@ -134,12 +135,12 @@ public class UserRepositoryAdapterTest {
     userList.add(new Student("username3", "email@provider.com", "hash", new HashSet<>()));
     jpa.saveAllAndFlush(userList); // Use JPA here to avoid relying on a separate adapter method
 
-    List<IUser> savedUsers = userRepository.findAll();
-    assertEquals(3, savedUsers.size());
+    Page<IUser> savedUsers = userRepository.findAll(0, 100);
+    assertEquals(3, savedUsers.getTotalElements());
   }
 
   @Test 
-  void findAll_ReturnsEmptyList_ForEmptyRepository() {
-    assertTrue(userRepository.findAll().isEmpty());
+  void findAll_ReturnsEmptyPage_ForEmptyRepository() {
+    assertEquals(0, userRepository.findAll(0, 100).getTotalElements());
   }
 }

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
 import york.studentevents.events.Event;
 import york.studentevents.events.EventCategory;
 import york.studentevents.events.IEvent;
@@ -131,12 +132,12 @@ public class EventRepositoryAdapterTest {
     eventList.add(new Event("Title 3", EventCategory.NIGHTLIFE));
     jpa.saveAllAndFlush(eventList); // Use JPA here to avoid relying on a separate adapter method
 
-    List<IEvent> savedEvents = eventRepository.findAll();
-    assertEquals(3, savedEvents.size());
+    Page<IEvent> savedEvents = eventRepository.findAll(0, 100);
+    assertEquals(3, savedEvents.getTotalElements());
   }
 
   @Test 
-  void findAll_ReturnsEmptyList_ForEmptyRepository() {
-    assertTrue(eventRepository.findAll().isEmpty());
+  void findAll_ReturnsPageList_ForEmptyRepository() {
+    assertEquals(0, eventRepository.findAll(0, 100).getTotalElements());
   }
 }

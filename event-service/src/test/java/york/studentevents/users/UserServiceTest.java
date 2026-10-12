@@ -1,15 +1,17 @@
 package york.studentevents.users;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
 import york.studentevents.exceptions.ConflictException;
 import york.studentevents.exceptions.UserNotFoundException;
 import york.studentevents.repository.inmemory.InMemoryUserRepository;
@@ -106,8 +108,8 @@ class UserServiceTest {
   // --- getAllUsers ---
 
   @Test
-  void getAllUsers_whenEmpty_returnsEmptyList() {
-    assertTrue(service.getAllUsers().isEmpty());
+  void getAllUsers_whenEmpty_returnsEmptyPage() {
+    assertEquals(0, service.getAllUsers(0, 100).getTotalElements());
   }
 
   @Test
@@ -115,32 +117,63 @@ class UserServiceTest {
     IUser alice = savedStudent("alice", "alice@york.ac.uk");
     IUser host = service.createHost("su", "su@york.ac.uk", "pw");
 
-    List<IUser> users = service.getAllUsers();
+    Page<IUser> users = service.getAllUsers(0, 100);
+    Set<IUser> usersSet = new HashSet<>(users.getContent());
 
-    assertEquals(2, users.size());
-    assertTrue(users.contains(alice));
-    assertTrue(users.contains(host));
+    assertEquals(2, users.getTotalElements());
+    assertTrue(usersSet.contains(alice));
+    assertTrue(usersSet.contains(host));
+  }
+
+  @Test
+  void getAllUsers_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsers(-1, 100));
+  }
+
+  @Test
+  void getAllUsers_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsers(0, 0));
+  }
+
+  @Test
+  void getAllUsers_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsers(0, 1000));
   }
 
   // --- getUsersByType ---
 
   @Test
-  void getUsersByType_returnsOnlyUsersOfThatType() {
+  void getAllUsersByType_returnsOnlyUsersOfThatType() {
     IUser student = savedStudent("alice", "alice@york.ac.uk");
     IUser host = service.createHost("su", "su@york.ac.uk", "pw");
 
-    List<IUser> students = service.getUsersByType(IUser.UserType.STUDENT);
-    List<IUser> hosts = service.getUsersByType(IUser.UserType.HOST);
+    List<IUser> students = service.getAllUsersByType(IUser.UserType.STUDENT, 0, 100).getContent();
+    List<IUser> hosts = service.getAllUsersByType(IUser.UserType.HOST, 0, 100).getContent();
 
     assertEquals(List.of(student), students);
     assertEquals(List.of(host), hosts);
   }
 
   @Test
-  void getUsersByType_whenNoneOfThatType_returnsEmptyList() {
+  void getAllUsersByType_whenNoneOfThatType_returnsEmptyPage() {
     savedStudent("alice", "alice@york.ac.uk");
 
-    assertTrue(service.getUsersByType(IUser.UserType.HOST).isEmpty());
+    assertEquals(0, service.getAllUsersByType(IUser.UserType.HOST, 0, 100).getTotalElements());
+  }
+
+  @Test
+  void getAllUsersByType_throwsIllegalPageNumber_forNegativePage() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsersByType(IUser.UserType.HOST, -1, 100));
+  }
+
+  @Test
+  void getAllUsersByType_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsersByType(IUser.UserType.HOST, 0, 0));
+  }
+
+  @Test
+  void getAllUsersByType_throwsIllegalPageSize_forTooLargePageSize() {
+    assertThrows(IllegalArgumentException.class, () -> service.getAllUsersByType(IUser.UserType.HOST, 0, 1000));
   }
 
   // --- createStudent ---
@@ -274,7 +307,6 @@ class UserServiceTest {
 
     service.deleteUser(user.getId());
 
-    assertFalse(service.getAllUsers().contains(user));
     assertThrows(UserNotFoundException.class, () -> service.getUserById(user.getId()));
   }
 

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
 import york.studentevents.cohorts.Cohort;
 import york.studentevents.cohorts.ICohort;
 import york.studentevents.cohorts.ICohortRepository;
@@ -132,12 +133,12 @@ public class CohortRepositoryAdapterTest {
     cohortList.add(new Cohort("Name3", "Dept", 2026, 1));
     jpa.saveAllAndFlush(cohortList); // Use JPA here to avoid relying on a separate adapter method
 
-    List<ICohort> savedCohorts = cohortRepository.findAll();
-    assertEquals(3, savedCohorts.size());
+    Page<ICohort> savedCohorts = cohortRepository.findAll(0, 100);
+    assertEquals(3, savedCohorts.getTotalElements());
   }
 
   @Test 
-  void findAll_ReturnsEmptyList_ForEmptyRepository() {
-    assertTrue(cohortRepository.findAll().isEmpty());
+  void findAll_ReturnsEmptyPage_ForEmptyRepository() {
+    assertEquals(0, cohortRepository.findAll(0, 100).getTotalElements());
   }
 }

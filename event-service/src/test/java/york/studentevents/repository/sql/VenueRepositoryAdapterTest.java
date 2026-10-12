@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
 import york.studentevents.venues.IVenue;
 import york.studentevents.venues.IVenueRepository;
 import york.studentevents.venues.Venue;
@@ -130,12 +131,12 @@ public class VenueRepositoryAdapterTest {
     venueList.add(new Venue("Title 1", "1 Oaktree Way"));
     jpa.saveAllAndFlush(venueList); // Use JPA here to avoid relying on a separate adapter method
 
-    List<IVenue> savedVenues = venueRepository.findAll();
-    assertEquals(3, savedVenues.size());
+    Page<IVenue> savedVenues = venueRepository.findAll(0, 100);
+    assertEquals(3, savedVenues.getTotalElements());
   }
 
   @Test 
-  void findAll_ReturnsEmptyList_ForEmptyRepository() {
-    assertTrue(venueRepository.findAll().isEmpty());
+  void findAll_ReturnsEmptyPage_ForEmptyRepository() {
+    assertEquals(0, venueRepository.findAll(0, 100).getTotalElements());
   }
 }

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import york.studentevents.exceptions.pages.IllegalPageNumberException;
+import york.studentevents.exceptions.pages.IllegalPageSizeException;
 import static york.studentevents.subscriptions.ISubscription.SubscriptionSource.REGISTRATION;
 
 import java.util.UUID;
@@ -57,8 +59,8 @@ class InMemorySubscriptionRepositoryTest {
     repository.save(new Subscription(userA, eventY, REGISTRATION));
     repository.save(new Subscription(userB, eventX, REGISTRATION));
 
-    assertEquals(2, repository.findAllByUserId(userA).size());
-    assertTrue(repository.findAllByUserId(userA).stream()
+    assertEquals(2, repository.findAllByUserId(userA, 0, 100).getTotalElements());
+    assertTrue(repository.findAllByUserId(userA, 0, 100).getContent().stream()
         .allMatch(sub -> sub.getUserId().equals(userA)));
   }
 
@@ -68,8 +70,8 @@ class InMemorySubscriptionRepositoryTest {
     repository.save(new Subscription(userB, eventX, REGISTRATION));
     repository.save(new Subscription(userA, eventY, REGISTRATION));
 
-    assertEquals(2, repository.findAllByEventId(eventX).size());
-    assertTrue(repository.findAllByEventId(eventX).stream()
+    assertEquals(2, repository.findAllByEventId(eventX, 0, 100).getTotalElements());
+    assertTrue(repository.findAllByEventId(eventX, 0, 100).getContent().stream()
         .allMatch(sub -> sub.getEventId().equals(eventX)));
   }
 
@@ -81,5 +83,55 @@ class InMemorySubscriptionRepositoryTest {
     repository.delete(subscription.getId());
 
     assertFalse(repository.findByID(userA, eventX).isPresent());
+  }
+
+  @Test
+  void findAllByUserId_returnsEmptyPage_forEmptyRepository() {
+    assertEquals(0, repository.findAllByUserId(userA, 0, 100).getTotalElements());
+  }
+
+  @Test
+  void findAllByUserId_returnsEmptyPage_forNonExistentUser() {
+    assertEquals(0, repository.findAllByUserId(UUID.randomUUID(), 0, 100).getTotalElements());
+  }
+
+  @Test
+  void findAllByUserId_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> repository.findAllByUserId(userA, 0, 0));
+  }
+
+  @Test
+  void findAllByUserId_throwsIllegalPageSize_forPageSizeToLarge() {
+    assertThrows(IllegalPageSizeException.class, () -> repository.findAllByUserId(userA, 0, 1000));
+  }
+
+  @Test
+  void findAllByUserId_throwsIllegalPageNumber_forNegativePageNumber() {
+    assertThrows(IllegalPageNumberException.class, () -> repository.findAllByUserId(userA, -1, 10));
+  }
+
+  @Test
+  void findAllByEventId_returnsEmptyPage_forEmptyRepository() {
+    assertEquals(0, repository.findAllByEventId(eventX, 0, 100).getTotalElements());
+  }
+
+  @Test
+  void findAllByEventId_returnsEmptyPage_forNonExistentEvent() {
+    assertEquals(0, repository.findAllByEventId(UUID.randomUUID(), 0, 100).getTotalElements());
+  }
+
+  @Test
+  void findAllByEventId_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> repository.findAllByEventId(eventX, 0, 0));
+  }
+
+  @Test
+  void findAllByEventId_throwsIllegalPageSize_forPageSizeToLarge() {
+    assertThrows(IllegalPageSizeException.class, () -> repository.findAllByEventId(eventX, 0, 1000));
+  }
+
+  @Test
+  void findAllByEventId_throwsIllegalPageNumber_forNegativePageNumber() {
+    assertThrows(IllegalPageNumberException.class, () -> repository.findAllByEventId(eventX, -1, 10));
   }
 }
