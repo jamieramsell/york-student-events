@@ -101,6 +101,11 @@ class InMemorySubscriptionRepositoryTest {
   }
 
   @Test
+  void findAllByUserId_throwsIllegalPageSize_forPageSizeToLarge() {
+    assertThrows(IllegalPageSizeException.class, () -> repository.findAllByUserId(userA, 0, 1000));
+  }
+
+  @Test
   void findAllByUserId_throwsIllegalPageNumber_forNegativePageNumber() {
     assertThrows(IllegalPageNumberException.class, () -> repository.findAllByUserId(userA, -1, 10));
   }
@@ -118,6 +123,11 @@ class InMemorySubscriptionRepositoryTest {
   @Test
   void findAllByEventId_throwsIllegalPageSize_forZeroPageSize() {
     assertThrows(IllegalPageSizeException.class, () -> repository.findAllByEventId(eventX, 0, 0));
+  }
+
+  @Test
+  void findAllByEventId_throwsIllegalPageSize_forPageSizeToLarge() {
+    assertThrows(IllegalPageSizeException.class, () -> repository.findAllByEventId(eventX, 0, 1000));
   }
 
   @Test
