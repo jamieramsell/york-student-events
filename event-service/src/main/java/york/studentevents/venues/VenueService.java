@@ -10,6 +10,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import york.studentevents.exceptions.VenueNotFoundException;
+import york.studentevents.exceptions.pages.IllegalPageNumberException;
+import york.studentevents.exceptions.pages.IllegalPageSizeException;
+import york.studentevents.exceptions.pages.IllegalPageException;
 
 /**
  * Application service exposing venue-related business operations.
@@ -133,15 +136,9 @@ public class VenueService {
    *
    * @return a {@link Page} of all Venues; never {@code null}, but may be empty if no Venues have
    *     been saved
-   * @throws IllegalArgumentException if {@code pageNumber} is negative, or if {@code pageSize} is.
+   * @throws IllegalPageException if the page parameters are invalid.
    */
   public Page<IVenue> getAllVenues(int pageNumber, int pageSize) {
-    if (pageNumber < 0) {
-      throw new IllegalArgumentException("pageNumber must not be negative");
-    }
-    if (pageSize <= 0) {
-      throw new IllegalArgumentException("pageSize must be greater than zero");
-    }
     return repository.findAll(pageNumber, pageSize);
   }
 
@@ -156,7 +153,7 @@ public class VenueService {
    * @param minimum The (optional) minimum venue capacity
    * @param maximum The (optional) maximum venue capacity
    * @return All venues which have a capacity between the two specified bounds, inclusive.
-   * @throws IllegalArgumentException if {@code pageNumber} or {@code pageSize} is negative.
+   * @throws IllegalPageException if the page parameters are invalid.
    */
   public Page<IVenue> getAllVenuesByCapacity(
       Integer minimum,
@@ -165,10 +162,10 @@ public class VenueService {
       int pageSize
   ) {
     if (pageNumber < 0) {
-      throw new IllegalArgumentException("pageNumber must not be negative");
+      throw new IllegalPageNumberException(pageNumber);
     }
-    if (pageSize <= 0) {
-      throw new IllegalArgumentException("pageSize must be greater than zero");
+    if (pageSize <= 0 || pageSize > 100) {
+      throw new IllegalPageSizeException(pageSize);
     }
     int currentPage = 0;
     Page<IVenue> page;

@@ -13,6 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import york.studentevents.exceptions.VenueNotFoundException;
+import york.studentevents.exceptions.pages.IllegalPageNumberException;
+import york.studentevents.exceptions.pages.IllegalPageSizeException;
 import york.studentevents.repository.inmemory.InMemoryVenueRepository;
 
 /**
@@ -233,6 +235,21 @@ class VenueServiceTest {
     assertTrue(results.contains(second));
   }
 
+  @Test
+  void getAllVenues_throwsIllegalPageNumber_forNegativePageNumber() {
+    assertThrows(IllegalPageNumberException.class, () -> service.getAllVenues(-1, 100));
+  }
+
+  @Test
+  void getAllVenues_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllVenues(0, 0));
+  }
+
+  @Test
+  void getAllVenues_throwsIllegalPageSize_forPageSizeToLarge() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllVenues(0, 1000));
+  }
+
   // --- getVenuesByCapacity ---
 
   @Test
@@ -348,6 +365,21 @@ class VenueServiceTest {
             100, 200, 0, 100
         ).getTotalElements()
     );
+  }
+
+  @Test
+  void getAllVenuesByCapacity_throwsIllegalPageNumber_forNegativePageNumber() {
+    assertThrows(IllegalPageNumberException.class, () -> service.getAllVenuesByCapacity(null, null, -1, 100));
+  }
+
+  @Test
+  void getAllVenuesByCapacity_throwsIllegalPageSize_forZeroPageSize() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllVenuesByCapacity(null, null, 0, 0));
+  }
+
+  @Test
+  void getAllVenuesByCapacity_throwsIllegalPageSize_forPageSizeToLarge() {
+    assertThrows(IllegalPageSizeException.class, () -> service.getAllVenuesByCapacity(null, null, 0, 1000));
   }
 
   // --- deleteVenue ---
