@@ -39,6 +39,11 @@ _BACKEND_ENV_VARS = ("YSE_BRIDGE_INMEMORY", "DATABASE_URL")
 # transport/envelope behaviour rather than persisted data.
 _INMEMORY = {"YSE_BRIDGE_INMEMORY": "1"}
 
+# Ids from ``data/seed.json``: a student, and an event that student has no seeded
+# attendance record for (so recording the pair is a fresh, valid attendance).
+_SEEDED_STUDENT_ID = "20000000-0000-4000-a000-000000000004"
+_SEEDED_UNATTENDED_EVENT_ID = "40000000-0000-4000-a000-000000000005"
+
 
 def _load_responder():
     """Imports responder.py as a standalone module without running ``main``."""
@@ -310,13 +315,18 @@ class TestResponderSubprocess:
         response = json.loads(result.stdout.strip())
         assert response["status"] == "error"
 
-    def test_record_attendance_new_pair_succeeds(self):
+    # The two tests below reach the real Java responder: recording an attendance
+    # validates the event over the bridge, so the spawned Python process spawns
+    # a JVM in turn. Under ``YSE_BRIDGE_INMEMORY`` both sides load
+    # ``data/seed.json``, which is where the ids come from.
+    @pytest.mark.integration
+    def test_record_attendance_new_pair_succeeds(self, event_service_built):
         request = json.dumps(
             {
                 "requestType": "RECORD_ATTENDANCE",
                 "payload": {
-                    "userId": str(uuid.uuid4()),
-                    "eventId": str(uuid.uuid4()),
+                    "userId": _SEEDED_STUDENT_ID,
+                    "eventId": _SEEDED_UNATTENDED_EVENT_ID,
                 },
             }
         )
@@ -324,6 +334,25 @@ class TestResponderSubprocess:
         assert result.returncode == 0, result.stderr
         response = json.loads(result.stdout.strip())
         assert response == {"status": "ok", "payload": {}}
+
+    @pytest.mark.integration
+    def test_record_attendance_for_nonexistent_event_fails(
+        self, event_service_built
+    ):
+        request = json.dumps(
+            {
+                "requestType": "RECORD_ATTENDANCE",
+                "payload": {
+                    "userId": _SEEDED_STUDENT_ID,
+                    "eventId": str(uuid.uuid4()),
+                },
+            }
+        )
+        result = _run(request + "\n", env_extra=_INMEMORY)
+        assert result.returncode == 1
+        response = json.loads(result.stdout.strip())
+        assert response["status"] == "error"
+        assert "does not exist" in response["error"]
 
     def test_get_recommended_friends_empty_for_user_with_no_friends(self):
         request = json.dumps(

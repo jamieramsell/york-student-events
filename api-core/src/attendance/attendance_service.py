@@ -42,17 +42,28 @@ class AttendanceService:
             event_id: The ID of the Event.
 
         Raises:
-            ValueError: if the user's attendance to that event has already been
-                recorded.
+            ValueError: if the given Event does not exist, or if the user's
+                attendance to that event has already been recorded.
 
         See Also:
             Attendance
         """
+        # First determine whether a record of this attendance has already been
+        # stored.
         record_id = base._generate_id(attendee_id, event_id)
         existing_record = self.__attendance_repository.find_by_id(record_id)
         if existing_record is not None:
             raise ValueError("The user's attendance has already been recorded.")
 
+        # Next validate that the given event exists, by requesting its info
+        # over the bridge.
+        try:
+            bridge.get_event_info(event_id)
+        except bridge.SubprocessError as exc:
+            raise ValueError("The given Event does not exist.") from exc
+
+        # Finally, create the record and store it, before publishing the user's
+        # activity to all listeners
         attendance_record = base.Attendance(
             attendee_id,
             event_id,

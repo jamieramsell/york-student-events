@@ -15,6 +15,9 @@ repository singletons survive between tests, so state cannot leak.
 """
 
 import os
+import pathlib
+import shutil
+import subprocess
 import sys
 import typing
 
@@ -35,6 +38,44 @@ _CANNED_EVENT_INFO = {
     "start": "2026-09-15T18:00:00",
     "category": "SOCIAL",
 }
+
+_EVENT_SERVICE = pathlib.Path(__file__).resolve().parents[2] / "event-service"
+
+
+@pytest.fixture(scope="session")
+def event_service_built():
+    """Ensures event-service is built, or skips the requesting test.
+
+    Requested by every test that reaches the real Java responder -- whether it
+    spawns it directly through ``bridge.client`` or transitively, by spawning
+    ``responder.py`` on a path that calls back across the bridge.
+    """
+    from bridge import client
+
+    if shutil.which("java") is None:
+        pytest.skip("java is not on PATH")
+
+    if not client._CLASSES_DIR.is_dir() or not client._CLASSPATH_FILE.is_file():
+        mvnw = _EVENT_SERVICE / "mvnw"
+        if not mvnw.exists():
+            pytest.skip("event-service is not built and mvnw is missing")
+        result = subprocess.run(
+            [str(mvnw), "-q", "compile"],
+            cwd=_EVENT_SERVICE,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if (
+            result.returncode != 0
+            or not client._CLASSES_DIR.is_dir()
+            or not client._CLASSPATH_FILE.is_file()
+        ):
+            pytest.skip(
+                "event-service build output unavailable (is the dependency:build-classpath "
+                f"goal wired into the build?):\n{result.stdout}\n{result.stderr}"
+            )
+
 
 # Helper method to construct an SQLite engine, used instead of postgreSQL, for
 # testing purposes only.

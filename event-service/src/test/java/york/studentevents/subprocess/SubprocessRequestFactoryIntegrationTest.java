@@ -25,10 +25,11 @@ import org.junit.jupiter.api.Test;
  */
 class SubprocessRequestFactoryIntegrationTest {
 
-  // A sample user id; the in-memory backend holds no data for it, so read
-  // handlers return empty collections.
   private static final UUID USER_ID =
       UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+  private static final UUID EVENT_ID =
+      UUID.fromString("40000000-0000-4000-a000-000000000006");
 
   @BeforeEach
   void requirePython() {
@@ -77,7 +78,7 @@ class SubprocessRequestFactoryIntegrationTest {
   @Test
   void recordAttendanceForNewPairReturnsOkWithEmptyPayload() {
     JsonObject response = send(
-        SubprocessRequestFactory.buildRecordAttendance(USER_ID, UUID.randomUUID()));
+        SubprocessRequestFactory.buildRecordAttendance(USER_ID, EVENT_ID));
     assertEquals("ok", response.get("status").getAsString());
     assertEquals(0, response.getAsJsonObject("payload").size());
   }
